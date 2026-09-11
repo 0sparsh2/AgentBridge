@@ -18,3 +18,33 @@ Blocked in the current workspace:
 - Issue: dependency resolution conflict involving older LangChain/LangSmith ranges on Python 3.14
 
 The adapter code is scaffolded so it can be verified in a compatible Python environment without forcing the core SDK to install CrewAI.
+
+## Extension Config
+
+CrewAI role/task/crew mapping is configured through `CrewAIExtension`:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.crewai import CrewAIExtension
+
+agent = CrewAIExtension.with_config(
+    AgentSpec(
+        name="refund_agent",
+        instructions="Resolve refund requests.",
+        model="openai/gpt-5",
+    ),
+    role="Refund specialist",
+    goal="Resolve refund requests using support policy.",
+    backstory="Expert in billing and refund policy.",
+    task_description="Review the customer request: {input}",
+    expected_output="A refund decision with rationale.",
+    process="hierarchical",
+    allow_delegation=True,
+    memory=True,
+    human_input=True,
+)
+
+result = run_agent(agent, framework="crewai", input="Customer was double charged.")
+```
+
+This keeps CrewAI-specific concepts outside the portable `AgentSpec` while still making them first-class in the adapter plugin.

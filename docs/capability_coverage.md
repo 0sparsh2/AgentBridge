@@ -124,6 +124,28 @@ agent = PydanticAIExtension.with_config(
 
 The adapter advertises validation retries as `extension`, because retry behavior is meaningful for Pydantic AI but not identical across all frameworks.
 
+## Extension Example: CrewAI
+
+CrewAI-specific role/task/crew behavior should live under the CrewAI extension namespace:
+
+```python
+from agentbridge.extensions.crewai import CrewAIExtension
+
+agent = CrewAIExtension.with_config(
+    agent,
+    role="Refund specialist",
+    goal="Resolve refund requests using support policy.",
+    task_description="Review the customer request: {input}",
+    expected_output="A refund decision with rationale.",
+    process="hierarchical",
+    allow_delegation=True,
+    memory=True,
+    human_input=True,
+)
+```
+
+The external CrewAI plugin advertises delegation, long-term memory, and human approval as extension-level behavior because those concepts are native to CrewAI and should not be forced into the portable core model.
+
 ## Structured Output Contract
 
 SDK users can provide `AgentSpec.output_type` for runtime-native typed output. If the type exposes `model_json_schema()`, AgentBridge derives `AgentSpec.output_schema` automatically.

@@ -61,3 +61,33 @@ def test_pydantic_ai_extension_builds_serializable_config() -> None:
         "metadata": {"owner": "support"},
         "custom_output_args": {"eligible": True, "reason": "ok"},
     }
+
+
+def test_crewai_extension_builds_serializable_config() -> None:
+    config = CrewAIExtension.config(
+        role="Refund specialist",
+        goal="Resolve refund requests",
+        backstory="Expert in support policy.",
+        task_description="Review {input}",
+        expected_output="Refund decision",
+        process="hierarchical",
+        verbose=True,
+        allow_delegation=True,
+        memory=True,
+        human_input=True,
+        metadata={"owner": "support"},
+    )
+
+    assert config == {
+        "role": "Refund specialist",
+        "goal": "Resolve refund requests",
+        "backstory": "Expert in support policy.",
+        "task_description": "Review {input}",
+        "expected_output": "Refund decision",
+        "process": "hierarchical",
+        "verbose": True,
+        "allow_delegation": True,
+        "memory": True,
+        "human_input": True,
+        "metadata": {"owner": "support"},
+    }

@@ -127,6 +127,7 @@ Current status:
 - Plugin scaffold exists at [plugins/agentbridge-crewai](../plugins/agentbridge-crewai).
 - The adapter package should own its own dependency constraints.
 - The core package reports CrewAI as an external plugin target, not a built-in backend.
+- `CrewAIExtension.config()` maps role, goal, backstory, task description, expected output, process, delegation, memory, and human input into the external plugin.
 
 Before CrewAI can be called supported:
 
@@ -134,6 +135,31 @@ Before CrewAI can be called supported:
 - Add compile tests for agent, task, and crew mapping.
 - Add a contract test using the same refund agent as other backends.
 - Document which CrewAI features are core, extension, or native-only.
+
+Example:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.crewai import CrewAIExtension
+
+agent = CrewAIExtension.with_config(
+    AgentSpec(
+        name="refund_agent",
+        instructions="Resolve refund requests.",
+        model="openai/gpt-5",
+    ),
+    role="Refund specialist",
+    goal="Resolve refund requests using support policy.",
+    task_description="Review the customer request: {input}",
+    expected_output="A refund decision with rationale.",
+    process="hierarchical",
+    allow_delegation=True,
+    memory=True,
+    human_input=True,
+)
+
+result = run_agent(agent, framework="crewai", input="Customer was double charged.")
+```
 
 ## Capability Declaration
 

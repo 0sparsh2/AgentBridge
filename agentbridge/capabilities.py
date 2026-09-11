@@ -98,6 +98,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can represent role/task/crew-style orchestration.",
     ),
     CapabilityFeature(
+        key="workflow.delegation",
+        category="Workflow",
+        label="Delegation",
+        description="Backend can delegate work between roles, agents, or crews.",
+    ),
+    CapabilityFeature(
         key="state.session",
         category="State",
         label="Session state",
@@ -108,6 +114,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         category="State",
         label="Checkpointing",
         description="Backend can checkpoint and resume execution state.",
+    ),
+    CapabilityFeature(
+        key="memory.long_term",
+        category="State",
+        label="Long-term memory",
+        description="Backend can use durable or long-term memory features.",
     ),
     CapabilityFeature(
         key="streaming.events",
