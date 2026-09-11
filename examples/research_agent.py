@@ -18,5 +18,5 @@ agent = AgentSpec(
     tools=[ToolSpec.from_function(web_search)],
 )
 
-for event in stream_agent(agent, backend="mock", input="agent framework interoperability"):
+for event in stream_agent(agent, framework="mock", input="agent framework interoperability"):
     print(event.model_dump())

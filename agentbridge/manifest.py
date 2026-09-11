@@ -25,6 +25,7 @@ class AgentManifest(BaseModel):
     name: str = Field(min_length=1)
     instructions: str = Field(min_length=1)
     model: str = Field(min_length=1)
+    output_schema: dict[str, Any] | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     backend_config: dict[str, Any] = Field(default_factory=dict)
     tools: list[ManifestTool] = Field(default_factory=list)
@@ -54,6 +55,7 @@ class AgentManifest(BaseModel):
             instructions=self.instructions,
             model=self.model,
             tools=resolved_tools,
+            output_schema=self.output_schema,
             metadata=self.metadata,
             backend_config=self.backend_config,
         )

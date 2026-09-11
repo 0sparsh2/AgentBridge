@@ -2,6 +2,22 @@
 
 AgentBridge is a compatibility layer between application code and agent frameworks. It does not host agents, replace model providers, or implement every backend feature as a common denominator. It defines a stable core model, discovers an adapter, then lets that adapter translate into native framework behavior.
 
+## Terminology
+
+- Framework: The user-facing runtime choice, such as `langgraph`, `pydantic_ai`, or `crewai`.
+- Backend adapter: The implementation object that translates AgentBridge types into a framework's native API.
+- Capability: A feature a framework adapter advertises as `full`, `partial`, `extension`, `native_only`, or `unsupported`.
+- Extension: Backend-specific AgentBridge API surface for framework nuances that should not be forced into the common core.
+- Raw escape hatch: Native framework objects preserved for advanced users who need the full underlying runtime.
+
+In SDK code, prefer `framework=`:
+
+```python
+run_agent(agent, framework="langgraph", input="Check refund eligibility")
+```
+
+`backend=` remains supported as a lower-level adapter alias and is still used by CLI inspection commands.
+
 ## System Context
 
 ```mermaid
@@ -72,6 +88,7 @@ sequenceDiagram
 
 - `AgentSpec`: Framework-neutral agent definition.
 - `ToolSpec`: Python callable wrapper with JSON-schema-like input metadata.
+- `output_type` / `output_schema`: Optional structured-output contract for typed SDK runs and serializable manifests.
 - `RunInput`: Input text plus context, metadata, and session id.
 - `AgentEvent`: Normalized event for messages, tool calls, tool results, errors, and completion.
 - `RunResult`: Normalized result with output, backend, events, usage, metadata, and raw backend result.
@@ -86,6 +103,8 @@ classDiagram
         instructions
         model
         tools
+        output_type
+        output_schema
         metadata
         backend_options
     }

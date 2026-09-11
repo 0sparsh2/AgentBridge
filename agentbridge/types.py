@@ -6,9 +6,9 @@ import inspect
 from collections.abc import Callable
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator, model_validator
 
-EventType = Literal["message", "tool_call", "tool_result", "error", "complete"]
+EventType = Literal["message", "tool_call", "tool_result", "workflow", "error", "complete"]
 CapabilityStatus = Literal["full", "partial", "extension", "native_only", "unsupported"]
 
 
@@ -104,10 +104,14 @@ class ToolSpec(BaseModel):
 class AgentSpec(BaseModel):
     """A framework-neutral definition of an agent."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     name: str = Field(min_length=1)
     instructions: str = Field(min_length=1)
     model: str = Field(min_length=1)
     tools: list[ToolSpec] = Field(default_factory=list)
+    output_type: Any | None = Field(default=None, exclude=True, repr=False)
+    output_schema: dict[str, Any] | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     backend_config: dict[str, Any] = Field(default_factory=dict)
 
@@ -117,6 +121,12 @@ class AgentSpec(BaseModel):
         if not value.strip():
             raise ValueError("value cannot be blank")
         return value
+
+    @model_validator(mode="after")
+    def _derive_output_schema(self) -> "AgentSpec":
+        if self.output_schema is None and hasattr(self.output_type, "model_json_schema"):
+            self.output_schema = self.output_type.model_json_schema()
+        return self
 
 
 class BackendCapabilities(BaseModel):

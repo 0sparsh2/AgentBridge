@@ -21,6 +21,8 @@ The first wedge is migration: teams can prototype in a high-level framework, val
 
 AgentBridge is not trying to hide every framework-specific strength behind a tiny wrapper. The long-term design is capability-aware: common features stay in the core API, advanced features are declared through backend capabilities, and native framework objects remain available as escape hatches.
 
+User code chooses a `framework` such as `langgraph` or `pydantic_ai`. Internally, AgentBridge resolves that framework to a backend adapter. Framework-specific nuance grows through capability metadata, extension namespaces, and raw native escape hatches.
+
 ## Status
 
 This is an MVP foundation, not a production-stable release. The repo is useful today for exploring the abstraction, writing adapter contracts, testing migration stories, and validating whether a shared app-to-agent layer is worth pursuing.
@@ -78,7 +80,7 @@ agent = AgentSpec(
 
 result = run_agent(
     agent,
-    backend="mock",
+    framework="mock",
     input="Customer says order A123 was double charged.",
 )
 
@@ -86,11 +88,13 @@ print(result.output)
 print(result.backend)
 ```
 
-The same `AgentSpec` can be sent to another backend once that backend's optional dependency is installed:
+The same `AgentSpec` can be sent to another framework once that framework adapter's optional dependency is installed:
 
 ```python
-result = run_agent(agent, backend="langgraph", input="Check refund eligibility.")
+result = run_agent(agent, framework="langgraph", input="Check refund eligibility.")
 ```
+
+`framework=` is the user-facing way to choose the runtime. `backend=` remains supported as a lower-level adapter alias for compatibility.
 
 Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthropic/claude-sonnet`, or `google/gemini`. AgentBridge does not build a custom model-provider abstraction in v0.
 
@@ -105,7 +109,7 @@ agent = AgentSpec(
     model="openai/gpt-5",
 )
 
-for event in stream_agent(agent, backend="mock", input="Summarize AgentBridge"):
+for event in stream_agent(agent, framework="mock", input="Summarize AgentBridge"):
     print(event.type, event.data)
 ```
 
@@ -116,6 +120,30 @@ from agentbridge.agui import to_agui_event
 
 agui_event = to_agui_event(event)
 ```
+
+## Structured Output
+
+SDK users can attach a Pydantic model as `output_type`. Backends that support structured output, such as `pydantic_ai`, can use it natively.
+
+```python
+from pydantic import BaseModel
+from agentbridge import AgentSpec
+
+
+class RefundDecision(BaseModel):
+    eligible: bool
+    reason: str
+
+
+agent = AgentSpec(
+    name="refund_decision_agent",
+    instructions="Return a refund decision.",
+    model="openai/gpt-5",
+    output_type=RefundDecision,
+)
+```
+
+AgentBridge derives a serializable `output_schema` from Pydantic models. Static manifests can declare `output_schema` directly; validation and comparison commands then require the `structured_output` capability automatically.
 
 ## Manifest Quickstart
 
@@ -160,10 +188,15 @@ Static manifests do not deserialize arbitrary Python functions. Tool names resol
 agentbridge list-backends
 agentbridge inspect-backend langgraph --json
 agentbridge run --manifest examples/refund_agent.yaml --backend mock --input "Customer was double charged" --json
+agentbridge run --manifest examples/refund_agent.yaml --backend mock --tool-registry my_app.tools:build_registry --input "Customer was double charged"
 agentbridge compare --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
+agentbridge capability-matrix --markdown
+agentbridge conformance --backend mock --json
+agentbridge extensions --json
 agentbridge versions --json
 agentbridge plugins --json
+agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
 ```
 
 See [docs/cli.md](docs/cli.md) for command details.
@@ -230,9 +263,24 @@ custom = "my_package.adapter:Adapter"
 
 See [docs/plugin_authoring.md](docs/plugin_authoring.md) for the full plugin contract and [plugins/agentbridge-crewai](plugins/agentbridge-crewai) for the CrewAI scaffold.
 
+To create a new adapter plugin skeleton:
+
+```bash
+agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
+```
+
+The generated package includes `pyproject.toml`, an adapter class, a README, and a starter test.
+
+Adapter authors can run a lightweight contract check:
+
+```bash
+agentbridge conformance --backend custom
+```
+
 ## Documentation Map
 
 - [docs/index.md](docs/index.md): Documentation navigation.
+- [docs/vision.md](docs/vision.md): Final target, product goals, plugin families, and long-term ecosystem map.
 - [docs/requirements.md](docs/requirements.md): Product requirements, target users, non-goals, and success criteria.
 - [docs/research.md](docs/research.md): Research notes comparing AG-UI, LiteLLM, LangGraph, CrewAI, and Pydantic AI.
 - [docs/architecture.md](docs/architecture.md): SDK architecture, adapter model, data flow, and diagrams.

@@ -10,11 +10,54 @@ CrewAI is intentionally kept outside the core `agentbridge` package because the 
 pip install -e plugins/agentbridge-crewai
 ```
 
+## Verify Package
+
+The plugin is designed to be built and checked separately from the core package:
+
+```bash
+python -m pip install build twine
+python -m build plugins/agentbridge-crewai --outdir dist-crewai
+python -m twine check dist-crewai/*
+```
+
+CI runs this package build on supported Python versions.
+
 ## Status
 
 Blocked in the current workspace:
 
 - Adopted range: `crewai>=0.11.2,<0.12`
 - Issue: dependency resolution conflict involving older LangChain/LangSmith ranges on Python 3.14
+- Plugin Python range: `>=3.10,<3.14`
 
 The adapter code is scaffolded so it can be verified in a compatible Python environment without forcing the core SDK to install CrewAI.
+
+## Extension Config
+
+CrewAI role/task/crew mapping is configured through `CrewAIExtension`:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.crewai import CrewAIExtension
+
+agent = CrewAIExtension.with_config(
+    AgentSpec(
+        name="refund_agent",
+        instructions="Resolve refund requests.",
+        model="openai/gpt-5",
+    ),
+    role="Refund specialist",
+    goal="Resolve refund requests using support policy.",
+    backstory="Expert in billing and refund policy.",
+    task_description="Review the customer request: {input}",
+    expected_output="A refund decision with rationale.",
+    process="hierarchical",
+    allow_delegation=True,
+    memory=True,
+    human_input=True,
+)
+
+result = run_agent(agent, framework="crewai", input="Customer was double charged.")
+```
+
+This keeps CrewAI-specific concepts outside the portable `AgentSpec` while still making them first-class in the adapter plugin.

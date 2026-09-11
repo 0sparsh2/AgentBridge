@@ -7,6 +7,7 @@ from typing import Any
 
 from agentbridge.adapters.base import BackendAdapter
 from agentbridge.errors import MissingDependencyError
+from agentbridge.extensions.pydantic_ai import PydanticAIConfig
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
 
 
@@ -14,6 +15,7 @@ from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInp
 class PydanticAICompiledAgent:
     spec: AgentSpec
     agent: Any
+    config: PydanticAIConfig
 
 
 class PydanticAIAdapter(BackendAdapter):
@@ -30,6 +32,7 @@ class PydanticAIAdapter(BackendAdapter):
                 "tools.sync": "full",
                 "tools.async": "partial",
                 "structured_output": "full",
+                "structured_output.validation_retries": "extension",
                 "workflow.graph": "unsupported",
                 "workflow.roles_tasks": "unsupported",
                 "state.session": "partial",
@@ -40,6 +43,7 @@ class PydanticAIAdapter(BackendAdapter):
             },
             notes={
                 "structured_output": "Typed outputs are a natural Pydantic AI strength.",
+                "structured_output.validation_retries": "Configure through PydanticAIExtension.config(retries=...).",
                 "tools.async": "Native support exists, but AgentBridge ToolSpec is sync-first today.",
                 "streaming.events": "Current adapter normalizes final events; richer streaming is planned.",
             },
@@ -51,11 +55,21 @@ class PydanticAIAdapter(BackendAdapter):
         except ImportError as exc:  # pragma: no cover - depends on optional package
             raise MissingDependencyError(self.backend_name, "pydantic-ai-slim", "pydantic-ai") from exc
 
-        model = self._resolve_model(spec)
-        agent = Agent(model=model, instructions=spec.instructions, name=spec.name, defer_model_check=True)
+        config = PydanticAIConfig.model_validate(spec.backend_config.get("pydantic_ai", {}))
+        model = self._resolve_model(spec, config)
+        agent = Agent(
+            model=model,
+            output_type=spec.output_type or str,
+            instructions=spec.instructions,
+            name=spec.name,
+            retries=config.retries,
+            metadata=config.metadata or None,
+            tool_timeout=config.tool_timeout,
+            defer_model_check=True,
+        )
         for tool in spec.tools:
             agent.tool_plain(tool.handler, name=tool.name, description=tool.description)
-        return PydanticAICompiledAgent(spec=spec, agent=agent)
+        return PydanticAICompiledAgent(spec=spec, agent=agent, config=config)
 
     def run(self, compiled: PydanticAICompiledAgent, run_input: RunInput) -> RunResult:
         raw = compiled.agent.run_sync(run_input.input)
@@ -64,9 +78,21 @@ class PydanticAIAdapter(BackendAdapter):
             output = getattr(raw, "data", raw)
         events = self._events_from_raw(raw, output)
         usage = self._usage_from_raw(raw)
-        return RunResult(output=output, backend=self.backend_name, events=events, usage=usage, raw=raw)
+        metadata = {
+            "retries": compiled.config.retries,
+            "tool_timeout": compiled.config.tool_timeout,
+            "extension_metadata": compiled.config.metadata,
+        }
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            usage=usage,
+            metadata=metadata,
+            raw=raw,
+        )
 
-    def _resolve_model(self, spec: AgentSpec) -> Any:
+    def _resolve_model(self, spec: AgentSpec, config: PydanticAIConfig) -> Any:
         if spec.model != "test":
             return _to_pydantic_ai_model_name(spec.model)
 
@@ -76,8 +102,12 @@ class PydanticAIAdapter(BackendAdapter):
             raise MissingDependencyError(self.backend_name, "pydantic-ai-slim", "pydantic-ai") from exc
 
         return TestModel(
-            custom_output_text=spec.backend_config.get("custom_output_text"),
-            custom_output_args=spec.backend_config.get("custom_output_args"),
+            custom_output_text=config.custom_output_text or spec.backend_config.get("custom_output_text"),
+            custom_output_args=(
+                config.custom_output_args
+                if config.custom_output_args is not None
+                else spec.backend_config.get("custom_output_args")
+            ),
         )
 
     def _events_from_raw(self, raw: Any, output: Any) -> list[AgentEvent]:

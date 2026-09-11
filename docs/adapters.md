@@ -45,14 +45,42 @@ Current focus:
 - Execute deterministic tool-backed flows in local tests.
 - Normalize graph outputs into `RunResult`.
 - Preserve native raw objects for deeper graph behavior.
+- Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, in-memory checkpointing, and context-based conditional routing.
 
 Next areas:
 
-- Checkpointing and resume.
 - Conditional routing.
 - Richer graph state.
 - Tool-call lifecycle streaming.
 - Human-in-the-loop interrupts.
+
+Example:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.langgraph import LangGraphExtension
+
+agent = LangGraphExtension.with_config(
+    AgentSpec(
+        name="refund_agent",
+        instructions="Check refund eligibility.",
+        model="openai/gpt-5",
+    ),
+    node_name="refund_node",
+    graph_name="refund_graph",
+    include_context_in_output=True,
+    enable_checkpointing=True,
+    route_on_context_key="intent",
+    routes={"refund": "refund_node", "billing": "billing_node"},
+)
+
+result = run_agent(
+    agent,
+    framework="langgraph",
+    input="Check order A123",
+    session_id="customer-123",
+)
+```
 
 ## `pydantic_ai`
 
@@ -63,13 +91,34 @@ Current focus:
 - Compile `AgentSpec` into a Pydantic AI agent path.
 - Keep dependency footprint lower with `pydantic-ai-slim`.
 - Test offline using Pydantic AI test utilities where possible.
+- Map `AgentSpec.output_type` to Pydantic AI's native `output_type`.
+- Support `PydanticAIExtension.config()` for retries, tool timeout, metadata, and offline test-model output controls.
 
 Next areas:
 
-- First-class structured output on `AgentSpec`.
 - Pydantic model output schemas.
-- Validation retry behavior.
 - Typed tool argument mapping.
+
+Example:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.pydantic_ai import PydanticAIExtension
+
+agent = PydanticAIExtension.with_config(
+    AgentSpec(
+        name="refund_decision_agent",
+        instructions="Return a typed refund decision.",
+        model="openai/gpt-5",
+        output_type=RefundDecision,
+    ),
+    retries=2,
+    tool_timeout=5,
+    metadata={"owner": "support"},
+)
+
+result = run_agent(agent, framework="pydantic_ai", input="Customer was double charged.")
+```
 
 ## `crewai`
 
@@ -80,6 +129,7 @@ Current status:
 - Plugin scaffold exists at [plugins/agentbridge-crewai](../plugins/agentbridge-crewai).
 - The adapter package should own its own dependency constraints.
 - The core package reports CrewAI as an external plugin target, not a built-in backend.
+- `CrewAIExtension.config()` maps role, goal, backstory, task description, expected output, process, delegation, memory, and human input into the external plugin.
 
 Before CrewAI can be called supported:
 
@@ -87,6 +137,31 @@ Before CrewAI can be called supported:
 - Add compile tests for agent, task, and crew mapping.
 - Add a contract test using the same refund agent as other backends.
 - Document which CrewAI features are core, extension, or native-only.
+
+Example:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.crewai import CrewAIExtension
+
+agent = CrewAIExtension.with_config(
+    AgentSpec(
+        name="refund_agent",
+        instructions="Resolve refund requests.",
+        model="openai/gpt-5",
+    ),
+    role="Refund specialist",
+    goal="Resolve refund requests using support policy.",
+    task_description="Review the customer request: {input}",
+    expected_output="A refund decision with rationale.",
+    process="hierarchical",
+    allow_delegation=True,
+    memory=True,
+    human_input=True,
+)
+
+result = run_agent(agent, framework="crewai", input="Customer was double charged.")
+```
 
 ## Capability Declaration
 
@@ -102,11 +177,33 @@ Recommended status values:
 
 See [capability_coverage.md](capability_coverage.md) for the long-term coverage model.
 
+## Extension Namespaces
+
+Framework-specific nuance belongs in extension namespaces when it is useful but not portable enough for the common `AgentSpec`.
+
+Initial namespaces:
+
+| Namespace | Intended Nuance |
+| --- | --- |
+| `agentbridge.extensions.langgraph` | Checkpointing, resume, conditional routing, graph state helpers. |
+| `agentbridge.extensions.pydantic_ai` | Validation retries, dependency injection, typed output helpers. |
+| `agentbridge.extensions.crewai` | Crews, roles, tasks, delegation helpers. |
+
+Extensions should preserve the native framework's mental model. They are the main path for adopting every framework's nuance without bloating the portable core.
+
+Inspect available extension namespaces with:
+
+```bash
+agentbridge extensions
+agentbridge extensions langgraph --json
+```
+
 ## Adding A New Adapter
 
 1. Start as an external plugin unless the dependency tree is clearly core-friendly.
-2. Implement `BackendAdapter.compile()`, `run()`, and `stream()`.
-3. Add capability metadata before exposing the adapter publicly.
-4. Add a contract test using a shared example agent.
-5. Update [version_policy.md](version_policy.md) with adopted and verified versions.
-6. Update this guide with strengths, limits, and native escape hatches.
+2. Generate the starter package with `agentbridge scaffold-plugin ./plugins/agentbridge-my-framework --backend my_framework`.
+3. Implement `BackendAdapter.compile()`, `run()`, and `stream()`.
+4. Add capability metadata before exposing the adapter publicly.
+5. Add a contract test using a shared example agent.
+6. Update [version_policy.md](version_policy.md) with adopted and verified versions.
+7. Update this guide with strengths, limits, and native escape hatches.

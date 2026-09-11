@@ -5,14 +5,17 @@ Use this page as the navigation map for the repository.
 ## Start Here
 
 - [README](../README.md): Public project overview, quickstarts, architecture summary, and development workflow.
+- [Vision And Target State](vision.md): Final target, goals, plugin families, and long-term ecosystem map.
 - [Requirements](requirements.md): Product requirements, target users, non-goals, success criteria, and acceptance criteria.
 - [Roadmap](roadmap.md): v0, v0.1, and v1 milestones.
 
 ## Product And Research
 
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
+- [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Google ADK, and Strands.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
 - [Version Policy](version_policy.md): Adopted package ranges, verified local versions, and adapter version rules.
+- [Release Workflow](release.md): Package build checks, tag workflow, and future PyPI publishing path.
 
 ## Engineering
 
@@ -24,7 +27,7 @@ Use this page as the navigation map for the repository.
 
 ## Examples
 
-- [examples/refund_agent.py](../examples/refund_agent.py): Same agent spec against selectable backends.
+- [examples/refund_agent.py](../examples/refund_agent.py): Same agent spec against selectable framework adapters.
 - [examples/research_agent.py](../examples/research_agent.py): Tool use and streaming event demo.
 - [examples/agui_events.py](../examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.

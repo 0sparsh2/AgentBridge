@@ -10,6 +10,17 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "AgentBridge contributors" }]
+keywords = ["agents", "langgraph", "pydantic-ai", "crewai", "agent-frameworks"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
   "pydantic>=2.13,<3",
   "litellm>=1.100,<2",
@@ -27,8 +38,16 @@ all = [
   "pydantic-ai-slim>=2.42,<3",
 ]
 dev = [
+  "build>=1.2",
   "pytest>=8.0",
+  "twine>=5.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/0sparsh2/agent-framework-connector"
+Repository = "https://github.com/0sparsh2/agent-framework-connector"
+Issues = "https://github.com/0sparsh2/agent-framework-connector/issues"
+Documentation = "https://github.com/0sparsh2/agent-framework-connector/tree/main/docs"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

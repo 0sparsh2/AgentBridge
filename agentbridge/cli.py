@@ -8,11 +8,16 @@ import sys
 from typing import Any
 
 from agentbridge.builtin_tools import build_builtin_tool_registry
+from agentbridge.capabilities import capability_matrix
+from agentbridge.conformance import run_conformance
 from agentbridge.compare import compare_backends
+from agentbridge.extensions import extension_profile, extension_profiles
 from agentbridge.manifest import load_agent_spec, load_manifest
 from agentbridge.plugins import plugin_status
 from agentbridge.registry import adapter_sources, inspect_backend, inspect_backends, list_adapters
 from agentbridge.runner import run_agent, stream_agent
+from agentbridge.scaffold import scaffold_adapter_plugin
+from agentbridge.tool_registry import load_tool_registry
 from agentbridge.validation import validate_manifest
 from agentbridge.versioning import dependency_versions
 
@@ -34,6 +39,10 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--manifest", required=True, help="Path to a JSON/YAML agent manifest.")
     run_parser.add_argument("--backend", required=True, help="Backend adapter name.")
     run_parser.add_argument("--input", required=True, help="Input text for the run.")
+    run_parser.add_argument(
+        "--tool-registry",
+        help="Explicit tool registry reference in module:attribute format.",
+    )
     run_parser.add_argument("--stream", action="store_true", help="Stream normalized events.")
     run_parser.add_argument("--json", action="store_true", help="Emit JSON.")
 
@@ -56,6 +65,10 @@ def main(argv: list[str] | None = None) -> int:
     validate_parser = subparsers.add_parser("validate", help="Validate a manifest before running.")
     validate_parser.add_argument("--manifest", required=True, help="Path to a JSON/YAML agent manifest.")
     validate_parser.add_argument(
+        "--tool-registry",
+        help="Explicit tool registry reference in module:attribute format.",
+    )
+    validate_parser.add_argument(
         "--backend",
         action="append",
         dest="backends",
@@ -68,6 +81,62 @@ def main(argv: list[str] | None = None) -> int:
         help="Show adapter plugin load status.",
     )
     plugins_parser.add_argument("--json", action="store_true", help="Emit JSON.")
+
+    matrix_parser = subparsers.add_parser(
+        "capability-matrix",
+        help="Show backend support across canonical AgentBridge capabilities.",
+    )
+    matrix_parser.add_argument(
+        "--backend",
+        action="append",
+        dest="backends",
+        help="Backend to include. Repeat to compare a subset.",
+    )
+    matrix_parser.add_argument(
+        "--include-unknown",
+        action="store_true",
+        help="Include adapter-reported features not yet in the canonical taxonomy.",
+    )
+    matrix_format = matrix_parser.add_mutually_exclusive_group()
+    matrix_format.add_argument("--json", action="store_true", help="Emit JSON.")
+    matrix_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
+
+    conformance_parser = subparsers.add_parser(
+        "conformance",
+        help="Run lightweight adapter conformance checks.",
+    )
+    conformance_parser.add_argument(
+        "--backend",
+        action="append",
+        dest="backends",
+        help="Backend to include. Repeat to test a subset.",
+    )
+    conformance_parser.add_argument("--json", action="store_true", help="Emit JSON.")
+
+    extensions_parser = subparsers.add_parser(
+        "extensions",
+        help="List framework-specific extension namespaces and config schemas.",
+    )
+    extensions_parser.add_argument("framework", nargs="?", help="Framework extension to inspect.")
+    extensions_parser.add_argument("--json", action="store_true", help="Emit JSON.")
+
+    scaffold_parser = subparsers.add_parser(
+        "scaffold-plugin",
+        help="Create a starter external adapter plugin package.",
+    )
+    scaffold_parser.add_argument("target_dir", help="Directory where the plugin package is created.")
+    scaffold_parser.add_argument("--backend", required=True, help="Backend name, for example google_adk.")
+    scaffold_parser.add_argument(
+        "--package",
+        dest="package_name",
+        help="Python package name. Defaults to agentbridge_<backend>.",
+    )
+    scaffold_parser.add_argument(
+        "--distribution",
+        dest="distribution_name",
+        help="Python distribution name. Defaults to package name with hyphens.",
+    )
+    scaffold_parser.add_argument("--force", action="store_true", help="Overwrite generated files.")
 
     args = parser.parse_args(argv)
 
@@ -94,7 +163,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "run":
-            agent = load_agent_spec(args.manifest, tool_registry=build_builtin_tool_registry())
+            tool_registry = _load_cli_tool_registry(args.tool_registry)
+            agent = load_agent_spec(args.manifest, tool_registry=tool_registry)
             if args.stream:
                 events = [
                     event.model_dump()
@@ -140,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
             manifest = load_manifest(args.manifest)
             validation = validate_manifest(
                 manifest,
-                tool_registry=build_builtin_tool_registry(),
+                tool_registry=_load_cli_tool_registry(args.tool_registry),
                 backends=args.backends,
             )
             payload = validation.model_dump()
@@ -156,6 +226,52 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(payload, indent=2, sort_keys=True))
             else:
                 _print_plugins(payload)
+            return 0
+
+        if args.command == "capability-matrix":
+            matrix = capability_matrix(
+                backends=args.backends,
+                include_unknown=args.include_unknown,
+            )
+            if args.json:
+                print(matrix.model_dump_json(indent=2))
+            elif args.markdown:
+                print(matrix.as_markdown())
+            else:
+                _print_capability_matrix(matrix.model_dump())
+            return 0
+
+        if args.command == "conformance":
+            reports = run_conformance(backends=args.backends)
+            payload = [report.as_dict() for report in reports]
+            if args.json:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            else:
+                _print_conformance(payload)
+            return 0 if all(report["passed"] for report in payload) else 1
+
+        if args.command == "extensions":
+            if args.framework:
+                profiles = [extension_profile(args.framework)]
+            else:
+                profiles = extension_profiles()
+            payload = [profile.model_dump() for profile in profiles]
+            if args.json:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            else:
+                _print_extensions(payload)
+            return 0
+
+        if args.command == "scaffold-plugin":
+            created = scaffold_adapter_plugin(
+                args.target_dir,
+                backend_name=args.backend,
+                package_name=args.package_name,
+                distribution_name=args.distribution_name,
+                force=args.force,
+            )
+            for item in created:
+                print(item.path)
             return 0
 
     except Exception as exc:
@@ -175,6 +291,12 @@ def _print_capabilities(payload: Any) -> None:
         _print_one_capability(payload[backend])
 
 
+def _load_cli_tool_registry(reference: str | None) -> Any:
+    if reference:
+        return load_tool_registry(reference)
+    return build_builtin_tool_registry()
+
+
 def _print_one_capability(capability: dict[str, Any]) -> None:
     print(capability["backend"])
     for feature, status in sorted(capability["features"].items()):
@@ -189,6 +311,8 @@ def _required_features_from_manifest(manifest: Any) -> list[str]:
     required_features = list(manifest.required_capabilities)
     if manifest.tools and "tools.sync" not in required_features:
         required_features.append("tools.sync")
+    if manifest.output_schema and "structured_output" not in required_features:
+        required_features.append("structured_output")
     if "agent.instructions" not in required_features:
         required_features.append("agent.instructions")
     return required_features
@@ -233,6 +357,43 @@ def _print_plugins(payload: list[dict[str, Any]]) -> None:
         replaced = " replaced" if result.get("replaced") else ""
         error = f" ({result['error']})" if result.get("error") else ""
         print(f"{result['source']}:{result['name']} {status}{backend}{replaced}{error}")
+
+
+def _print_capability_matrix(payload: dict[str, Any]) -> None:
+    backends = payload["backends"]
+    print(f"backends: {', '.join(backends)}")
+    current_category = None
+    for row in payload["rows"]:
+        feature = row["feature"]
+        if feature["category"] != current_category:
+            current_category = feature["category"]
+            print(f"\n{current_category}")
+        statuses = ", ".join(
+            f"{backend}={row['support'].get(backend, 'unsupported')}" for backend in backends
+        )
+        print(f"  {feature['key']}: {statuses}")
+
+
+def _print_conformance(payload: list[dict[str, Any]]) -> None:
+    for report in payload:
+        status = "passed" if report["passed"] else "failed"
+        print(f"{report['backend']}: {status}")
+        for check in report["checks"]:
+            if check["skipped"]:
+                check_status = "skipped"
+            else:
+                check_status = "passed" if check["passed"] else "failed"
+            print(f"  {check['name']}: {check_status} - {check['message']}")
+
+
+def _print_extensions(payload: list[dict[str, Any]]) -> None:
+    for profile in payload:
+        print(f"{profile['framework']}: {profile['status']}")
+        print(f"  module: {profile['module']}")
+        print(f"  config: {profile['config_model']}")
+        print(f"  capabilities: {', '.join(profile['capabilities'])}")
+        for note in profile["notes"]:
+            print(f"  note: {note}")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Run the same refund agent against any AgentBridge backend."""
+"""Run the same refund agent against any AgentBridge framework adapter."""
 
 from __future__ import annotations
 
@@ -33,11 +33,11 @@ def build_agent() -> AgentSpec:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--backend", default="mock", choices=["mock", "pydantic_ai", "crewai", "langgraph"])
+    parser.add_argument("--framework", default="mock", choices=["mock", "pydantic_ai", "crewai", "langgraph"])
     parser.add_argument("--input", default="Customer says order A123 was double charged.")
     args = parser.parse_args()
 
-    result = run_agent(build_agent(), backend=args.backend, input=args.input)
+    result = run_agent(build_agent(), framework=args.framework, input=args.input)
     print(result.model_dump_json(indent=2))
 
 
