@@ -145,6 +145,8 @@ These plugins run `AgentSpec` on an agent framework.
 
 This table is not final. It is the known target universe we should keep expanding as frameworks emerge.
 
+See [Adapter Target Research](adapter_target_research.md) for the current adapter priority plan and implementation notes for OpenAI Agents SDK, Google ADK, and Strands.
+
 ### Tool Ecosystem Plugins
 
 These plugins standardize tool sources rather than complete agent runtimes.
