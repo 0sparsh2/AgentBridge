@@ -1,0 +1,39 @@
+from __future__ import annotations
+
+import pytest
+
+from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter
+from agentbridge.errors import MissingDependencyError
+
+
+def lookup_order(order_id: str) -> str:
+    """Look up an order."""
+
+    return f"found:{order_id}"
+
+
+def test_langgraph_adapter_executes_tools_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = AgentSpec(
+        name="refund_agent",
+        instructions="Check refunds.",
+        model="openai/gpt-5",
+        tools=[ToolSpec.from_function(lookup_order)],
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    result = adapter.run(compiled, run_input=RunInput(input="A123"))
+
+    assert result.backend == "langgraph"
+    assert result.output["tools"][0]["name"] == "lookup_order"
+    assert result.output["tools"][0]["result"] == "found:A123"
+    assert [event.type for event in result.events] == [
+        "message",
+        "tool_call",
+        "tool_result",
+        "complete",
+    ]

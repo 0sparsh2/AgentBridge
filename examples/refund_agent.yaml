@@ -1,0 +1,11 @@
+name: refund_agent
+instructions: Decide whether a customer is eligible for a refund.
+model: openai/gpt-5
+tools:
+  - name: lookup_order
+required_capabilities:
+  - tools.sync
+  - streaming.events
+metadata:
+  owner: support
+  example: true

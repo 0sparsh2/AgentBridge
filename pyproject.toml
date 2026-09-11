@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentbridge"
+version = "0.1.0"
+description = "Define an agent once and run it across multiple agent frameworks."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "AgentBridge contributors" }]
+dependencies = [
+  "pydantic>=2.13,<3",
+  "litellm>=1.100,<2",
+  "pyyaml>=6,<7",
+]
+
+[project.scripts]
+agentbridge = "agentbridge.cli:main"
+
+[project.optional-dependencies]
+langgraph = ["langgraph>=1.2.11,<2"]
+pydantic-ai = ["pydantic-ai-slim>=2.42,<3"]
+all = [
+  "langgraph>=1.2.11,<2",
+  "pydantic-ai-slim>=2.42,<3",
+]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
