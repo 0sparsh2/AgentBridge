@@ -2,6 +2,22 @@
 
 AgentBridge is a compatibility layer between application code and agent frameworks. It does not host agents, replace model providers, or implement every backend feature as a common denominator. It defines a stable core model, discovers an adapter, then lets that adapter translate into native framework behavior.
 
+## Terminology
+
+- Framework: The user-facing runtime choice, such as `langgraph`, `pydantic_ai`, or `crewai`.
+- Backend adapter: The implementation object that translates AgentBridge types into a framework's native API.
+- Capability: A feature a framework adapter advertises as `full`, `partial`, `extension`, `native_only`, or `unsupported`.
+- Extension: Backend-specific AgentBridge API surface for framework nuances that should not be forced into the common core.
+- Raw escape hatch: Native framework objects preserved for advanced users who need the full underlying runtime.
+
+In SDK code, prefer `framework=`:
+
+```python
+run_agent(agent, framework="langgraph", input="Check refund eligibility")
+```
+
+`backend=` remains supported as a lower-level adapter alias and is still used by CLI inspection commands.
+
 ## System Context
 
 ```mermaid

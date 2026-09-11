@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from agentbridge import AgentSpec, ToolSpec, run_agent, stream_agent
 
 
@@ -25,9 +27,25 @@ def test_mock_backend_runs_agent_with_tool() -> None:
     assert result.events[-1].type == "complete"
 
 
+def test_mock_backend_runs_agent_with_framework_alias() -> None:
+    agent = AgentSpec(name="plain_agent", instructions="Reply.", model="openai/gpt-5")
+
+    result = run_agent(agent, framework="mock", input="hello")
+
+    assert result.backend == "mock"
+    assert result.output["agent"] == "plain_agent"
+
+
+def test_run_agent_rejects_conflicting_backend_and_framework() -> None:
+    agent = AgentSpec(name="plain_agent", instructions="Reply.", model="openai/gpt-5")
+
+    with pytest.raises(ValueError, match="backend or framework"):
+        run_agent(agent, backend="mock", framework="langgraph", input="hello")
+
+
 def test_mock_backend_streams_normalized_events() -> None:
     agent = AgentSpec(name="plain_agent", instructions="Reply.", model="openai/gpt-5")
 
-    events = list(stream_agent(agent, backend="mock", input="hello"))
+    events = list(stream_agent(agent, framework="mock", input="hello"))
 
     assert [event.type for event in events] == ["message", "complete"]

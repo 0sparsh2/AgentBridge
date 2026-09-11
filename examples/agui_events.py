@@ -11,5 +11,5 @@ agent = AgentSpec(
     model="openai/gpt-5",
 )
 
-for event in stream_agent(agent, backend="mock", input="hello frontend"):
+for event in stream_agent(agent, framework="mock", input="hello frontend"):
     print(event_to_agui(event))

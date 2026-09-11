@@ -25,7 +25,7 @@ Use this page as the navigation map for the repository.
 
 ## Examples
 
-- [examples/refund_agent.py](../examples/refund_agent.py): Same agent spec against selectable backends.
+- [examples/refund_agent.py](../examples/refund_agent.py): Same agent spec against selectable framework adapters.
 - [examples/research_agent.py](../examples/research_agent.py): Tool use and streaming event demo.
 - [examples/agui_events.py](../examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.

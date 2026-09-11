@@ -21,6 +21,8 @@ The first wedge is migration: teams can prototype in a high-level framework, val
 
 AgentBridge is not trying to hide every framework-specific strength behind a tiny wrapper. The long-term design is capability-aware: common features stay in the core API, advanced features are declared through backend capabilities, and native framework objects remain available as escape hatches.
 
+User code chooses a `framework` such as `langgraph` or `pydantic_ai`. Internally, AgentBridge resolves that framework to a backend adapter. Framework-specific nuance grows through capability metadata, extension namespaces, and raw native escape hatches.
+
 ## Status
 
 This is an MVP foundation, not a production-stable release. The repo is useful today for exploring the abstraction, writing adapter contracts, testing migration stories, and validating whether a shared app-to-agent layer is worth pursuing.
@@ -78,7 +80,7 @@ agent = AgentSpec(
 
 result = run_agent(
     agent,
-    backend="mock",
+    framework="mock",
     input="Customer says order A123 was double charged.",
 )
 
@@ -86,11 +88,13 @@ print(result.output)
 print(result.backend)
 ```
 
-The same `AgentSpec` can be sent to another backend once that backend's optional dependency is installed:
+The same `AgentSpec` can be sent to another framework once that framework adapter's optional dependency is installed:
 
 ```python
-result = run_agent(agent, backend="langgraph", input="Check refund eligibility.")
+result = run_agent(agent, framework="langgraph", input="Check refund eligibility.")
 ```
+
+`framework=` is the user-facing way to choose the runtime. `backend=` remains supported as a lower-level adapter alias for compatibility.
 
 Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthropic/claude-sonnet`, or `google/gemini`. AgentBridge does not build a custom model-provider abstraction in v0.
 
@@ -105,7 +109,7 @@ agent = AgentSpec(
     model="openai/gpt-5",
 )
 
-for event in stream_agent(agent, backend="mock", input="Summarize AgentBridge"):
+for event in stream_agent(agent, framework="mock", input="Summarize AgentBridge"):
     print(event.type, event.data)
 ```
 

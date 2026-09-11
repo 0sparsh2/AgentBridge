@@ -102,6 +102,20 @@ Recommended status values:
 
 See [capability_coverage.md](capability_coverage.md) for the long-term coverage model.
 
+## Extension Namespaces
+
+Framework-specific nuance belongs in extension namespaces when it is useful but not portable enough for the common `AgentSpec`.
+
+Initial namespaces:
+
+| Namespace | Intended Nuance |
+| --- | --- |
+| `agentbridge.extensions.langgraph` | Checkpointing, resume, conditional routing, graph state helpers. |
+| `agentbridge.extensions.pydantic_ai` | Validation retries, dependency injection, typed output helpers. |
+| `agentbridge.extensions.crewai` | Crews, roles, tasks, delegation helpers. |
+
+Extensions should preserve the native framework's mental model. They are the main path for adopting every framework's nuance without bloating the portable core.
+
 ## Adding A New Adapter
 
 1. Start as an external plugin unless the dependency tree is clearly core-friendly.

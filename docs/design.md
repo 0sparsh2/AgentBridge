@@ -39,6 +39,21 @@ flowchart TB
 
 The common API should stay small. Features graduate into the common API only when at least two target backends can support them with similar semantics.
 
+## Framework Nuance Strategy
+
+AgentBridge should eventually adopt the nuance of every supported framework, but not by forcing every feature into `AgentSpec`.
+
+The rule is:
+
+- Put portable semantics in the common API.
+- Put variable support in capability metadata.
+- Put framework-specific but useful behavior in extension namespaces.
+- Keep native-only behavior reachable through raw backend objects.
+
+For example, LangGraph checkpointing, CrewAI crew/task structures, and Pydantic AI output validation are all important. They should all be adoptable, but they should not be squeezed into one misleading lowest-common-denominator field. AgentBridge should expose the common path first, then add adapter-specific extension modules that preserve each framework's actual mental model.
+
+SDK examples should use `framework=` because that is how users think about the choice. Internally, framework choices resolve to backend adapters.
+
 ## Why A Plugin System Exists
 
 Agent frameworks often bring large dependency trees and fast-moving version constraints. If every adapter ships inside the core install path, AgentBridge becomes hard to install and easy to break.

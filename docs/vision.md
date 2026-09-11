@@ -210,6 +210,20 @@ Move something to a plugin if:
 - It requires credentials or hosted services to test meaningfully.
 - It exposes features that are valuable but not portable.
 
+## Extension Namespace Rule
+
+Framework nuance should move into extension namespaces when it is too specific for `AgentSpec` but important enough to support intentionally.
+
+Examples:
+
+- LangGraph checkpointing, interrupts, resume, and conditional routing.
+- CrewAI crews, roles, tasks, delegation, and process modes.
+- Pydantic AI validation retries, dependency injection, and typed output behavior.
+- Google ADK session/app concepts.
+- Strands and AgentCore runtime/deployment primitives.
+
+Extension namespaces should feel native to the framework they represent. They are how AgentBridge can eventually cover "all of it" without turning the common API into a confusing mega-object.
+
 ## Milestone Target State
 
 ### v0: Foundation
