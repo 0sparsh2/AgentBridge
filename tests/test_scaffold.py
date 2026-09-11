@@ -21,6 +21,7 @@ def test_scaffold_adapter_plugin_creates_runnable_package(tmp_path, monkeypatch)
     assert 'google_adk = "agentbridge_google_adk.adapter:Adapter"' in (
         target / "pyproject.toml"
     ).read_text()
+    assert "agentbridge conformance --backend google_adk" in (target / "README.md").read_text()
 
     monkeypatch.syspath_prepend(str(target))
     monkeypatch.setenv("AGENTBRIDGE_ADAPTER_PLUGINS", "agentbridge_google_adk.adapter")

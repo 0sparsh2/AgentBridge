@@ -148,6 +148,7 @@ pip install -e .
 agentbridge plugins
 agentbridge list-backends
 agentbridge inspect-backend {backend_name} --json
+agentbridge conformance --backend {backend_name}
 ```
 
 ## Local Development Without Installing
@@ -165,6 +166,7 @@ agentbridge plugins
 - Implement `run()` by returning a normalized `RunResult`.
 - Implement `stream()` if the backend supports streaming.
 - Add contract tests for every capability marked `full`.
+- Run `agentbridge conformance --backend {backend_name}` before publishing.
 - Document adopted and verified framework versions.
 """
 
