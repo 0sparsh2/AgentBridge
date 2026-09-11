@@ -4,6 +4,7 @@ import pytest
 
 from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter
 from agentbridge.errors import MissingDependencyError
+from agentbridge.extensions.langgraph import LangGraphExtension
 
 
 def lookup_order(order_id: str) -> str:
@@ -37,3 +38,43 @@ def test_langgraph_adapter_executes_tools_when_available() -> None:
         "tool_result",
         "complete",
     ]
+
+
+def test_langgraph_adapter_uses_extension_config_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = LangGraphExtension.with_config(
+        AgentSpec(
+            name="refund_agent",
+            instructions="Check refunds.",
+            model="openai/gpt-5",
+        ),
+        node_name="refund_node",
+        graph_name="refund_graph",
+        include_context_in_output=True,
+        enable_checkpointing=True,
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    result = adapter.run(
+        compiled,
+        run_input=RunInput(
+            input="A123",
+            context={"tenant": "support"},
+            session_id="session-1",
+        ),
+    )
+
+    assert result.backend == "langgraph"
+    assert result.output["context"] == {"tenant": "support"}
+    assert result.metadata["node_name"] == "refund_node"
+    assert result.metadata["checkpointing"] is True
+
+
+def test_langgraph_capabilities_include_checkpointing_extension() -> None:
+    capabilities = get_adapter("langgraph").capabilities()
+
+    assert capabilities.status("state.checkpointing") == "extension"

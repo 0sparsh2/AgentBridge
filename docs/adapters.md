@@ -45,14 +45,40 @@ Current focus:
 - Execute deterministic tool-backed flows in local tests.
 - Normalize graph outputs into `RunResult`.
 - Preserve native raw objects for deeper graph behavior.
+- Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, and in-memory checkpointing.
 
 Next areas:
 
-- Checkpointing and resume.
 - Conditional routing.
 - Richer graph state.
 - Tool-call lifecycle streaming.
 - Human-in-the-loop interrupts.
+
+Example:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.langgraph import LangGraphExtension
+
+agent = LangGraphExtension.with_config(
+    AgentSpec(
+        name="refund_agent",
+        instructions="Check refund eligibility.",
+        model="openai/gpt-5",
+    ),
+    node_name="refund_node",
+    graph_name="refund_graph",
+    include_context_in_output=True,
+    enable_checkpointing=True,
+)
+
+result = run_agent(
+    agent,
+    framework="langgraph",
+    input="Check order A123",
+    session_id="customer-123",
+)
+```
 
 ## `pydantic_ai`
 

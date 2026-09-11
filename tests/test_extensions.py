@@ -26,6 +26,22 @@ def test_framework_specific_extension_namespaces_exist() -> None:
     assert CrewAIExtension.framework == "crewai"
 
 
-def test_extension_placeholders_fail_clearly() -> None:
-    with pytest.raises(UnsupportedExtension, match="checkpointing"):
-        LangGraphExtension().checkpointing()
+def test_extension_native_placeholders_fail_clearly() -> None:
+    with pytest.raises(UnsupportedExtension, match="conditional routing"):
+        LangGraphExtension().conditional_routing()
+
+
+def test_langgraph_extension_builds_serializable_config() -> None:
+    config = LangGraphExtension.config(
+        node_name="refund_node",
+        graph_name="refund_graph",
+        include_context_in_output=True,
+        enable_checkpointing=True,
+    )
+
+    assert config == {
+        "node_name": "refund_node",
+        "graph_name": "refund_graph",
+        "include_context_in_output": True,
+        "enable_checkpointing": True,
+    }

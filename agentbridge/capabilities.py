@@ -98,6 +98,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can preserve or consume session state.",
     ),
     CapabilityFeature(
+        key="state.checkpointing",
+        category="State",
+        label="Checkpointing",
+        description="Backend can checkpoint and resume execution state.",
+    ),
+    CapabilityFeature(
         key="streaming.events",
         category="Streaming",
         label="Normalized events",

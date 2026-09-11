@@ -89,6 +89,24 @@ The conformance runner verifies the minimum AgentBridge contract:
 
 Passing conformance does not mean the adapter is production complete. It means the adapter satisfies the baseline compatibility contract and can be compared consistently with other backends.
 
+## Extension Example: LangGraph
+
+LangGraph-specific graph configuration should live under the LangGraph extension namespace instead of bloating `AgentSpec`:
+
+```python
+from agentbridge.extensions.langgraph import LangGraphExtension
+
+agent = LangGraphExtension.with_config(
+    agent,
+    node_name="refund_node",
+    graph_name="refund_graph",
+    include_context_in_output=True,
+    enable_checkpointing=True,
+)
+```
+
+The adapter advertises checkpointing as `extension`, because it is available through LangGraph-specific configuration rather than the portable core API.
+
 ## Structured Output Contract
 
 SDK users can provide `AgentSpec.output_type` for runtime-native typed output. If the type exposes `model_json_schema()`, AgentBridge derives `AgentSpec.output_schema` automatically.
