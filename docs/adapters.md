@@ -90,12 +90,33 @@ Current focus:
 - Keep dependency footprint lower with `pydantic-ai-slim`.
 - Test offline using Pydantic AI test utilities where possible.
 - Map `AgentSpec.output_type` to Pydantic AI's native `output_type`.
+- Support `PydanticAIExtension.config()` for retries, tool timeout, metadata, and offline test-model output controls.
 
 Next areas:
 
 - Pydantic model output schemas.
-- Validation retry behavior.
 - Typed tool argument mapping.
+
+Example:
+
+```python
+from agentbridge import AgentSpec, run_agent
+from agentbridge.extensions.pydantic_ai import PydanticAIExtension
+
+agent = PydanticAIExtension.with_config(
+    AgentSpec(
+        name="refund_decision_agent",
+        instructions="Return a typed refund decision.",
+        model="openai/gpt-5",
+        output_type=RefundDecision,
+    ),
+    retries=2,
+    tool_timeout=5,
+    metadata={"owner": "support"},
+)
+
+result = run_agent(agent, framework="pydantic_ai", input="Customer was double charged.")
+```
 
 ## `crewai`
 

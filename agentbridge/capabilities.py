@@ -80,6 +80,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can return validated typed or schema-constrained output.",
     ),
     CapabilityFeature(
+        key="structured_output.validation_retries",
+        category="Structured output",
+        label="Validation retries",
+        description="Backend can retry when structured output validation fails.",
+    ),
+    CapabilityFeature(
         key="workflow.graph",
         category="Workflow",
         label="Graph workflow",

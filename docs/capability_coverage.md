@@ -107,6 +107,23 @@ agent = LangGraphExtension.with_config(
 
 The adapter advertises checkpointing as `extension`, because it is available through LangGraph-specific configuration rather than the portable core API.
 
+## Extension Example: Pydantic AI
+
+Pydantic AI-specific validation and runtime settings should live under the Pydantic AI extension namespace:
+
+```python
+from agentbridge.extensions.pydantic_ai import PydanticAIExtension
+
+agent = PydanticAIExtension.with_config(
+    agent,
+    retries=2,
+    tool_timeout=5,
+    metadata={"owner": "support"},
+)
+```
+
+The adapter advertises validation retries as `extension`, because retry behavior is meaningful for Pydantic AI but not identical across all frameworks.
+
 ## Structured Output Contract
 
 SDK users can provide `AgentSpec.output_type` for runtime-native typed output. If the type exposes `model_json_schema()`, AgentBridge derives `AgentSpec.output_schema` automatically.

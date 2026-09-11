@@ -45,3 +45,19 @@ def test_langgraph_extension_builds_serializable_config() -> None:
         "include_context_in_output": True,
         "enable_checkpointing": True,
     }
+
+
+def test_pydantic_ai_extension_builds_serializable_config() -> None:
+    config = PydanticAIExtension.config(
+        retries=2,
+        tool_timeout=5,
+        metadata={"owner": "support"},
+        custom_output_args={"eligible": True, "reason": "ok"},
+    )
+
+    assert config == {
+        "retries": 2,
+        "tool_timeout": 5.0,
+        "metadata": {"owner": "support"},
+        "custom_output_args": {"eligible": True, "reason": "ok"},
+    }
