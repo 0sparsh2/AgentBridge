@@ -2,6 +2,33 @@
 
 AgentBridge keeps heavy or blocked framework adapters outside the core install path. External packages can register adapters through Python entry points, while local development can use an environment variable.
 
+## Generate A Starter Plugin
+
+Use the CLI scaffolder for a new adapter package:
+
+```bash
+agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
+```
+
+The generated package includes:
+
+- `pyproject.toml` with an `agentbridge.adapters` entry point.
+- A package containing an `Adapter` class.
+- A README with install and verification commands.
+- A starter test for the generated adapter.
+
+Install and verify:
+
+```bash
+cd plugins/agentbridge-google-adk
+pip install -e ".[dev]"
+pytest
+agentbridge plugins
+agentbridge inspect-backend google_adk --json
+```
+
+The generated adapter intentionally echoes input. Replace `compile()`, `run()`, and `stream()` with native framework behavior before marking real capabilities as supported.
+
 ## Entry Point Plugins
 
 External packages should expose a `BackendAdapter` subclass:

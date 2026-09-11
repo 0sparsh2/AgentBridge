@@ -102,6 +102,32 @@ agentbridge plugins --json
 
 This reports loaded entry points, environment plugins, and plugin errors.
 
+### `scaffold-plugin`
+
+Create a starter external adapter plugin package.
+
+```bash
+agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
+```
+
+The generated package includes:
+
+- `pyproject.toml` with an `agentbridge.adapters` entry point.
+- A Python package containing `Adapter`.
+- A README with install and verification commands.
+- A starter test that runs the generated adapter.
+
+Optional naming controls:
+
+```bash
+agentbridge scaffold-plugin ./my-plugin \
+  --backend google_adk \
+  --package agentbridge_google_adk \
+  --distribution agentbridge-google-adk
+```
+
+Use `--force` only when intentionally regenerating files.
+
 ## Environment Variables
 
 | Variable | Purpose |

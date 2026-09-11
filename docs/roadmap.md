@@ -21,6 +21,7 @@
 - Add backend capability metadata for supported features and known gaps.
 - Keep `docs/version_policy.md` updated as adapter dependency ranges change.
 - Add static JSON/YAML manifests for CLI runs.
+- Add a scaffold command for lightweight external adapter plugins.
 
 ## v1: Migration and Comparison
 

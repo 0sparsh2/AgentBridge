@@ -164,6 +164,7 @@ agentbridge compare --manifest examples/refund_agent.yaml --backend mock --backe
 agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge versions --json
 agentbridge plugins --json
+agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
 ```
 
 See [docs/cli.md](docs/cli.md) for command details.
@@ -229,6 +230,14 @@ custom = "my_package.adapter:Adapter"
 ```
 
 See [docs/plugin_authoring.md](docs/plugin_authoring.md) for the full plugin contract and [plugins/agentbridge-crewai](plugins/agentbridge-crewai) for the CrewAI scaffold.
+
+To create a new adapter plugin skeleton:
+
+```bash
+agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
+```
+
+The generated package includes `pyproject.toml`, an adapter class, a README, and a starter test.
 
 ## Documentation Map
 

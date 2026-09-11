@@ -105,8 +105,9 @@ See [capability_coverage.md](capability_coverage.md) for the long-term coverage 
 ## Adding A New Adapter
 
 1. Start as an external plugin unless the dependency tree is clearly core-friendly.
-2. Implement `BackendAdapter.compile()`, `run()`, and `stream()`.
-3. Add capability metadata before exposing the adapter publicly.
-4. Add a contract test using a shared example agent.
-5. Update [version_policy.md](version_policy.md) with adopted and verified versions.
-6. Update this guide with strengths, limits, and native escape hatches.
+2. Generate the starter package with `agentbridge scaffold-plugin ./plugins/agentbridge-my-framework --backend my_framework`.
+3. Implement `BackendAdapter.compile()`, `run()`, and `stream()`.
+4. Add capability metadata before exposing the adapter publicly.
+5. Add a contract test using a shared example agent.
+6. Update [version_policy.md](version_policy.md) with adopted and verified versions.
+7. Update this guide with strengths, limits, and native escape hatches.

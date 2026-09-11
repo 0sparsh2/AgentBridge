@@ -140,3 +140,14 @@ def test_cli_plugins_json(capsys) -> None:
 
     payload = json.loads(capsys.readouterr().out)
     assert isinstance(payload, list)
+
+
+def test_cli_scaffolds_plugin(tmp_path, capsys) -> None:
+    target = tmp_path / "plugin"
+
+    assert main(["scaffold-plugin", str(target), "--backend", "strands"]) == 0
+
+    output = capsys.readouterr().out
+    assert "agentbridge_strands/adapter.py" in output
+    assert (target / "pyproject.toml").exists()
+    assert (target / "agentbridge_strands" / "adapter.py").exists()

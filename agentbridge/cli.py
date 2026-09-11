@@ -13,6 +13,7 @@ from agentbridge.manifest import load_agent_spec, load_manifest
 from agentbridge.plugins import plugin_status
 from agentbridge.registry import adapter_sources, inspect_backend, inspect_backends, list_adapters
 from agentbridge.runner import run_agent, stream_agent
+from agentbridge.scaffold import scaffold_adapter_plugin
 from agentbridge.validation import validate_manifest
 from agentbridge.versioning import dependency_versions
 
@@ -68,6 +69,24 @@ def main(argv: list[str] | None = None) -> int:
         help="Show adapter plugin load status.",
     )
     plugins_parser.add_argument("--json", action="store_true", help="Emit JSON.")
+
+    scaffold_parser = subparsers.add_parser(
+        "scaffold-plugin",
+        help="Create a starter external adapter plugin package.",
+    )
+    scaffold_parser.add_argument("target_dir", help="Directory where the plugin package is created.")
+    scaffold_parser.add_argument("--backend", required=True, help="Backend name, for example google_adk.")
+    scaffold_parser.add_argument(
+        "--package",
+        dest="package_name",
+        help="Python package name. Defaults to agentbridge_<backend>.",
+    )
+    scaffold_parser.add_argument(
+        "--distribution",
+        dest="distribution_name",
+        help="Python distribution name. Defaults to package name with hyphens.",
+    )
+    scaffold_parser.add_argument("--force", action="store_true", help="Overwrite generated files.")
 
     args = parser.parse_args(argv)
 
@@ -156,6 +175,18 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(payload, indent=2, sort_keys=True))
             else:
                 _print_plugins(payload)
+            return 0
+
+        if args.command == "scaffold-plugin":
+            created = scaffold_adapter_plugin(
+                args.target_dir,
+                backend_name=args.backend,
+                package_name=args.package_name,
+                distribution_name=args.distribution_name,
+                force=args.force,
+            )
+            for item in created:
+                print(item.path)
             return 0
 
     except Exception as exc:
