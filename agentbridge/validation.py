@@ -31,6 +31,8 @@ def validate_manifest(
     required_features = list(manifest.required_capabilities)
     if manifest.tools and "tools.sync" not in required_features:
         required_features.append("tools.sync")
+    if manifest.output_schema and "structured_output" not in required_features:
+        required_features.append("structured_output")
     if "agent.instructions" not in required_features:
         required_features.append("agent.instructions")
 

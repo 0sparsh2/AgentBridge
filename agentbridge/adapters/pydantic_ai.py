@@ -52,7 +52,13 @@ class PydanticAIAdapter(BackendAdapter):
             raise MissingDependencyError(self.backend_name, "pydantic-ai-slim", "pydantic-ai") from exc
 
         model = self._resolve_model(spec)
-        agent = Agent(model=model, instructions=spec.instructions, name=spec.name, defer_model_check=True)
+        agent = Agent(
+            model=model,
+            output_type=spec.output_type or str,
+            instructions=spec.instructions,
+            name=spec.name,
+            defer_model_check=True,
+        )
         for tool in spec.tools:
             agent.tool_plain(tool.handler, name=tool.name, description=tool.description)
         return PydanticAICompiledAgent(spec=spec, agent=agent)

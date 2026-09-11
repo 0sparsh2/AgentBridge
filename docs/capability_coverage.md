@@ -71,6 +71,25 @@ agentbridge capability-matrix --include-unknown --markdown
 
 Then decide whether the feature belongs in the common taxonomy, a backend extension namespace, or native-only documentation.
 
+## Structured Output Contract
+
+SDK users can provide `AgentSpec.output_type` for runtime-native typed output. If the type exposes `model_json_schema()`, AgentBridge derives `AgentSpec.output_schema` automatically.
+
+Static manifests cannot carry Python classes, so they use `output_schema` directly:
+
+```yaml
+name: typed_agent
+instructions: Return structured output.
+model: openai/gpt-5
+output_schema:
+  type: object
+  properties:
+    answer:
+      type: string
+```
+
+When a manifest declares `output_schema`, `agentbridge compare` and `agentbridge validate` automatically add `structured_output` to required capabilities.
+
 ## Design Implication
 
 AgentBridge should grow as a layered bridge:

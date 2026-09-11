@@ -90,6 +90,40 @@ required_capabilities:
     assert payload["backends"][0]["features"]["workflow.graph"] == "full"
 
 
+def test_cli_compare_adds_structured_output_requirement(tmp_path, capsys) -> None:
+    manifest_path = tmp_path / "agent.yaml"
+    manifest_path.write_text(
+        """
+name: typed_agent
+instructions: Return structured output.
+model: openai/gpt-5
+output_schema:
+  type: object
+  properties:
+    answer:
+      type: string
+""".strip()
+    )
+
+    assert (
+        main(
+            [
+                "compare",
+                "--manifest",
+                str(manifest_path),
+                "--backend",
+                "mock",
+                "--json",
+            ]
+        )
+        == 0
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert "structured_output" in payload["required_features"]
+    assert payload["backends"][0]["features"]["structured_output"] == "unsupported"
+
+
 def test_cli_versions_json(capsys) -> None:
     assert main(["versions", "--json"]) == 0
 

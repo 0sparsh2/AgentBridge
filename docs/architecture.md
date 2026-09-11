@@ -72,6 +72,7 @@ sequenceDiagram
 
 - `AgentSpec`: Framework-neutral agent definition.
 - `ToolSpec`: Python callable wrapper with JSON-schema-like input metadata.
+- `output_type` / `output_schema`: Optional structured-output contract for typed SDK runs and serializable manifests.
 - `RunInput`: Input text plus context, metadata, and session id.
 - `AgentEvent`: Normalized event for messages, tool calls, tool results, errors, and completion.
 - `RunResult`: Normalized result with output, backend, events, usage, metadata, and raw backend result.
@@ -86,6 +87,8 @@ classDiagram
         instructions
         model
         tools
+        output_type
+        output_schema
         metadata
         backend_options
     }

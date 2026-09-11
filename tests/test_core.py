@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from agentbridge import AgentEvent, AgentSpec, RunResult, ToolSpec
 
@@ -18,6 +18,24 @@ def test_agent_spec_rejects_blank_values() -> None:
 
     with pytest.raises(ValidationError):
         AgentSpec(name="agent", instructions=" ", model="openai/gpt-5")
+
+
+def test_agent_spec_derives_output_schema_from_pydantic_model() -> None:
+    class RefundDecision(BaseModel):
+        eligible: bool
+        reason: str
+
+    spec = AgentSpec(
+        name="refund_agent",
+        instructions="Decide refund eligibility.",
+        model="openai/gpt-5",
+        output_type=RefundDecision,
+    )
+
+    assert spec.output_schema is not None
+    assert spec.output_schema["properties"]["eligible"]["type"] == "boolean"
+    assert spec.output_schema["properties"]["reason"]["type"] == "string"
+    assert "output_type" not in spec.model_dump()
 
 
 def test_tool_spec_from_function_extracts_schema() -> None:

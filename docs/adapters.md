@@ -63,10 +63,10 @@ Current focus:
 - Compile `AgentSpec` into a Pydantic AI agent path.
 - Keep dependency footprint lower with `pydantic-ai-slim`.
 - Test offline using Pydantic AI test utilities where possible.
+- Map `AgentSpec.output_type` to Pydantic AI's native `output_type`.
 
 Next areas:
 
-- First-class structured output on `AgentSpec`.
 - Pydantic model output schemas.
 - Validation retry behavior.
 - Typed tool argument mapping.

@@ -24,6 +24,11 @@ required_capabilities:
   - tools.sync
 metadata:
   owner: support
+output_schema:
+  type: object
+  properties:
+    eligible:
+      type: boolean
 """.strip()
     )
 
@@ -37,6 +42,7 @@ metadata:
     assert spec.name == "refund_agent"
     assert spec.tools[0].name == "lookup_order"
     assert spec.metadata["owner"] == "support"
+    assert spec.output_schema["properties"]["eligible"]["type"] == "boolean"
 
 
 def test_manifest_rejects_unregistered_static_tools() -> None:

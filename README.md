@@ -117,6 +117,30 @@ from agentbridge.agui import to_agui_event
 agui_event = to_agui_event(event)
 ```
 
+## Structured Output
+
+SDK users can attach a Pydantic model as `output_type`. Backends that support structured output, such as `pydantic_ai`, can use it natively.
+
+```python
+from pydantic import BaseModel
+from agentbridge import AgentSpec
+
+
+class RefundDecision(BaseModel):
+    eligible: bool
+    reason: str
+
+
+agent = AgentSpec(
+    name="refund_decision_agent",
+    instructions="Return a refund decision.",
+    model="openai/gpt-5",
+    output_type=RefundDecision,
+)
+```
+
+AgentBridge derives a serializable `output_schema` from Pydantic models. Static manifests can declare `output_schema` directly; validation and comparison commands then require the `structured_output` capability automatically.
+
 ## Manifest Quickstart
 
 AgentBridge also supports static manifests for CLI usage:
