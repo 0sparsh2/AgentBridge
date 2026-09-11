@@ -42,3 +42,8 @@ jobs:
 
       - name: Check package metadata
         run: python -m twine check dist/*
+
+      - name: Build CrewAI plugin package
+        run: |
+          python -m build plugins/agentbridge-crewai --outdir dist-crewai
+          python -m twine check dist-crewai/*

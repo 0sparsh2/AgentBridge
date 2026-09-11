@@ -10,12 +10,25 @@ CrewAI is intentionally kept outside the core `agentbridge` package because the 
 pip install -e plugins/agentbridge-crewai
 ```
 
+## Verify Package
+
+The plugin is designed to be built and checked separately from the core package:
+
+```bash
+python -m pip install build twine
+python -m build plugins/agentbridge-crewai --outdir dist-crewai
+python -m twine check dist-crewai/*
+```
+
+CI runs this package build on supported Python versions.
+
 ## Status
 
 Blocked in the current workspace:
 
 - Adopted range: `crewai>=0.11.2,<0.12`
 - Issue: dependency resolution conflict involving older LangChain/LangSmith ranges on Python 3.14
+- Plugin Python range: `>=3.10,<3.14`
 
 The adapter code is scaffolded so it can be verified in a compatible Python environment without forcing the core SDK to install CrewAI.
 
