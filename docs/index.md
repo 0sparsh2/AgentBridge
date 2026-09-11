@@ -14,6 +14,7 @@ Use this page as the navigation map for the repository.
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
 - [Version Policy](version_policy.md): Adopted package ranges, verified local versions, and adapter version rules.
+- [Release Workflow](release.md): Package build checks, tag workflow, and future PyPI publishing path.
 
 ## Engineering
 

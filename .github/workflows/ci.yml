@@ -34,3 +34,11 @@ jobs:
           agentbridge list-backends
           agentbridge versions --json
           agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
+          agentbridge capability-matrix --backend mock --markdown
+          agentbridge extensions crewai --json
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package metadata
+        run: python -m twine check dist/*
