@@ -33,6 +33,7 @@ def test_langgraph_adapter_executes_tools_when_available() -> None:
     assert result.output["tools"][0]["name"] == "lookup_order"
     assert result.output["tools"][0]["result"] == "found:A123"
     assert [event.type for event in result.events] == [
+        "workflow",
         "message",
         "tool_call",
         "tool_result",
@@ -74,7 +75,49 @@ def test_langgraph_adapter_uses_extension_config_when_available() -> None:
     assert result.metadata["checkpointing"] is True
 
 
+def test_langgraph_adapter_routes_with_extension_config_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = LangGraphExtension.with_config(
+        AgentSpec(
+            name="router_agent",
+            instructions="Route support requests.",
+            model="openai/gpt-5",
+        ),
+        node_name="default_node",
+        route_on_context_key="intent",
+        routes={"refund": "refund_node", "billing": "billing_node"},
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    result = adapter.run(
+        compiled,
+        run_input=RunInput(input="Customer needs a refund.", context={"intent": "refund"}),
+    )
+    events = list(
+        adapter.stream(
+            compiled,
+            RunInput(input="Customer needs billing help.", context={"intent": "billing"}),
+        )
+    )
+
+    assert result.output["route"] == "refund_node"
+    assert result.metadata["route"] == "refund_node"
+    assert events[0].type == "workflow"
+    assert events[1].data == {
+        "phase": "route",
+        "route_key": "intent",
+        "route": "billing",
+        "node": "billing_node",
+    }
+    assert events[-1].type == "complete"
+
+
 def test_langgraph_capabilities_include_checkpointing_extension() -> None:
     capabilities = get_adapter("langgraph").capabilities()
 
     assert capabilities.status("state.checkpointing") == "extension"
+    assert capabilities.status("workflow.routing") == "extension"

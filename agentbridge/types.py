@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator, model_validator
 
-EventType = Literal["message", "tool_call", "tool_result", "error", "complete"]
+EventType = Literal["message", "tool_call", "tool_result", "workflow", "error", "complete"]
 CapabilityStatus = Literal["full", "partial", "extension", "native_only", "unsupported"]
 
 

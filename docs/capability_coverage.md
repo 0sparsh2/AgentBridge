@@ -102,10 +102,12 @@ agent = LangGraphExtension.with_config(
     graph_name="refund_graph",
     include_context_in_output=True,
     enable_checkpointing=True,
+    route_on_context_key="intent",
+    routes={"refund": "refund_node", "billing": "billing_node"},
 )
 ```
 
-The adapter advertises checkpointing as `extension`, because it is available through LangGraph-specific configuration rather than the portable core API.
+The adapter advertises checkpointing and routing as `extension`, because they are available through LangGraph-specific configuration rather than the portable core API.
 
 ## Extension Example: Pydantic AI
 

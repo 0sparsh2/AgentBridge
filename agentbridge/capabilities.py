@@ -92,6 +92,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can represent graph-shaped orchestration.",
     ),
     CapabilityFeature(
+        key="workflow.routing",
+        category="Workflow",
+        label="Conditional routing",
+        description="Backend can route execution based on state or input.",
+    ),
+    CapabilityFeature(
         key="workflow.roles_tasks",
         category="Workflow",
         label="Roles and tasks",

@@ -45,7 +45,7 @@ Current focus:
 - Execute deterministic tool-backed flows in local tests.
 - Normalize graph outputs into `RunResult`.
 - Preserve native raw objects for deeper graph behavior.
-- Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, and in-memory checkpointing.
+- Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, in-memory checkpointing, and context-based conditional routing.
 
 Next areas:
 
@@ -70,6 +70,8 @@ agent = LangGraphExtension.with_config(
     graph_name="refund_graph",
     include_context_in_output=True,
     enable_checkpointing=True,
+    route_on_context_key="intent",
+    routes={"refund": "refund_node", "billing": "billing_node"},
 )
 
 result = run_agent(

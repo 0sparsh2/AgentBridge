@@ -17,6 +17,8 @@ class LangGraphConfig(BaseModel):
     graph_name: str | None = None
     include_context_in_output: bool = False
     enable_checkpointing: bool = False
+    route_on_context_key: str | None = None
+    routes: dict[str, str] = Field(default_factory=dict)
     interrupt_before: list[str] | None = None
     interrupt_after: list[str] | None = None
 
@@ -33,6 +35,8 @@ class LangGraphExtension(FrameworkExtension):
         graph_name: str | None = None,
         include_context_in_output: bool = False,
         enable_checkpointing: bool = False,
+        route_on_context_key: str | None = None,
+        routes: dict[str, str] | None = None,
         interrupt_before: list[str] | None = None,
         interrupt_after: list[str] | None = None,
     ) -> dict[str, Any]:
@@ -43,9 +47,11 @@ class LangGraphExtension(FrameworkExtension):
             graph_name=graph_name,
             include_context_in_output=include_context_in_output,
             enable_checkpointing=enable_checkpointing,
+            route_on_context_key=route_on_context_key,
+            routes=routes or {},
             interrupt_before=interrupt_before,
             interrupt_after=interrupt_after,
-        ).model_dump(exclude_none=True)
+        ).model_dump(exclude_none=True, exclude_defaults=True)
 
     @staticmethod
     def with_config(spec: AgentSpec, **kwargs: Any) -> AgentSpec:
