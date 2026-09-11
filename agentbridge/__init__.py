@@ -8,6 +8,7 @@ from agentbridge.capabilities import (
     CapabilityMatrixRow,
     capability_matrix,
 )
+from agentbridge.conformance import ConformanceCheck, ConformanceReport, run_conformance
 from agentbridge.compare import BackendComparison, compare_backends
 from agentbridge.manifest import AgentManifest, load_agent_spec, load_manifest
 from agentbridge.plugins import load_adapter_plugins, plugin_status
@@ -36,6 +37,8 @@ __all__ = [
     "CapabilityFeature",
     "CapabilityMatrix",
     "CapabilityMatrixRow",
+    "ConformanceCheck",
+    "ConformanceReport",
     "ManifestValidation",
     "RunInput",
     "RunResult",
@@ -59,6 +62,7 @@ __all__ = [
     "register_tool",
     "register_adapter",
     "reset_adapters",
+    "run_conformance",
     "run_agent",
     "stream_agent",
     "validate_manifest",

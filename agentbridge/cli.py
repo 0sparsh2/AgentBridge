@@ -9,6 +9,7 @@ from typing import Any
 
 from agentbridge.builtin_tools import build_builtin_tool_registry
 from agentbridge.capabilities import capability_matrix
+from agentbridge.conformance import run_conformance
 from agentbridge.compare import compare_backends
 from agentbridge.manifest import load_agent_spec, load_manifest
 from agentbridge.plugins import plugin_status
@@ -89,6 +90,18 @@ def main(argv: list[str] | None = None) -> int:
     matrix_format = matrix_parser.add_mutually_exclusive_group()
     matrix_format.add_argument("--json", action="store_true", help="Emit JSON.")
     matrix_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
+
+    conformance_parser = subparsers.add_parser(
+        "conformance",
+        help="Run lightweight adapter conformance checks.",
+    )
+    conformance_parser.add_argument(
+        "--backend",
+        action="append",
+        dest="backends",
+        help="Backend to include. Repeat to test a subset.",
+    )
+    conformance_parser.add_argument("--json", action="store_true", help="Emit JSON.")
 
     scaffold_parser = subparsers.add_parser(
         "scaffold-plugin",
@@ -210,6 +223,15 @@ def main(argv: list[str] | None = None) -> int:
                 _print_capability_matrix(matrix.model_dump())
             return 0
 
+        if args.command == "conformance":
+            reports = run_conformance(backends=args.backends)
+            payload = [report.as_dict() for report in reports]
+            if args.json:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            else:
+                _print_conformance(payload)
+            return 0 if all(report["passed"] for report in payload) else 1
+
         if args.command == "scaffold-plugin":
             created = scaffold_adapter_plugin(
                 args.target_dir,
@@ -314,6 +336,18 @@ def _print_capability_matrix(payload: dict[str, Any]) -> None:
             f"{backend}={row['support'].get(backend, 'unsupported')}" for backend in backends
         )
         print(f"  {feature['key']}: {statuses}")
+
+
+def _print_conformance(payload: list[dict[str, Any]]) -> None:
+    for report in payload:
+        status = "passed" if report["passed"] else "failed"
+        print(f"{report['backend']}: {status}")
+        for check in report["checks"]:
+            if check["skipped"]:
+                check_status = "skipped"
+            else:
+                check_status = "passed" if check["passed"] else "failed"
+            print(f"  {check['name']}: {check_status} - {check['message']}")
 
 
 if __name__ == "__main__":

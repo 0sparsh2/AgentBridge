@@ -71,6 +71,24 @@ agentbridge capability-matrix --include-unknown --markdown
 
 Then decide whether the feature belongs in the common taxonomy, a backend extension namespace, or native-only documentation.
 
+## Conformance Checks
+
+Adapter authors should run:
+
+```bash
+agentbridge conformance --backend my_backend
+```
+
+The conformance runner verifies the minimum AgentBridge contract:
+
+- Capability metadata is present.
+- A basic agent can compile and run.
+- Streaming returns normalized events.
+- Sync tools work when `tools.sync` is marked `full`.
+- Structured output works when `structured_output` is marked `full`.
+
+Passing conformance does not mean the adapter is production complete. It means the adapter satisfies the baseline compatibility contract and can be compared consistently with other backends.
+
 ## Structured Output Contract
 
 SDK users can provide `AgentSpec.output_type` for runtime-native typed output. If the type exposes `model_json_schema()`, AgentBridge derives `AgentSpec.output_schema` automatically.

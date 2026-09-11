@@ -25,6 +25,7 @@ pip install -e ".[dev]"
 pytest
 agentbridge plugins
 agentbridge inspect-backend google_adk --json
+agentbridge conformance --backend google_adk
 ```
 
 The generated adapter intentionally echoes input. Replace `compile()`, `run()`, and `stream()` with native framework behavior before marking real capabilities as supported.

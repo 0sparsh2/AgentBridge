@@ -187,6 +187,7 @@ agentbridge run --manifest examples/refund_agent.yaml --backend mock --input "Cu
 agentbridge compare --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge capability-matrix --markdown
+agentbridge conformance --backend mock --json
 agentbridge versions --json
 agentbridge plugins --json
 agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
@@ -263,6 +264,12 @@ agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
 ```
 
 The generated package includes `pyproject.toml`, an adapter class, a README, and a starter test.
+
+Adapter authors can run a lightweight contract check:
+
+```bash
+agentbridge conformance --backend custom
+```
 
 ## Documentation Map
 

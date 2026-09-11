@@ -92,6 +92,17 @@ agentbridge capability-matrix --backend mock --backend langgraph --json
 
 Use this as the fast coverage report for adapters and plugins. `--include-unknown` also displays adapter-reported features that are not yet part of the canonical taxonomy.
 
+### `conformance`
+
+Run lightweight adapter conformance checks.
+
+```bash
+agentbridge conformance --backend mock
+agentbridge conformance --backend pydantic_ai --json
+```
+
+The conformance runner checks capability metadata, basic execution, streaming, sync tools when advertised as `full`, and structured output when advertised as `full`. This is not a replacement for backend-specific tests, but it is the baseline every adapter should pass before claiming compatibility.
+
 ### `versions`
 
 Report adopted and installed package versions.

@@ -194,6 +194,15 @@ def test_cli_capability_matrix_markdown(capsys) -> None:
     assert "`agent.instructions`" in output
 
 
+def test_cli_conformance_json(capsys) -> None:
+    assert main(["conformance", "--backend", "mock", "--json"]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload[0]["backend"] == "mock"
+    assert payload[0]["passed"] is True
+    assert payload[0]["checks"][0]["name"] == "capabilities"
+
+
 def test_cli_scaffolds_plugin(tmp_path, capsys) -> None:
     target = tmp_path / "plugin"
 
