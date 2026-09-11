@@ -5,6 +5,7 @@ Use this page as the navigation map for the repository.
 ## Start Here
 
 - [README](../README.md): Public project overview, quickstarts, architecture summary, and development workflow.
+- [Vision And Target State](vision.md): Final target, goals, plugin families, and long-term ecosystem map.
 - [Requirements](requirements.md): Product requirements, target users, non-goals, success criteria, and acceptance criteria.
 - [Roadmap](roadmap.md): v0, v0.1, and v1 milestones.
 

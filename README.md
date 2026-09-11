@@ -242,6 +242,7 @@ The generated package includes `pyproject.toml`, an adapter class, a README, and
 ## Documentation Map
 
 - [docs/index.md](docs/index.md): Documentation navigation.
+- [docs/vision.md](docs/vision.md): Final target, product goals, plugin families, and long-term ecosystem map.
 - [docs/requirements.md](docs/requirements.md): Product requirements, target users, non-goals, and success criteria.
 - [docs/research.md](docs/research.md): Research notes comparing AG-UI, LiteLLM, LangGraph, CrewAI, and Pydantic AI.
 - [docs/architecture.md](docs/architecture.md): SDK architecture, adapter model, data flow, and diagrams.
