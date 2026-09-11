@@ -8,6 +8,7 @@ import sys
 from typing import Any
 
 from agentbridge.builtin_tools import build_builtin_tool_registry
+from agentbridge.capabilities import capability_matrix
 from agentbridge.compare import compare_backends
 from agentbridge.manifest import load_agent_spec, load_manifest
 from agentbridge.plugins import plugin_status
@@ -69,6 +70,25 @@ def main(argv: list[str] | None = None) -> int:
         help="Show adapter plugin load status.",
     )
     plugins_parser.add_argument("--json", action="store_true", help="Emit JSON.")
+
+    matrix_parser = subparsers.add_parser(
+        "capability-matrix",
+        help="Show backend support across canonical AgentBridge capabilities.",
+    )
+    matrix_parser.add_argument(
+        "--backend",
+        action="append",
+        dest="backends",
+        help="Backend to include. Repeat to compare a subset.",
+    )
+    matrix_parser.add_argument(
+        "--include-unknown",
+        action="store_true",
+        help="Include adapter-reported features not yet in the canonical taxonomy.",
+    )
+    matrix_format = matrix_parser.add_mutually_exclusive_group()
+    matrix_format.add_argument("--json", action="store_true", help="Emit JSON.")
+    matrix_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
 
     scaffold_parser = subparsers.add_parser(
         "scaffold-plugin",
@@ -177,6 +197,19 @@ def main(argv: list[str] | None = None) -> int:
                 _print_plugins(payload)
             return 0
 
+        if args.command == "capability-matrix":
+            matrix = capability_matrix(
+                backends=args.backends,
+                include_unknown=args.include_unknown,
+            )
+            if args.json:
+                print(matrix.model_dump_json(indent=2))
+            elif args.markdown:
+                print(matrix.as_markdown())
+            else:
+                _print_capability_matrix(matrix.model_dump())
+            return 0
+
         if args.command == "scaffold-plugin":
             created = scaffold_adapter_plugin(
                 args.target_dir,
@@ -264,6 +297,21 @@ def _print_plugins(payload: list[dict[str, Any]]) -> None:
         replaced = " replaced" if result.get("replaced") else ""
         error = f" ({result['error']})" if result.get("error") else ""
         print(f"{result['source']}:{result['name']} {status}{backend}{replaced}{error}")
+
+
+def _print_capability_matrix(payload: dict[str, Any]) -> None:
+    backends = payload["backends"]
+    print(f"backends: {', '.join(backends)}")
+    current_category = None
+    for row in payload["rows"]:
+        feature = row["feature"]
+        if feature["category"] != current_category:
+            current_category = feature["category"]
+            print(f"\n{current_category}")
+        statuses = ", ".join(
+            f"{backend}={row['support'].get(backend, 'unsupported')}" for backend in backends
+        )
+        print(f"  {feature['key']}: {statuses}")
 
 
 if __name__ == "__main__":

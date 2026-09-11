@@ -51,6 +51,26 @@ Coverage values:
 - `native_only`: available through the backend raw object only.
 - `unsupported`: not supported by the adapter or backend.
 
+## Capability Matrix Command
+
+AgentBridge exposes the current adapter coverage as a machine-readable or human-readable matrix:
+
+```bash
+agentbridge capability-matrix --json
+agentbridge capability-matrix --markdown
+agentbridge capability-matrix --backend mock --backend langgraph --json
+```
+
+Use this command whenever adapter capabilities change. It is the first version of the future coverage report described in the roadmap.
+
+The canonical taxonomy currently lives in `agentbridge.capabilities.CANONICAL_CAPABILITIES`. If an adapter reports a feature that is not part of the canonical taxonomy, run:
+
+```bash
+agentbridge capability-matrix --include-unknown --markdown
+```
+
+Then decide whether the feature belongs in the common taxonomy, a backend extension namespace, or native-only documentation.
+
 ## Design Implication
 
 AgentBridge should grow as a layered bridge:

@@ -81,6 +81,17 @@ agentbridge validate \
 
 Validation should run before adding a backend to a production migration path.
 
+### `capability-matrix`
+
+Render backend support across the canonical AgentBridge capability taxonomy.
+
+```bash
+agentbridge capability-matrix --markdown
+agentbridge capability-matrix --backend mock --backend langgraph --json
+```
+
+Use this as the fast coverage report for adapters and plugins. `--include-unknown` also displays adapter-reported features that are not yet part of the canonical taxonomy.
+
 ### `versions`
 
 Report adopted and installed package versions.

@@ -1,6 +1,13 @@
 """AgentBridge public API."""
 
 from agentbridge.agui import event_to_agui
+from agentbridge.capabilities import (
+    CANONICAL_CAPABILITIES,
+    CapabilityFeature,
+    CapabilityMatrix,
+    CapabilityMatrixRow,
+    capability_matrix,
+)
 from agentbridge.compare import BackendComparison, compare_backends
 from agentbridge.manifest import AgentManifest, load_agent_spec, load_manifest
 from agentbridge.plugins import load_adapter_plugins, plugin_status
@@ -25,12 +32,17 @@ __all__ = [
     "AgentSpec",
     "BackendComparison",
     "BackendCapabilities",
+    "CANONICAL_CAPABILITIES",
+    "CapabilityFeature",
+    "CapabilityMatrix",
+    "CapabilityMatrixRow",
     "ManifestValidation",
     "RunInput",
     "RunResult",
     "ToolRegistry",
     "ToolSpec",
     "adapter_sources",
+    "capability_matrix",
     "compare_backends",
     "dependency_versions",
     "event_to_agui",

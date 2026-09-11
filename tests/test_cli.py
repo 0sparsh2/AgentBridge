@@ -142,6 +142,24 @@ def test_cli_plugins_json(capsys) -> None:
     assert isinstance(payload, list)
 
 
+def test_cli_capability_matrix_json(capsys) -> None:
+    assert main(["capability-matrix", "--backend", "mock", "--json"]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["backends"] == ["mock"]
+    feature_keys = [row["feature"]["key"] for row in payload["rows"]]
+    assert "agent.instructions" in feature_keys
+    assert "workflow.graph" in feature_keys
+
+
+def test_cli_capability_matrix_markdown(capsys) -> None:
+    assert main(["capability-matrix", "--backend", "mock", "--markdown"]) == 0
+
+    output = capsys.readouterr().out
+    assert "| Feature | Category | mock |" in output
+    assert "`agent.instructions`" in output
+
+
 def test_cli_scaffolds_plugin(tmp_path, capsys) -> None:
     target = tmp_path / "plugin"
 
