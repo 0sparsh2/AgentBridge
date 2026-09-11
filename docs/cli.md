@@ -46,11 +46,12 @@ Run an agent manifest against one backend.
 agentbridge run \
   --manifest examples/refund_agent.yaml \
   --backend mock \
+  --tool-registry my_app.tools:build_registry \
   --input "Customer was double charged" \
   --json
 ```
 
-The CLI resolves manifest tool names through an explicit registry. The built-in CLI registry only contains deterministic demo tools.
+The CLI resolves manifest tool names through an explicit registry. The built-in CLI registry only contains deterministic demo tools. Production apps should pass `--tool-registry module:attribute`.
 
 ### `compare`
 
@@ -76,10 +77,13 @@ agentbridge validate \
   --manifest examples/refund_agent.yaml \
   --backend mock \
   --backend langgraph \
+  --tool-registry my_app.tools:build_registry \
   --json
 ```
 
 Validation should run before adding a backend to a production migration path.
+
+Tool registry references must use `module:attribute`. The attribute may be a `ToolRegistry`, a callable returning a `ToolRegistry`, or a dict/list/tuple of callables or `ToolSpec` objects.
 
 ### `capability-matrix`
 

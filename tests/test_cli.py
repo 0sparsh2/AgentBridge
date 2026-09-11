@@ -55,6 +55,53 @@ tools:
     assert payload["output"]["tools"][0]["name"] == "lookup_order"
 
 
+def test_cli_runs_manifest_with_explicit_tool_registry(tmp_path, capsys, monkeypatch) -> None:
+    manifest_path = tmp_path / "agent.yaml"
+    manifest_path.write_text(
+        """
+name: cli_agent
+instructions: Reply to the user.
+model: openai/gpt-5
+tools:
+  - name: lookup_customer
+""".strip()
+    )
+    tools_path = tmp_path / "customer_tools.py"
+    tools_path.write_text(
+        """
+def lookup_customer(customer_id: str) -> str:
+    \"\"\"Look up a customer.\"\"\"
+    return f"customer:{customer_id}"
+
+
+TOOLS = [lookup_customer]
+""".strip()
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    assert (
+        main(
+            [
+                "run",
+                "--manifest",
+                str(manifest_path),
+                "--backend",
+                "mock",
+                "--input",
+                "C123",
+                "--tool-registry",
+                "customer_tools:TOOLS",
+                "--json",
+            ]
+        )
+        == 0
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["output"]["tools"][0]["name"] == "lookup_customer"
+    assert payload["output"]["tools"][0]["result"] == "customer:C123"
+
+
 def test_cli_compares_manifest_backends(tmp_path, capsys) -> None:
     manifest_path = tmp_path / "agent.yaml"
     manifest_path.write_text(

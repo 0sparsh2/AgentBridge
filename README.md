@@ -188,6 +188,7 @@ Static manifests do not deserialize arbitrary Python functions. Tool names resol
 agentbridge list-backends
 agentbridge inspect-backend langgraph --json
 agentbridge run --manifest examples/refund_agent.yaml --backend mock --input "Customer was double charged" --json
+agentbridge run --manifest examples/refund_agent.yaml --backend mock --tool-registry my_app.tools:build_registry --input "Customer was double charged"
 agentbridge compare --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge capability-matrix --markdown

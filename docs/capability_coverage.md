@@ -165,6 +165,39 @@ output_schema:
 
 When a manifest declares `output_schema`, `agentbridge compare` and `agentbridge validate` automatically add `structured_output` to required capabilities.
 
+## Production Tool Registry
+
+Static manifests reference tools by name. They should not import arbitrary Python by themselves.
+
+Production apps should expose an explicit registry:
+
+```python
+from agentbridge import ToolRegistry
+
+
+def lookup_order(order_id: str) -> str:
+    """Look up an order."""
+    return f"found:{order_id}"
+
+
+def build_registry() -> ToolRegistry:
+    registry = ToolRegistry()
+    registry.register(lookup_order)
+    return registry
+```
+
+Then pass it to the CLI:
+
+```bash
+agentbridge run \
+  --manifest examples/refund_agent.yaml \
+  --backend mock \
+  --tool-registry my_app.tools:build_registry \
+  --input "Customer was double charged"
+```
+
+This keeps manifests declarative while giving production systems a clear allowlist for executable tools.
+
 ## Design Implication
 
 AgentBridge should grow as a layered bridge:

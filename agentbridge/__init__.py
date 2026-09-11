@@ -23,7 +23,14 @@ from agentbridge.registry import (
     reset_adapters,
 )
 from agentbridge.runner import run_agent, stream_agent
-from agentbridge.tool_registry import ToolRegistry, get_tool, list_tools, register_tool
+from agentbridge.tool_registry import (
+    ToolRegistry,
+    coerce_tool_registry,
+    get_tool,
+    list_tools,
+    load_tool_registry,
+    register_tool,
+)
 from agentbridge.validation import ManifestValidation, validate_manifest
 from agentbridge.versioning import dependency_versions
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult, ToolSpec
@@ -48,6 +55,7 @@ __all__ = [
     "ToolSpec",
     "adapter_sources",
     "capability_matrix",
+    "coerce_tool_registry",
     "compare_backends",
     "dependency_versions",
     "event_to_agui",
@@ -58,6 +66,7 @@ __all__ = [
     "inspect_backends",
     "load_agent_spec",
     "load_manifest",
+    "load_tool_registry",
     "load_adapter_plugins",
     "get_tool",
     "list_tools",

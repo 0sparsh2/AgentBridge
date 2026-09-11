@@ -17,6 +17,7 @@ from agentbridge.plugins import plugin_status
 from agentbridge.registry import adapter_sources, inspect_backend, inspect_backends, list_adapters
 from agentbridge.runner import run_agent, stream_agent
 from agentbridge.scaffold import scaffold_adapter_plugin
+from agentbridge.tool_registry import load_tool_registry
 from agentbridge.validation import validate_manifest
 from agentbridge.versioning import dependency_versions
 
@@ -38,6 +39,10 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--manifest", required=True, help="Path to a JSON/YAML agent manifest.")
     run_parser.add_argument("--backend", required=True, help="Backend adapter name.")
     run_parser.add_argument("--input", required=True, help="Input text for the run.")
+    run_parser.add_argument(
+        "--tool-registry",
+        help="Explicit tool registry reference in module:attribute format.",
+    )
     run_parser.add_argument("--stream", action="store_true", help="Stream normalized events.")
     run_parser.add_argument("--json", action="store_true", help="Emit JSON.")
 
@@ -59,6 +64,10 @@ def main(argv: list[str] | None = None) -> int:
 
     validate_parser = subparsers.add_parser("validate", help="Validate a manifest before running.")
     validate_parser.add_argument("--manifest", required=True, help="Path to a JSON/YAML agent manifest.")
+    validate_parser.add_argument(
+        "--tool-registry",
+        help="Explicit tool registry reference in module:attribute format.",
+    )
     validate_parser.add_argument(
         "--backend",
         action="append",
@@ -154,7 +163,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "run":
-            agent = load_agent_spec(args.manifest, tool_registry=build_builtin_tool_registry())
+            tool_registry = _load_cli_tool_registry(args.tool_registry)
+            agent = load_agent_spec(args.manifest, tool_registry=tool_registry)
             if args.stream:
                 events = [
                     event.model_dump()
@@ -200,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
             manifest = load_manifest(args.manifest)
             validation = validate_manifest(
                 manifest,
-                tool_registry=build_builtin_tool_registry(),
+                tool_registry=_load_cli_tool_registry(args.tool_registry),
                 backends=args.backends,
             )
             payload = validation.model_dump()
@@ -279,6 +289,12 @@ def _print_capabilities(payload: Any) -> None:
 
     for backend in sorted(payload):
         _print_one_capability(payload[backend])
+
+
+def _load_cli_tool_registry(reference: str | None) -> Any:
+    if reference:
+        return load_tool_registry(reference)
+    return build_builtin_tool_registry()
 
 
 def _print_one_capability(capability: dict[str, Any]) -> None:
