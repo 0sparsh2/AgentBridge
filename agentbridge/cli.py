@@ -11,6 +11,7 @@ from agentbridge.builtin_tools import build_builtin_tool_registry
 from agentbridge.capabilities import capability_matrix
 from agentbridge.conformance import run_conformance
 from agentbridge.compare import compare_backends
+from agentbridge.extensions import extension_profile, extension_profiles
 from agentbridge.manifest import load_agent_spec, load_manifest
 from agentbridge.plugins import plugin_status
 from agentbridge.registry import adapter_sources, inspect_backend, inspect_backends, list_adapters
@@ -102,6 +103,13 @@ def main(argv: list[str] | None = None) -> int:
         help="Backend to include. Repeat to test a subset.",
     )
     conformance_parser.add_argument("--json", action="store_true", help="Emit JSON.")
+
+    extensions_parser = subparsers.add_parser(
+        "extensions",
+        help="List framework-specific extension namespaces and config schemas.",
+    )
+    extensions_parser.add_argument("framework", nargs="?", help="Framework extension to inspect.")
+    extensions_parser.add_argument("--json", action="store_true", help="Emit JSON.")
 
     scaffold_parser = subparsers.add_parser(
         "scaffold-plugin",
@@ -232,6 +240,18 @@ def main(argv: list[str] | None = None) -> int:
                 _print_conformance(payload)
             return 0 if all(report["passed"] for report in payload) else 1
 
+        if args.command == "extensions":
+            if args.framework:
+                profiles = [extension_profile(args.framework)]
+            else:
+                profiles = extension_profiles()
+            payload = [profile.model_dump() for profile in profiles]
+            if args.json:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            else:
+                _print_extensions(payload)
+            return 0
+
         if args.command == "scaffold-plugin":
             created = scaffold_adapter_plugin(
                 args.target_dir,
@@ -348,6 +368,16 @@ def _print_conformance(payload: list[dict[str, Any]]) -> None:
             else:
                 check_status = "passed" if check["passed"] else "failed"
             print(f"  {check['name']}: {check_status} - {check['message']}")
+
+
+def _print_extensions(payload: list[dict[str, Any]]) -> None:
+    for profile in payload:
+        print(f"{profile['framework']}: {profile['status']}")
+        print(f"  module: {profile['module']}")
+        print(f"  config: {profile['config_model']}")
+        print(f"  capabilities: {', '.join(profile['capabilities'])}")
+        for note in profile["notes"]:
+            print(f"  note: {note}")
 
 
 if __name__ == "__main__":

@@ -103,6 +103,17 @@ agentbridge conformance --backend pydantic_ai --json
 
 The conformance runner checks capability metadata, basic execution, streaming, sync tools when advertised as `full`, and structured output when advertised as `full`. This is not a replacement for backend-specific tests, but it is the baseline every adapter should pass before claiming compatibility.
 
+### `extensions`
+
+List framework-specific extension namespaces and config schemas.
+
+```bash
+agentbridge extensions
+agentbridge extensions langgraph --json
+```
+
+Use this when you need to know which framework-specific knobs AgentBridge exposes outside the portable `AgentSpec` core.
+
 ### `versions`
 
 Report adopted and installed package versions.

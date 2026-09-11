@@ -192,6 +192,7 @@ agentbridge compare --manifest examples/refund_agent.yaml --backend mock --backe
 agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge capability-matrix --markdown
 agentbridge conformance --backend mock --json
+agentbridge extensions --json
 agentbridge versions --json
 agentbridge plugins --json
 agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk

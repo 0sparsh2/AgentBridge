@@ -10,6 +10,7 @@ from agentbridge.capabilities import (
 )
 from agentbridge.conformance import ConformanceCheck, ConformanceReport, run_conformance
 from agentbridge.compare import BackendComparison, compare_backends
+from agentbridge.extensions import ExtensionProfile, extension_profile, extension_profiles
 from agentbridge.manifest import AgentManifest, load_agent_spec, load_manifest
 from agentbridge.plugins import load_adapter_plugins, plugin_status
 from agentbridge.registry import (
@@ -39,6 +40,7 @@ __all__ = [
     "CapabilityMatrixRow",
     "ConformanceCheck",
     "ConformanceReport",
+    "ExtensionProfile",
     "ManifestValidation",
     "RunInput",
     "RunResult",
@@ -49,6 +51,8 @@ __all__ = [
     "compare_backends",
     "dependency_versions",
     "event_to_agui",
+    "extension_profile",
+    "extension_profiles",
     "get_adapter",
     "inspect_backend",
     "inspect_backends",

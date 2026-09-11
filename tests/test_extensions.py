@@ -6,6 +6,7 @@ from agentbridge.extensions import FrameworkExtension, UnsupportedExtension
 from agentbridge.extensions.crewai import CrewAIExtension
 from agentbridge.extensions.langgraph import LangGraphExtension
 from agentbridge.extensions.pydantic_ai import PydanticAIExtension
+from agentbridge.extensions.registry import extension_profile, extension_profiles
 
 
 def test_framework_extension_preserves_raw_escape_hatch() -> None:
@@ -91,3 +92,19 @@ def test_crewai_extension_builds_serializable_config() -> None:
         "human_input": True,
         "metadata": {"owner": "support"},
     }
+
+
+def test_extension_registry_lists_framework_profiles() -> None:
+    profiles = {profile.framework: profile for profile in extension_profiles()}
+
+    assert {"langgraph", "pydantic_ai", "crewai"}.issubset(profiles)
+    assert "node_name" in profiles["langgraph"].config_schema["properties"]
+    assert "retries" in profiles["pydantic_ai"].config_schema["properties"]
+    assert "role" in profiles["crewai"].config_schema["properties"]
+
+
+def test_extension_profile_returns_one_framework() -> None:
+    profile = extension_profile("crewai")
+
+    assert profile.framework == "crewai"
+    assert "workflow.roles_tasks" in profile.capabilities

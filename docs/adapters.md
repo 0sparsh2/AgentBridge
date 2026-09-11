@@ -189,6 +189,13 @@ Initial namespaces:
 
 Extensions should preserve the native framework's mental model. They are the main path for adopting every framework's nuance without bloating the portable core.
 
+Inspect available extension namespaces with:
+
+```bash
+agentbridge extensions
+agentbridge extensions langgraph --json
+```
+
 ## Adding A New Adapter
 
 1. Start as an external plugin unless the dependency tree is clearly core-friendly.
