@@ -293,6 +293,7 @@ agentbridge conformance --backend custom
 - [docs/design.md](docs/design.md): Design decisions, tradeoffs, and extension principles.
 - [docs/adapters.md](docs/adapters.md): Adapter support matrix and framework-specific notes.
 - [docs/capability_coverage.md](docs/capability_coverage.md): Long-term feature coverage strategy.
+- [docs/conformance.md](docs/conformance.md): Adapter contract checks and offline plugin model rules.
 - [docs/plugin_authoring.md](docs/plugin_authoring.md): External adapter plugin guide.
 - [docs/version_policy.md](docs/version_policy.md): Adopted and verified dependency versions.
 - [docs/roadmap.md](docs/roadmap.md): v0, v0.1, and v1 milestones.
