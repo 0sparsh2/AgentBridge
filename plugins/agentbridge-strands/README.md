@@ -32,6 +32,10 @@ agentbridge inspect-backend strands --json
 agentbridge conformance --backend strands
 ```
 
+The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
+compiles a Strands `Agent` and runs through the native event loop, but uses a tiny local Strands
+`Model` implementation so contract checks do not require cloud credentials.
+
 ## Local Development Without Installing
 
 ```bash

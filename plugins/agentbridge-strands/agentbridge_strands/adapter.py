@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from collections.abc import Iterator
 from dataclasses import dataclass
 from importlib import import_module
@@ -62,7 +63,7 @@ class Adapter(BackendAdapter):
         native_tools = [_to_strands_tool(sdk, tool) for tool in spec.tools]
         agent_kwargs: dict[str, Any] = {
             "name": spec.name,
-            "model": spec.model,
+            "model": _model_for_spec(spec),
             "system_prompt": spec.instructions,
             "tools": native_tools,
         }
@@ -76,6 +77,8 @@ class Adapter(BackendAdapter):
             agent_kwargs["hooks"] = config["hooks"]
         if config.get("metadata"):
             agent_kwargs["state"] = {"metadata": config["metadata"]}
+        if spec.model == "agentbridge/offline":
+            agent_kwargs["callback_handler"] = None
 
         native_agent = sdk.Agent(**agent_kwargs)
         return CompiledStrandsAgent(
@@ -95,10 +98,12 @@ class Adapter(BackendAdapter):
             invocation_state=_invocation_state(run_input),
         )
         output = _final_output(result)
-        return RunResult(
-            output=output,
+        events = _events_from_messages(
+            getattr(compiled_agent.native_agent, "messages", []),
             backend=self.backend_name,
-            events=[
+        )
+        events.extend(
+            [
                 AgentEvent(
                     type="message",
                     backend=self.backend_name,
@@ -113,7 +118,12 @@ class Adapter(BackendAdapter):
                     backend=self.backend_name,
                     data={"output": output},
                 ),
-            ],
+            ]
+        )
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
             usage=_usage_from_result(result),
             metadata={
                 "agent": compiled_agent.spec.name,
@@ -125,6 +135,10 @@ class Adapter(BackendAdapter):
 
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         compiled_agent = _ensure_compiled(compiled)
+        if _uses_offline_model(compiled_agent):
+            yield from self.run(compiled_agent, run_input).events
+            return
+
         if not hasattr(compiled_agent.native_agent, "stream_async"):
             yield from self.run(compiled_agent, run_input).events
             return
@@ -153,6 +167,173 @@ def _to_strands_tool(sdk: Any, tool_spec: Any) -> Any:
         description=tool_spec.description,
         inputSchema=tool_spec.input_schema,
     )
+
+
+def _model_for_spec(spec: AgentSpec) -> Any:
+    if spec.model == "agentbridge/offline":
+        model_base = import_module("strands.models.model").Model
+
+        class AgentBridgeOfflineModel(_AgentBridgeOfflineModelBase, model_base):
+            pass
+
+        return AgentBridgeOfflineModel()
+    return spec.model
+
+
+class _AgentBridgeOfflineModelBase:
+    """No-network Strands model used by conformance tests."""
+
+    def __init__(self) -> None:
+        self._config: dict[str, Any] = {
+            "model_id": "agentbridge/offline",
+            "context_window_limit": 4096,
+        }
+
+    def update_config(self, **model_config: Any) -> None:
+        self._config.update(model_config)
+
+    def get_config(self) -> Any:
+        return dict(self._config)
+
+    async def structured_output(
+        self,
+        output_model: type[Any],
+        prompt: Any,
+        system_prompt: str | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        del prompt, system_prompt, kwargs
+        yield {"output": output_model()}
+
+    async def stream(
+        self,
+        messages: Any,
+        tool_specs: list[Any] | None = None,
+        system_prompt: str | None = None,
+        *,
+        tool_choice: Any | None = None,
+        system_prompt_content: list[Any] | None = None,
+        invocation_state: dict[str, Any] | None = None,
+        cancel_signal: Any | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        del system_prompt, tool_choice, system_prompt_content, invocation_state, cancel_signal
+        del kwargs
+
+        tool_result = _latest_tool_result(messages)
+        if tool_result is not None:
+            async for event in self._text_stream(f"offline tool result: {tool_result}"):
+                yield event
+            return
+
+        if tool_specs:
+            tool_spec = tool_specs[0]
+            tool_name = str(tool_spec.get("name", "tool"))
+            argument_name = _first_tool_argument_name(tool_spec)
+            async for event in self._tool_use_stream(
+                name=tool_name,
+                arguments={argument_name: _last_user_text(messages)},
+            ):
+                yield event
+            return
+
+        async for event in self._text_stream(f"offline response: {_last_user_text(messages)}"):
+            yield event
+
+    async def _text_stream(self, text: str) -> Any:
+        yield {"messageStart": {"role": "assistant"}}
+        yield {"contentBlockStart": {"start": {}}}
+        yield {"contentBlockDelta": {"delta": {"text": text}}}
+        yield {"contentBlockStop": {}}
+        yield {"messageStop": {"stopReason": "end_turn"}}
+        yield {"metadata": {"usage": {"inputTokens": 1, "outputTokens": 1, "totalTokens": 2}}}
+
+    async def _tool_use_stream(self, *, name: str, arguments: dict[str, Any]) -> Any:
+        yield {"messageStart": {"role": "assistant"}}
+        yield {
+            "contentBlockStart": {
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "agentbridge-offline-tool-use",
+                        "name": name,
+                    }
+                }
+            }
+        }
+        yield {"contentBlockDelta": {"delta": {"toolUse": {"input": json.dumps(arguments)}}}}
+        yield {"contentBlockStop": {}}
+        yield {"messageStop": {"stopReason": "tool_use"}}
+        yield {"metadata": {"usage": {"inputTokens": 1, "outputTokens": 1, "totalTokens": 2}}}
+
+
+def _uses_offline_model(compiled: CompiledStrandsAgent) -> bool:
+    return isinstance(getattr(compiled.native_agent, "model", None), _AgentBridgeOfflineModelBase)
+
+
+def _first_tool_argument_name(tool_spec: dict[str, Any]) -> str:
+    schema = tool_spec.get("inputSchema") or {}
+    schema = schema.get("json", schema)
+    required = schema.get("required") or []
+    if required:
+        return str(required[0])
+    properties = schema.get("properties") or {}
+    if properties:
+        return str(next(iter(properties)))
+    return "input"
+
+
+def _latest_tool_result(messages: Any) -> Any | None:
+    for message in reversed(messages or []):
+        for block in reversed(message.get("content", []) if isinstance(message, dict) else []):
+            if not isinstance(block, dict) or "toolResult" not in block:
+                continue
+            content = block["toolResult"].get("content", [])
+            if content and isinstance(content[0], dict):
+                return content[0].get("text", content[0])
+            return content
+    return None
+
+
+def _last_user_text(messages: Any) -> str:
+    for message in reversed(messages or []):
+        if not isinstance(message, dict) or message.get("role") != "user":
+            continue
+        parts: list[str] = []
+        for block in message.get("content", []):
+            if isinstance(block, dict):
+                parts.append(str(block.get("text", block.get("content", ""))))
+            else:
+                parts.append(str(block))
+        if parts:
+            return " ".join(parts)
+    return ""
+
+
+def _events_from_messages(messages: Any, *, backend: str) -> list[AgentEvent]:
+    events: list[AgentEvent] = []
+    for message in messages or []:
+        if not isinstance(message, dict):
+            continue
+        for block in message.get("content", []):
+            if not isinstance(block, dict):
+                continue
+            if "toolUse" in block:
+                events.append(
+                    AgentEvent(
+                        type="tool_call",
+                        backend=backend,
+                        data=block["toolUse"],
+                    )
+                )
+            if "toolResult" in block:
+                events.append(
+                    AgentEvent(
+                        type="tool_result",
+                        backend=backend,
+                        data=block["toolResult"],
+                    )
+                )
+    return events
 
 
 def _ensure_compiled(compiled: Any) -> CompiledStrandsAgent:
