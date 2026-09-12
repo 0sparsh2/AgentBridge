@@ -48,9 +48,11 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "Maps AgentSpec instructions to Strands system_prompt.",
                 "agent.model": "Passes model strings through to Strands; provider compatibility is Strands/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to Strands @tool wrappers.",
-                "tools.mcp": "Planned through StrandsExtension mcp_clients.",
+                "tools.mcp": "Records MCP client hints through StrandsExtension; native MCP client execution remains extension-level.",
                 "structured_output": "Maps AgentSpec.output_type to Strands structured_output_model and validates native structured output.",
-                "observability.tracing": "Planned through trace_attributes and native run metadata.",
+                "guardrails": "Records guardrail/intervention hints and forwards native interventions when supplied.",
+                "observability.tracing": "Passes trace_attributes and preserves extension/runtime summaries.",
+                "deployment.serverless": "Records deployment_target metadata for AgentCore/Lambda-style deployment paths.",
                 "streaming.events": "Uses Strands stream_async when available and normalizes events best-effort.",
             },
         )
@@ -69,12 +71,31 @@ class Adapter(BackendAdapter):
         }
         if spec.output_type is not None:
             agent_kwargs["structured_output_model"] = spec.output_type
-        if config.get("conversation_manager"):
-            agent_kwargs["conversation_manager"] = config["conversation_manager"]
-        if config.get("trace_attributes"):
-            agent_kwargs["trace_attributes"] = config["trace_attributes"]
-        if config.get("hooks"):
-            agent_kwargs["hooks"] = config["hooks"]
+        _copy_native_agent_options(
+            config,
+            agent_kwargs,
+            (
+                "conversation_manager",
+                "context_manager",
+                "trace_attributes",
+                "hooks",
+                "plugins",
+                "interventions",
+                "session_manager",
+                "memory_manager",
+                "tool_executor",
+                "retry_strategy",
+                "checkpointing",
+                "sandbox",
+                "storage",
+                "background_tasks",
+                "agent_id",
+                "description",
+                "structured_output_prompt",
+                "load_tools_from_directory",
+                "record_direct_tool_call",
+            ),
+        )
         if config.get("metadata"):
             agent_kwargs["state"] = {"metadata": config["metadata"]}
         if spec.model == "agentbridge/offline":
@@ -129,6 +150,10 @@ class Adapter(BackendAdapter):
                 "agent": compiled_agent.spec.name,
                 "interrupts": _safe_repr(getattr(result, "interrupts", None)),
                 "checkpoint": _safe_repr(getattr(result, "checkpoint", None)),
+                "invocation_state": _safe_summary(_invocation_state(run_input)),
+                "extension_config": _safe_summary(compiled_agent.config),
+                "extension_summary": _extension_summary(compiled_agent.config),
+                "native_agent_type": type(compiled_agent.native_agent).__name__,
             },
             raw=result,
         )
@@ -167,6 +192,23 @@ def _to_strands_tool(sdk: Any, tool_spec: Any) -> Any:
         description=tool_spec.description,
         inputSchema=tool_spec.input_schema,
     )
+
+
+def _copy_native_agent_options(
+    config: dict[str, Any],
+    agent_kwargs: dict[str, Any],
+    option_names: tuple[str, ...],
+) -> None:
+    for option_name in option_names:
+        if option_name not in config:
+            continue
+        value = config[option_name]
+        if value is None:
+            continue
+        if option_name in {"checkpointing", "load_tools_from_directory", "record_direct_tool_call"}:
+            agent_kwargs[option_name] = bool(value)
+        else:
+            agent_kwargs[option_name] = value
 
 
 def _model_for_spec(spec: AgentSpec) -> Any:
@@ -373,6 +415,49 @@ def _invocation_state(run_input: RunInput) -> dict[str, Any]:
     return state
 
 
+def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
+    native_agent_options = [
+        "conversation_manager",
+        "context_manager",
+        "trace_attributes",
+        "hooks",
+        "plugins",
+        "interventions",
+        "session_manager",
+        "memory_manager",
+        "tool_executor",
+        "retry_strategy",
+        "checkpointing",
+        "sandbox",
+        "storage",
+        "background_tasks",
+        "agent_id",
+        "description",
+        "structured_output_prompt",
+        "load_tools_from_directory",
+        "record_direct_tool_call",
+    ]
+    applied_native_options = [
+        option_name
+        for option_name in native_agent_options
+        if option_name in config and config[option_name] is not None
+    ]
+    return {
+        "conversation_manager": "conversation_manager" in applied_native_options,
+        "context_manager": "context_manager" in applied_native_options,
+        "hooks_count": len(config.get("hooks") or []),
+        "plugins_count": len(config.get("plugins") or []),
+        "interventions_count": len(config.get("interventions") or []),
+        "mcp_clients": _safe_summary(config.get("mcp_clients") or []),
+        "trace_attributes": _safe_summary(config.get("trace_attributes") or {}),
+        "guardrails": _safe_summary(config.get("guardrails") or []),
+        "deployment_target": config.get("deployment_target"),
+        "session_manager": "session_manager" in applied_native_options,
+        "memory_manager": "memory_manager" in applied_native_options,
+        "applied_native_options": applied_native_options,
+    }
+
+
 def _final_output(result: Any) -> Any:
     structured_output = getattr(result, "structured_output", None)
     if structured_output is not None:
@@ -469,3 +554,13 @@ def _safe_repr(value: Any) -> str | None:
     if value is None:
         return None
     return repr(value)
+
+
+def _safe_summary(value: Any) -> Any:
+    if isinstance(value, str | int | float | bool) or value is None:
+        return value
+    if isinstance(value, list | tuple | set):
+        return [_safe_summary(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _safe_summary(item) for key, item in value.items()}
+    return type(value).__name__

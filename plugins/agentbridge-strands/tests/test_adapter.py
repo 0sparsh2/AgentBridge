@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from pydantic import BaseModel
 
 from agentbridge import AgentSpec, RunInput, ToolSpec
+from agentbridge.extensions.strands import StrandsExtension
 from agentbridge_strands.adapter import Adapter, CompiledStrandsAgent
 
 
@@ -57,6 +58,128 @@ def test_adapter_compiles_and_runs_native_agent(monkeypatch) -> None:
     assert result.output == "native strands: hello"
     assert result.usage == {"requests": 1}
     assert [event.type for event in result.events] == ["message", "complete"]
+
+
+def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "strands",
+        SimpleNamespace(Agent=FakeStrandsAgent, tool=fake_tool),
+    )
+    adapter = Adapter()
+    conversation_manager = object()
+    context_manager = object()
+    hook = object()
+    plugin = object()
+    intervention = object()
+    session_manager = object()
+    memory_manager = object()
+    tool_executor = object()
+    retry_strategy = object()
+    sandbox = object()
+    storage = object()
+    background_tasks = object()
+    agent = StrandsExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Echo the user request.",
+            model="mock/model",
+        ),
+        conversation_manager=conversation_manager,
+        context_manager=context_manager,
+        hooks=[hook],
+        plugins=[plugin],
+        interventions=[intervention],
+        mcp_clients=["orders_mcp"],
+        trace_attributes={"service": "support"},
+        guardrails=["refund_policy"],
+        session_manager=session_manager,
+        memory_manager=memory_manager,
+        tool_executor=tool_executor,
+        retry_strategy=retry_strategy,
+        checkpointing=True,
+        sandbox=sandbox,
+        storage=storage,
+        background_tasks=background_tasks,
+        agent_id="agent-1",
+        description="Support assistant",
+        structured_output_prompt="Return JSON.",
+        load_tools_from_directory=True,
+        record_direct_tool_call=False,
+        deployment_target="agentcore",
+        metadata={"owner": "support"},
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(
+        compiled,
+        RunInput(
+            input="hello",
+            context={"tenant": "acme"},
+            metadata={"request_id": "req-1"},
+            session_id="session-1",
+        ),
+    )
+
+    assert compiled.native_agent.kwargs["conversation_manager"] is conversation_manager
+    assert compiled.native_agent.kwargs["context_manager"] is context_manager
+    assert compiled.native_agent.kwargs["hooks"] == [hook]
+    assert compiled.native_agent.kwargs["plugins"] == [plugin]
+    assert compiled.native_agent.kwargs["interventions"] == [intervention]
+    assert compiled.native_agent.kwargs["trace_attributes"] == {"service": "support"}
+    assert compiled.native_agent.kwargs["session_manager"] is session_manager
+    assert compiled.native_agent.kwargs["memory_manager"] is memory_manager
+    assert compiled.native_agent.kwargs["tool_executor"] is tool_executor
+    assert compiled.native_agent.kwargs["retry_strategy"] is retry_strategy
+    assert compiled.native_agent.kwargs["checkpointing"] is True
+    assert compiled.native_agent.kwargs["sandbox"] is sandbox
+    assert compiled.native_agent.kwargs["storage"] is storage
+    assert compiled.native_agent.kwargs["background_tasks"] is background_tasks
+    assert compiled.native_agent.kwargs["agent_id"] == "agent-1"
+    assert compiled.native_agent.kwargs["description"] == "Support assistant"
+    assert compiled.native_agent.kwargs["structured_output_prompt"] == "Return JSON."
+    assert compiled.native_agent.kwargs["load_tools_from_directory"] is True
+    assert compiled.native_agent.kwargs["record_direct_tool_call"] is False
+    assert compiled.native_agent.kwargs["state"] == {"metadata": {"owner": "support"}}
+    assert result.metadata["invocation_state"] == {
+        "tenant": "acme",
+        "metadata": {"request_id": "req-1"},
+        "session_id": "session-1",
+    }
+    assert result.metadata["extension_summary"] == {
+        "conversation_manager": True,
+        "context_manager": True,
+        "hooks_count": 1,
+        "plugins_count": 1,
+        "interventions_count": 1,
+        "mcp_clients": ["orders_mcp"],
+        "trace_attributes": {"service": "support"},
+        "guardrails": ["refund_policy"],
+        "deployment_target": "agentcore",
+        "session_manager": True,
+        "memory_manager": True,
+        "applied_native_options": [
+            "conversation_manager",
+            "context_manager",
+            "trace_attributes",
+            "hooks",
+            "plugins",
+            "interventions",
+            "session_manager",
+            "memory_manager",
+            "tool_executor",
+            "retry_strategy",
+            "checkpointing",
+            "sandbox",
+            "storage",
+            "background_tasks",
+            "agent_id",
+            "description",
+            "structured_output_prompt",
+            "load_tools_from_directory",
+            "record_direct_tool_call",
+        ],
+    }
 
 
 def test_adapter_runs_offline_model_through_native_agent() -> None:

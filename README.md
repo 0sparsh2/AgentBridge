@@ -36,7 +36,7 @@ Current backend status:
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
 | `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
-| `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; MCP, hooks, tracing, and deployment remain extension-level. |
+| `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, tracing summaries, MCP hints, guardrails, and deployment metadata remain extension-level. |
 | `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; native runtime config, callbacks, checkpointers, stores, and other `create_agent` options are extension-level. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; memory, sub-agents, evals, deployment, and dependency-sensitive services remain extension-level. |
 
