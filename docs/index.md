@@ -23,6 +23,7 @@ Use this page as the navigation map for the repository.
 - [Design](design.md): Design decisions, tradeoffs, extension principles, and boundaries.
 - [Adapters](adapters.md): Backend support matrix, current limitations, and adapter-specific notes.
 - [CLI](cli.md): Command reference for validating, running, comparing, and inspecting agents.
+- [Migration Helpers](migration.md): Conservative import reports for LangChain and LangGraph project shapes.
 - [Plugin Authoring](plugin_authoring.md): How to build adapter plugins outside the core package.
 
 ## Examples

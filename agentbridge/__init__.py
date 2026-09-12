@@ -12,6 +12,12 @@ from agentbridge.conformance import ConformanceCheck, ConformanceReport, run_con
 from agentbridge.compare import BackendComparison, compare_backends
 from agentbridge.extensions import ExtensionProfile, extension_profile, extension_profiles
 from agentbridge.manifest import AgentManifest, load_agent_spec, load_manifest
+from agentbridge.migration import (
+    MigrationFinding,
+    MigrationReport,
+    import_langchain_agent,
+    import_langgraph_graph,
+)
 from agentbridge.plugins import load_adapter_plugins, plugin_status
 from agentbridge.registry import (
     adapter_sources,
@@ -49,6 +55,8 @@ __all__ = [
     "ConformanceReport",
     "ExtensionProfile",
     "ManifestValidation",
+    "MigrationFinding",
+    "MigrationReport",
     "RunInput",
     "RunResult",
     "ToolRegistry",
@@ -64,6 +72,8 @@ __all__ = [
     "get_adapter",
     "inspect_backend",
     "inspect_backends",
+    "import_langchain_agent",
+    "import_langgraph_graph",
     "load_agent_spec",
     "load_manifest",
     "load_tool_registry",

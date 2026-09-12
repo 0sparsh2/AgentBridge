@@ -312,3 +312,8 @@ Risks:
 4. Complete Google ADK plugin execution for sessions, memory, sub-agents, and eval/deploy metadata.
 5. Add import/migration helpers for existing LangChain and LangGraph apps.
 6. Add coverage reports that combine canonical capabilities, extension schemas, and native-only features.
+
+Current migration helper status:
+
+- `import_langchain_agent()` extracts obvious name, model, prompt, tools, and extension hints from LangChain-like objects.
+- `import_langgraph_graph()` extracts graph names and visible node names while marking topology as native-only/manual-review territory.
