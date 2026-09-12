@@ -60,10 +60,12 @@ ADOPTED_DEPENDENCIES = {
         "package": "google-adk",
         "range": ">=2.9,<3",
         "role": "Google ADK adapter plugin",
-        "status": "planned",
+        "status": "partial",
         "notes": (
-            "PyPI latest observed as 2.9.0 on 2026-09-11. External plugin scaffold "
-            "targets sessions, memory services, sub-agents, evals, and deployment surfaces."
+            "Verified install with google-adk 2.9.0. External plugin maps AgentSpec to ADK "
+            "Agent, ToolSpec to FunctionTool, and runs through Runner with an in-memory "
+            "session service. Native ADK currently pins older OpenTelemetry packages than "
+            "Strands, so installing both native plugins may require isolated environments."
         ),
     },
     "strands": {

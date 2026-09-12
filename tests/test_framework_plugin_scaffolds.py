@@ -113,10 +113,73 @@ def install_fake_langchain(monkeypatch) -> None:
     )
 
 
+class FakeADKAgent:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+
+class FakeADKFunctionTool:
+    def __init__(self, func):
+        self.func = func
+
+
+class FakeADKSessionService:
+    pass
+
+
+class FakeADKPart:
+    def __init__(self, text=None):
+        self.text = text
+
+    @classmethod
+    def from_text(cls, *, text):
+        return cls(text=text)
+
+
+class FakeADKContent:
+    def __init__(self, role=None, parts=None):
+        self.role = role
+        self.parts = parts or []
+
+
+class FakeADKRunner:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def run(self, *, user_id, session_id, new_message, state_delta=None, run_config=None):
+        yield SimpleNamespace(
+            content=FakeADKContent(
+                role="model",
+                parts=[FakeADKPart(text=f"hello from native google adk: {new_message.parts[0].text}")],
+            )
+        )
+
+
+def install_fake_google_adk(monkeypatch) -> None:
+    monkeypatch.setitem(sys.modules, "google.adk.agents", SimpleNamespace(Agent=FakeADKAgent))
+    monkeypatch.setitem(sys.modules, "google.adk.runners", SimpleNamespace(Runner=FakeADKRunner))
+    monkeypatch.setitem(
+        sys.modules,
+        "google.adk.sessions",
+        SimpleNamespace(InMemorySessionService=FakeADKSessionService),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "google.adk.tools.function_tool",
+        SimpleNamespace(FunctionTool=FakeADKFunctionTool),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "google.genai.types",
+        SimpleNamespace(Content=FakeADKContent, Part=FakeADKPart),
+    )
+
+
 def test_next_wave_plugin_scaffolds_load_locally(monkeypatch) -> None:
     install_fake_openai_agents(monkeypatch)
     install_fake_strands(monkeypatch)
     install_fake_langchain(monkeypatch)
+    install_fake_google_adk(monkeypatch)
     plugin_roots = [
         ROOT / "plugins" / "agentbridge-openai-agents",
         ROOT / "plugins" / "agentbridge-google-adk",
@@ -164,3 +227,17 @@ def test_next_wave_plugin_capabilities_are_honest(monkeypatch) -> None:
     assert capabilities.status("tools.sync") == "full"
     assert capabilities.status("tools.mcp") == "extension"
     assert capabilities.status("observability.tracing") == "extension"
+
+
+def test_google_adk_plugin_capabilities_are_honest(monkeypatch) -> None:
+    install_fake_google_adk(monkeypatch)
+    monkeypatch.syspath_prepend(str(ROOT / "plugins" / "agentbridge-google-adk"))
+    monkeypatch.setenv("AGENTBRIDGE_ADAPTER_PLUGINS", "agentbridge_google_adk.adapter")
+    reset_plugin_loader()
+    load_adapter_plugins(force=True)
+
+    capabilities = get_adapter("google_adk").capabilities()
+
+    assert capabilities.status("tools.sync") == "full"
+    assert capabilities.status("state.session") == "extension"
+    assert capabilities.status("deployment.serverless") == "extension"

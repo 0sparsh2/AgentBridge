@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 from agentbridge import AgentSpec, RunInput, get_adapter, list_adapters
 from agentbridge.plugins import load_adapter_plugins, reset_plugin_loader
 from agentbridge.scaffold import scaffold_adapter_plugin
@@ -24,6 +26,8 @@ def test_scaffold_adapter_plugin_creates_runnable_package(tmp_path, monkeypatch)
     assert "agentbridge conformance --backend google_adk" in (target / "README.md").read_text()
 
     monkeypatch.syspath_prepend(str(target))
+    for module_name in ["agentbridge_google_adk", "agentbridge_google_adk.adapter"]:
+        sys.modules.pop(module_name, None)
     monkeypatch.setenv("AGENTBRIDGE_ADAPTER_PLUGINS", "agentbridge_google_adk.adapter")
     reset_plugin_loader()
 
