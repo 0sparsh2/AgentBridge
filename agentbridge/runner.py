@@ -38,6 +38,24 @@ def run_agent(
     return adapter.run(compiled, _coerce_run_input(input, **run_input_kwargs))
 
 
+def resume_agent(
+    compiled: object,
+    *,
+    backend: str | None = None,
+    framework: str | None = None,
+    input: str | RunInput = "resume",
+    **run_input_kwargs: object,
+) -> RunResult:
+    """Resume a previously interrupted compiled agent.
+
+    Resume is intentionally based on a compiled backend object because some
+    frameworks keep checkpoint state on the compiled runtime.
+    """
+
+    adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
+    return adapter.resume(compiled, _coerce_run_input(input, **run_input_kwargs))
+
+
 def stream_agent(
     agent: AgentSpec,
     *,
