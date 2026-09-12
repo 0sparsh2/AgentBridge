@@ -127,10 +127,10 @@ def extension_profiles() -> list[ExtensionProfile]:
                 "observability.tracing",
                 "deployment.serverless",
             ],
-            status="scaffolded",
+            status="partial",
             notes=[
-                "External plugin target for Strands tools, MCP clients, hooks, structured output, and AWS deployment paths.",
-                "Hook-driven lifecycle support should drive future AgentEvent expansion.",
+                "External plugin maps AgentSpec and ToolSpec to Strands Agent and @tool wrappers.",
+                "MCP clients, hooks, guardrails, tracing, and AWS deployment paths remain extension-level.",
             ],
         ),
         ExtensionProfile(

@@ -16,7 +16,7 @@ AgentBridge adapters must document the framework versions they target. Agent fra
 | `agentbridge-crewai` | External CrewAI adapter plugin | upstream `crewai>=0.11.2,<0.12` | Scaffolded, not installed | Blocked on Python 3.14 dependency resolution |
 | `openai-agents` | External OpenAI Agents SDK adapter plugin | `>=0.20,<0.21` | Latest observed `0.22.2`; compatible baseline `0.20.0` | Partial native adapter |
 | `google-adk` | External Google ADK adapter plugin | `>=2.9,<3` | Latest observed `2.9.0` | Planned plugin scaffold |
-| `strands-agents` | External Strands Agents adapter plugin | `>=1.55,<2` | Latest observed `1.55.1` | Planned plugin scaffold |
+| `strands-agents` | External Strands Agents adapter plugin | `>=1.55,<2` | `1.55.1` | Partial native adapter |
 | `langchain` | External direct LangChain adapter plugin | `>=1.4,<2` | Latest observed `1.4.0` | Planned plugin scaffold |
 
 ## Notes
