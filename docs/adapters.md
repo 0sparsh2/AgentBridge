@@ -11,6 +11,26 @@ Adapters translate `AgentSpec` into backend-native runtime objects and normalize
 | `pydantic_ai` | Core optional extra | `pip install -e ".[pydantic-ai]"` | Verified locally | Typed Python-native agents and structured output pathfinding. |
 | `crewai` | External plugin scaffold | `plugins/agentbridge-crewai` | Blocked | High-level role/task/crew prototyping once dependency resolution is isolated. |
 
+## Distribution Types
+
+AgentBridge keeps the common SDK small and moves framework-specific dependency risk outward.
+
+`Core` means the backend ships with the base package and has no heavy optional framework dependency.
+Today this is only `mock`.
+
+`Core optional extra` means the adapter implementation lives in the core repository, but its framework
+dependency is installed only when requested. LangGraph and Pydantic AI are here because they are
+strategic early backends, resolve cleanly in CI, and can be tested without paid model calls.
+
+`External plugin` means the adapter is a separate package discovered through AgentBridge plugin
+loading. This is the default for heavier or faster-moving ecosystems such as OpenAI Agents, Strands,
+LangChain, and Google ADK.
+
+`External plugin scaffold` means AgentBridge has created the package shape and extension namespace,
+but the real framework dependency is blocked or not yet safely verified in this environment. CrewAI
+is currently here because the targeted dependency set conflicts with this repo's current Python and
+LangChain/LangSmith dependency path.
+
 ## Built-In Adapter Rules
 
 Core adapters should be included only when they satisfy all of these:
@@ -46,13 +66,13 @@ Current focus:
 - Normalize graph outputs into `RunResult`.
 - Preserve native raw objects for deeper graph behavior.
 - Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, in-memory checkpointing, and context-based conditional routing.
+- Report checkpoint-backed interrupt state when `interrupt_before` or `interrupt_after` pauses execution.
 
 Next areas:
 
-- Conditional routing.
 - Richer graph state.
 - Tool-call lifecycle streaming.
-- Human-in-the-loop interrupts.
+- Portable approval and resume helpers on top of native LangGraph interrupts.
 
 Example:
 
@@ -70,6 +90,7 @@ agent = LangGraphExtension.with_config(
     graph_name="refund_graph",
     include_context_in_output=True,
     enable_checkpointing=True,
+    interrupt_before=["refund_node"],
     route_on_context_key="intent",
     routes={"refund": "refund_node", "billing": "billing_node"},
 )
@@ -81,6 +102,11 @@ result = run_agent(
     session_id="customer-123",
 )
 ```
+
+If an interrupt pauses execution, `RunResult.metadata["interrupted"]` is `True` and workflow events
+include `phase="interrupted"` with the next node and checkpoint identifiers. Full portable approval
+and resume helpers are still planned, so `human_approval` is currently extension-level rather than
+`full`.
 
 ## `pydantic_ai`
 

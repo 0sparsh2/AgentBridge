@@ -48,13 +48,13 @@ class LangGraphAdapter(BackendAdapter):
                 "state.session": "full",
                 "state.checkpointing": "extension",
                 "streaming.events": "partial",
-                "human_approval": "full",
+                "human_approval": "extension",
                 "observability.raw": "full",
                 "agui.events": "partial",
             },
             notes={
                 "workflow.graph": "LangGraph is the strongest v0 target for explicit state graphs.",
-                "human_approval": "Native interrupts and checkpointing should map to approval APIs later.",
+                "human_approval": "Interrupt state is reported when configured; portable approval/resume helpers are planned.",
                 "agent.model": "Current adapter demonstrates graph execution without calling a model.",
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True).",
@@ -131,6 +131,7 @@ class LangGraphAdapter(BackendAdapter):
         return LangGraphCompiledAgent(spec=spec, graph=compiled_graph, config=config)
 
     def run(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
+        invoke_config = self._invoke_config(compiled, run_input)
         raw = compiled.graph.invoke(
             {
                 "input": run_input.input,
@@ -139,15 +140,28 @@ class LangGraphAdapter(BackendAdapter):
                 "tool_outputs": [],
                 "route": "",
             },
-            config=self._invoke_config(compiled, run_input),
+            config=invoke_config,
         )
+        interrupt_state = self._interrupt_state(compiled, invoke_config)
         output = raw.get("output", raw)
-        events = self._events_from_raw(raw, output)
+        if interrupt_state and not output:
+            output = {
+                "agent": compiled.spec.name,
+                "input": raw.get("input", run_input.input),
+                "interrupted": True,
+                "next": interrupt_state["next"],
+                "message": "LangGraph execution paused at an interrupt boundary.",
+            }
+        events = self._events_from_raw(raw, output, interrupt_state=interrupt_state)
         metadata = {
             "node_name": compiled.config.node_name,
             "checkpointing": compiled.config.enable_checkpointing,
             "route": raw.get("route", compiled.config.node_name),
         }
+        if interrupt_state:
+            metadata["interrupted"] = True
+            metadata["next"] = interrupt_state["next"]
+            metadata["checkpoint"] = interrupt_state.get("checkpoint")
         return RunResult(
             output=output,
             backend=self.backend_name,
@@ -173,6 +187,37 @@ class LangGraphAdapter(BackendAdapter):
         if not compiled.config.enable_checkpointing:
             return None
         return {"configurable": {"thread_id": run_input.session_id or compiled.spec.name}}
+
+    def _interrupt_state(
+        self,
+        compiled: LangGraphCompiledAgent,
+        invoke_config: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not compiled.config.enable_checkpointing or not invoke_config:
+            return None
+        get_state = getattr(compiled.graph, "get_state", None)
+        if not callable(get_state):
+            return None
+        try:
+            snapshot = get_state(invoke_config)
+        except Exception:  # pragma: no cover - defensive around optional LangGraph internals
+            return None
+        next_nodes = list(getattr(snapshot, "next", ()) or ())
+        if not next_nodes:
+            return None
+        checkpoint = None
+        snapshot_config = getattr(snapshot, "config", None)
+        if isinstance(snapshot_config, dict):
+            configurable = snapshot_config.get("configurable", {})
+            checkpoint = {
+                "thread_id": configurable.get("thread_id"),
+                "checkpoint_id": configurable.get("checkpoint_id"),
+                "checkpoint_ns": configurable.get("checkpoint_ns"),
+            }
+        return {
+            "next": next_nodes,
+            "checkpoint": checkpoint,
+        }
 
     def _route_targets(self, config: LangGraphConfig) -> dict[str, str]:
         if not config.route_on_context_key:
@@ -219,19 +264,39 @@ class LangGraphAdapter(BackendAdapter):
         result = self.run(compiled, run_input)
         yield from result.events
 
-    def _events_from_raw(self, raw: dict[str, Any], output: Any) -> list[AgentEvent]:
+    def _events_from_raw(
+        self,
+        raw: dict[str, Any],
+        output: Any,
+        *,
+        interrupt_state: dict[str, Any] | None = None,
+    ) -> list[AgentEvent]:
         events = [
             AgentEvent(
                 type="workflow",
                 backend=self.backend_name,
                 data={"phase": "node_complete", "route": raw.get("route")},
             ),
+        ]
+        if interrupt_state:
+            events.append(
+                AgentEvent(
+                    type="workflow",
+                    backend=self.backend_name,
+                    data={
+                        "phase": "interrupted",
+                        "next": interrupt_state["next"],
+                        "checkpoint": interrupt_state.get("checkpoint"),
+                    },
+                )
+            )
+        events.append(
             AgentEvent(
                 type="message",
                 backend=self.backend_name,
                 data={"role": "assistant", "content": output},
             )
-        ]
+        )
         for record in raw.get("tool_outputs", []):
             events.append(
                 AgentEvent(

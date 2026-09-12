@@ -116,8 +116,40 @@ def test_langgraph_adapter_routes_with_extension_config_when_available() -> None
     assert events[-1].type == "complete"
 
 
+def test_langgraph_adapter_reports_interrupt_state_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = LangGraphExtension.with_config(
+        AgentSpec(
+            name="approval_agent",
+            instructions="Pause before work.",
+            model="openai/gpt-5",
+        ),
+        enable_checkpointing=True,
+        interrupt_before=["agent"],
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    result = adapter.run(
+        compiled,
+        run_input=RunInput(input="Needs approval.", session_id="approval-session"),
+    )
+
+    workflow_events = [event for event in result.events if event.type == "workflow"]
+    assert result.output["interrupted"] is True
+    assert result.output["next"] == ["agent"]
+    assert result.metadata["interrupted"] is True
+    assert result.metadata["next"] == ["agent"]
+    assert result.metadata["checkpoint"]["thread_id"] == "approval-session"
+    assert any(event.data["phase"] == "interrupted" for event in workflow_events)
+
+
 def test_langgraph_capabilities_include_checkpointing_extension() -> None:
     capabilities = get_adapter("langgraph").capabilities()
 
     assert capabilities.status("state.checkpointing") == "extension"
     assert capabilities.status("workflow.routing") == "extension"
+    assert capabilities.status("human_approval") == "extension"
