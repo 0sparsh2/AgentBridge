@@ -27,6 +27,7 @@ AgentBridge adapters must document the framework versions they target. Agent fra
 - OpenAI Agents, Google ADK, Strands, and direct LangChain support are intentionally external plugin targets. Their native packages are not part of the core `agentbridge` install path.
 - OpenAI Agents `0.22.x` requires `openai>=3`, while the current AgentBridge core dependency path through LiteLLM uses `openai<3`. The OpenAI Agents plugin therefore adopts `0.20.x` for executable work first and treats `0.22.x` as blocked until the major-version conflict is resolved.
 - Google ADK `2.9.0` installs successfully, but it currently pins older OpenTelemetry packages than Strands. Native Google ADK and Strands plugin verification may need isolated environments until their telemetry dependency ranges converge.
+- LangChain `1.4.0` support forwards native `create_agent` options such as checkpointers, stores, interrupts, cache, schemas, transformers, middleware, and debug when supplied through `LangChainExtension`. AgentBridge records memory/retriever hints but does not claim portable memory semantics unless native LangChain objects are provided.
 - Latest observed versions for planned plugins were checked with `pip index versions` on 2026-09-11. They are not verified adapter execution versions yet.
 - If upstream APIs break within a range, tighten the range and update this document in the same change.
 - Never claim full adapter support for a framework version unless a contract test runs against that exact version.

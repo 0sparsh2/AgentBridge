@@ -45,7 +45,7 @@ class Adapter(BackendAdapter):
                 "agent.model": "Normalizes provider/model to provider:model for LangChain provider parsing; provider support is environment dependent.",
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
                 "tools.async": "LangChain supports async runnables, but this adapter currently exposes synchronous run and best-effort stream.",
-                "state.memory": "Planned through LangChainExtension memory configuration.",
+                "state.memory": "Records memory/retriever hints and forwards native checkpointer/store objects when provided; portable memory semantics remain extension-level.",
                 "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
                 "streaming.events": "Uses native stream() when available and normalizes event chunks best-effort.",
             },
@@ -67,12 +67,21 @@ class Adapter(BackendAdapter):
             agent_kwargs["response_format"] = spec.output_type
         if config.get("middleware"):
             agent_kwargs["middleware"] = config["middleware"]
-        if config.get("checkpointer"):
-            agent_kwargs["checkpointer"] = config["checkpointer"]
-        if config.get("store"):
-            agent_kwargs["store"] = config["store"]
-        if config.get("debug") is not None:
-            agent_kwargs["debug"] = bool(config["debug"])
+        _copy_native_create_agent_options(
+            config,
+            agent_kwargs,
+            (
+                "checkpointer",
+                "store",
+                "interrupt_before",
+                "interrupt_after",
+                "cache",
+                "state_schema",
+                "context_schema",
+                "transformers",
+                "debug",
+            ),
+        )
 
         native_agent = create_agent(**agent_kwargs)
         return CompiledLangChainAgent(
@@ -120,6 +129,7 @@ class Adapter(BackendAdapter):
                 "agent": compiled_agent.spec.name,
                 "runtime_config": _safe_summary(runtime_config),
                 "extension_config": _safe_summary(compiled_agent.config),
+                "extension_summary": _extension_summary(compiled_agent.config),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
             },
             raw=result,
@@ -155,6 +165,23 @@ def _load_langchain() -> tuple[Any, Any]:
             "LangChain is not installed. Install this plugin with `langchain>=1.4,<2`."
         ) from exc
     return create_agent, structured_tool
+
+
+def _copy_native_create_agent_options(
+    config: dict[str, Any],
+    agent_kwargs: dict[str, Any],
+    option_names: tuple[str, ...],
+) -> None:
+    for option_name in option_names:
+        if option_name not in config:
+            continue
+        value = config[option_name]
+        if value is None:
+            continue
+        if option_name == "debug":
+            agent_kwargs[option_name] = bool(value)
+        else:
+            agent_kwargs[option_name] = value
 
 
 def _to_langchain_tool(structured_tool: Any, tool_spec: Any) -> Any:
@@ -296,6 +323,40 @@ def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> di
     if metadata:
         config["metadata"] = metadata
     return config
+
+
+def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
+    native_agent_options = [
+        "checkpointer",
+        "store",
+        "interrupt_before",
+        "interrupt_after",
+        "cache",
+        "state_schema",
+        "context_schema",
+        "transformers",
+        "debug",
+    ]
+    applied_native_options = [
+        option_name
+        for option_name in native_agent_options
+        if option_name in config and config[option_name] is not None
+    ]
+    return {
+        "agent_type": config.get("agent_type"),
+        "prompt_template": bool(config.get("prompt_template")),
+        "middleware_count": len(config.get("middleware") or []),
+        "callbacks_count": len(config.get("callbacks") or []),
+        "memory": {
+            "requested": config.get("memory"),
+            "native_checkpointer": "checkpointer" in applied_native_options,
+        },
+        "retrievers": {
+            "requested": _safe_summary(config.get("retrievers") or []),
+            "native_store": "store" in applied_native_options,
+        },
+        "applied_native_options": applied_native_options,
+    }
 
 
 def _final_output(result: Any) -> Any:
