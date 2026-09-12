@@ -3,6 +3,8 @@ from __future__ import annotations
 import sys
 from types import SimpleNamespace
 
+from pydantic import BaseModel
+
 from agentbridge import AgentSpec, RunInput, ToolSpec
 from agentbridge.extensions.langchain import LangChainExtension
 from agentbridge_langchain.adapter import Adapter, CompiledLangChainAgent
@@ -235,3 +237,34 @@ def test_adapter_runs_offline_tool_loop_through_create_agent() -> None:
     assert "tool_call" in event_types
     assert "tool_result" in event_types
     assert event_types[-1] == "complete"
+
+
+def test_adapter_runs_offline_structured_output_through_create_agent() -> None:
+    class Decision(BaseModel):
+        eligible: bool = True
+        reason: str = "ok"
+
+    adapter = Adapter()
+    spec = AgentSpec(
+        name="decision_agent",
+        instructions="Return a decision.",
+        model="agentbridge/offline",
+        output_type=Decision,
+    )
+
+    compiled = adapter.compile(spec)
+    result = adapter.run(compiled, RunInput(input="decide"))
+
+    event_types = [event.type for event in result.events]
+    assert result.backend == "langchain"
+    assert isinstance(result.output, Decision)
+    assert result.output.eligible is True
+    assert result.output.reason == "ok"
+    assert "tool_call" in event_types
+    assert event_types[-1] == "complete"
+
+
+def test_adapter_capabilities_mark_structured_output_full() -> None:
+    capabilities = Adapter().capabilities()
+
+    assert capabilities.status("structured_output") == "full"
