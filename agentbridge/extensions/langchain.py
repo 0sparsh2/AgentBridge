@@ -13,12 +13,23 @@ from agentbridge.types import AgentSpec
 class LangChainConfig(BaseModel):
     """AgentBridge config for LangChain-native behavior."""
 
+    model_config = {"arbitrary_types_allowed": True}
+
     agent_type: str | None = None
     prompt_template: str | None = None
-    middleware: list[str] = Field(default_factory=list)
-    callbacks: list[str] = Field(default_factory=list)
+    middleware: list[Any] = Field(default_factory=list)
+    callbacks: list[Any] = Field(default_factory=list)
     memory: str | None = None
-    retrievers: list[str] = Field(default_factory=list)
+    retrievers: list[Any] = Field(default_factory=list)
+    checkpointer: Any | None = None
+    store: Any | None = None
+    interrupt_before: list[str] | None = None
+    interrupt_after: list[str] | None = None
+    cache: Any | None = None
+    state_schema: Any | None = None
+    context_schema: Any | None = None
+    transformers: list[Any] = Field(default_factory=list)
+    debug: bool | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -32,10 +43,19 @@ class LangChainExtension(FrameworkExtension):
         *,
         agent_type: str | None = None,
         prompt_template: str | None = None,
-        middleware: list[str] | None = None,
-        callbacks: list[str] | None = None,
+        middleware: list[Any] | None = None,
+        callbacks: list[Any] | None = None,
         memory: str | None = None,
-        retrievers: list[str] | None = None,
+        retrievers: list[Any] | None = None,
+        checkpointer: Any | None = None,
+        store: Any | None = None,
+        interrupt_before: list[str] | None = None,
+        interrupt_after: list[str] | None = None,
+        cache: Any | None = None,
+        state_schema: Any | None = None,
+        context_schema: Any | None = None,
+        transformers: list[Any] | None = None,
+        debug: bool | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable LangChain adapter configuration."""
@@ -47,6 +67,15 @@ class LangChainExtension(FrameworkExtension):
             callbacks=callbacks or [],
             memory=memory,
             retrievers=retrievers or [],
+            checkpointer=checkpointer,
+            store=store,
+            interrupt_before=interrupt_before,
+            interrupt_after=interrupt_after,
+            cache=cache,
+            state_schema=state_schema,
+            context_schema=context_schema,
+            transformers=transformers or [],
+            debug=debug,
             metadata=metadata or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 

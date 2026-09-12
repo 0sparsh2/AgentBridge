@@ -117,6 +117,85 @@ def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
     assert result.metadata["native_agent_type"] == "FakeNativeAgent"
 
 
+def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    adapter = Adapter()
+    checkpointer = object()
+    store = object()
+    cache = object()
+    state_schema = object()
+    context_schema = object()
+    transformer = object()
+    middleware = object()
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Echo the user request.",
+            model="openai/gpt-5",
+        ),
+        middleware=[middleware],
+        memory="conversation_buffer",
+        retrievers=["policy_docs"],
+        checkpointer=checkpointer,
+        store=store,
+        interrupt_before=["tools"],
+        interrupt_after=["model"],
+        cache=cache,
+        state_schema=state_schema,
+        context_schema=context_schema,
+        transformers=[transformer],
+        debug=True,
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(compiled, RunInput(input="hello"))
+
+    assert compiled.native_agent.kwargs["middleware"] == [middleware]
+    assert compiled.native_agent.kwargs["checkpointer"] is checkpointer
+    assert compiled.native_agent.kwargs["store"] is store
+    assert compiled.native_agent.kwargs["interrupt_before"] == ["tools"]
+    assert compiled.native_agent.kwargs["interrupt_after"] == ["model"]
+    assert compiled.native_agent.kwargs["cache"] is cache
+    assert compiled.native_agent.kwargs["state_schema"] is state_schema
+    assert compiled.native_agent.kwargs["context_schema"] is context_schema
+    assert compiled.native_agent.kwargs["transformers"] == [transformer]
+    assert compiled.native_agent.kwargs["debug"] is True
+    assert result.metadata["extension_summary"] == {
+        "agent_type": None,
+        "prompt_template": False,
+        "middleware_count": 1,
+        "callbacks_count": 0,
+        "memory": {
+            "requested": "conversation_buffer",
+            "native_checkpointer": True,
+        },
+        "retrievers": {
+            "requested": ["policy_docs"],
+            "native_store": True,
+        },
+        "applied_native_options": [
+            "checkpointer",
+            "store",
+            "interrupt_before",
+            "interrupt_after",
+            "cache",
+            "state_schema",
+            "context_schema",
+            "transformers",
+            "debug",
+        ],
+    }
+
+
 def test_adapter_runs_offline_model_through_create_agent() -> None:
     adapter = Adapter()
     spec = AgentSpec(
