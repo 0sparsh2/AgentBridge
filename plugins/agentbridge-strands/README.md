@@ -14,7 +14,7 @@ AgentBridge adapter plugin for `strands`.
 - Agent and tool mapping.
 - MCP clients through `StrandsExtension`.
 - Hooks for lifecycle, guardrail, approval, and streaming events.
-- Structured output model pass-through.
+- Structured output model pass-through with native contract tests.
 - Trace attributes and AWS/serverless deployment metadata.
 
 ## Install
