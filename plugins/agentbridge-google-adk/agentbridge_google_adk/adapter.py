@@ -48,9 +48,11 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "Maps AgentSpec instructions to ADK Agent instruction.",
                 "agent.model": "Passes model strings through to ADK; provider compatibility is ADK/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to ADK FunctionTool instances.",
-                "state.session": "Planned through GoogleADKExtension session_service and RunInput.session_id.",
-                "state.memory": "Planned through GoogleADKExtension memory_service.",
-                "deployment.serverless": "Planned as extension-level deployment metadata.",
+                "state.session": "Forwards native session_service/session ids and records run session metadata.",
+                "state.memory": "Forwards native memory_service and records memory metadata.",
+                "workflow.delegation": "Forwards native sub_agents and transfer controls when supplied.",
+                "deployment.serverless": "Records deployment_target metadata for ADK deployment paths.",
+                "evals": "Records eval metadata; native eval execution remains extension-level.",
                 "streaming.events": "Normalizes Runner.run events best-effort.",
             },
         )
@@ -69,18 +71,63 @@ class Adapter(BackendAdapter):
         }
         if spec.output_schema is not None:
             agent_kwargs["output_schema"] = spec.output_schema
-        if config.get("sub_agents"):
-            agent_kwargs["sub_agents"] = config["sub_agents"]
+        _copy_native_options(
+            config,
+            agent_kwargs,
+            (
+                "description",
+                "global_instruction",
+                "static_instruction",
+                "input_schema",
+                "state_schema",
+                "generate_content_config",
+                "mode",
+                "parallel_worker",
+                "disallow_transfer_to_parent",
+                "disallow_transfer_to_peers",
+                "include_contents",
+                "output_key",
+                "planner",
+                "code_executor",
+                "retry_config",
+                "timeout",
+                "rerun_on_resume",
+                "wait_for_output",
+                "before_agent_callback",
+                "after_agent_callback",
+                "before_model_callback",
+                "after_model_callback",
+                "on_model_error_callback",
+                "before_tool_callback",
+                "after_tool_callback",
+                "on_tool_error_callback",
+                "sub_agents",
+            ),
+        )
         native_agent = sdk["Agent"](**agent_kwargs)
         session_service = config.get("session_service")
         if session_service in (None, "memory", "in_memory"):
             session_service = sdk["InMemorySessionService"]()
+        runner_kwargs: dict[str, Any] = {
+            "app_name": config.get("app_name") or spec.name,
+            "agent": native_agent,
+            "session_service": session_service,
+            "memory_service": config.get("memory_service"),
+            "auto_create_session": config.get("auto_create_session", True),
+        }
+        _copy_native_options(
+            config,
+            runner_kwargs,
+            (
+                "artifact_service",
+                "credential_service",
+                "plugin_close_timeout",
+            ),
+        )
+        if config.get("runner_plugins"):
+            runner_kwargs["plugins"] = config["runner_plugins"]
         runner = sdk["Runner"](
-            app_name=config.get("app_name") or spec.name,
-            agent=native_agent,
-            session_service=session_service,
-            memory_service=config.get("memory_service"),
-            auto_create_session=True,
+            **runner_kwargs,
         )
         return CompiledGoogleADKAgent(
             spec=spec,
@@ -95,7 +142,8 @@ class Adapter(BackendAdapter):
         """Run the compiled Google ADK agent and return a normalized result."""
 
         compiled_agent = _ensure_compiled(compiled)
-        events = list(_run_events(compiled_agent, run_input))
+        run_kwargs = _run_kwargs(compiled_agent, run_input)
+        events = list(_run_events(compiled_agent, run_kwargs))
         output = _final_output(events)
         normalized_events = [
             _normalize_event(event, backend=self.backend_name) for event in events
@@ -111,14 +159,21 @@ class Adapter(BackendAdapter):
             output=output,
             backend=self.backend_name,
             events=normalized_events,
-            metadata={"agent": compiled_agent.spec.name},
+            metadata={
+                "agent": compiled_agent.spec.name,
+                "run_kwargs": _safe_summary(run_kwargs),
+                "extension_config": _safe_summary(compiled_agent.config),
+                "extension_summary": _extension_summary(compiled_agent.config, run_kwargs),
+                "native_agent_type": type(compiled_agent.native_agent).__name__,
+                "native_runner_type": type(compiled_agent.runner).__name__,
+            },
             raw=events,
         )
 
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         compiled_agent = _ensure_compiled(compiled)
         events: list[Any] = []
-        for event in _run_events(compiled_agent, run_input):
+        for event in _run_events(compiled_agent, _run_kwargs(compiled_agent, run_input)):
             events.append(event)
             yield _normalize_event(event, backend=self.backend_name)
         yield AgentEvent(
@@ -148,6 +203,30 @@ def _load_google_adk() -> dict[str, Any]:
         "FunctionTool": function_tool.FunctionTool,
         "types": genai_types,
     }
+
+
+def _copy_native_options(
+    config: dict[str, Any],
+    kwargs: dict[str, Any],
+    option_names: tuple[str, ...],
+) -> None:
+    for option_name in option_names:
+        if option_name not in config:
+            continue
+        value = config[option_name]
+        if value is None:
+            continue
+        if option_name in {
+            "parallel_worker",
+            "disallow_transfer_to_parent",
+            "disallow_transfer_to_peers",
+            "rerun_on_resume",
+            "wait_for_output",
+            "auto_create_session",
+        }:
+            kwargs[option_name] = bool(value)
+        else:
+            kwargs[option_name] = value
 
 
 def _model_for_spec(sdk: dict[str, Any], spec: AgentSpec) -> Any:
@@ -219,18 +298,88 @@ def _ensure_compiled(compiled: Any) -> CompiledGoogleADKAgent:
     return compiled
 
 
-def _run_events(compiled: CompiledGoogleADKAgent, run_input: RunInput) -> Iterator[Any]:
+def _run_kwargs(compiled: CompiledGoogleADKAgent, run_input: RunInput) -> dict[str, Any]:
     types = compiled.types
     content = types.Content(
         role="user",
         parts=[types.Part.from_text(text=run_input.input)],
     )
-    yield from compiled.runner.run(
-        user_id=run_input.metadata.get("user_id", "agentbridge"),
-        session_id=run_input.session_id or "default",
-        new_message=content,
-        state_delta=run_input.context or None,
-    )
+    return {
+        "user_id": run_input.metadata.get("user_id", "agentbridge"),
+        "session_id": run_input.session_id or "default",
+        "new_message": content,
+        "state_delta": run_input.context or None,
+    }
+
+
+def _run_events(compiled: CompiledGoogleADKAgent, run_kwargs: dict[str, Any]) -> Iterator[Any]:
+    yield from compiled.runner.run(**run_kwargs)
+
+
+def _extension_summary(config: dict[str, Any], run_kwargs: dict[str, Any]) -> dict[str, Any]:
+    native_agent_options = [
+        "description",
+        "global_instruction",
+        "static_instruction",
+        "input_schema",
+        "state_schema",
+        "generate_content_config",
+        "mode",
+        "parallel_worker",
+        "disallow_transfer_to_parent",
+        "disallow_transfer_to_peers",
+        "include_contents",
+        "output_key",
+        "planner",
+        "code_executor",
+        "retry_config",
+        "timeout",
+        "rerun_on_resume",
+        "wait_for_output",
+        "before_agent_callback",
+        "after_agent_callback",
+        "before_model_callback",
+        "after_model_callback",
+        "on_model_error_callback",
+        "before_tool_callback",
+        "after_tool_callback",
+        "on_tool_error_callback",
+        "sub_agents",
+    ]
+    native_runner_options = [
+        "session_service",
+        "memory_service",
+        "artifact_service",
+        "credential_service",
+        "runner_plugins",
+        "plugin_close_timeout",
+        "auto_create_session",
+    ]
+    return {
+        "app_name": config.get("app_name"),
+        "session_service": _safe_summary(config.get("session_service", "in_memory")),
+        "memory_service": _safe_summary(config.get("memory_service")),
+        "artifact_service": _safe_summary(config.get("artifact_service")),
+        "credential_service": _safe_summary(config.get("credential_service")),
+        "sub_agents_count": len(config.get("sub_agents") or []),
+        "runner_plugins_count": len(config.get("runner_plugins") or []),
+        "evals": _safe_summary(config.get("evals") or []),
+        "deployment_target": config.get("deployment_target"),
+        "metadata": _safe_summary(config.get("metadata") or {}),
+        "user_id": run_kwargs.get("user_id"),
+        "session_id": run_kwargs.get("session_id"),
+        "state_delta": _safe_summary(run_kwargs.get("state_delta")),
+        "applied_native_agent_options": [
+            option_name
+            for option_name in native_agent_options
+            if option_name in config and config[option_name] is not None
+        ],
+        "applied_native_runner_options": [
+            option_name
+            for option_name in native_runner_options
+            if option_name in config and config[option_name] is not None
+        ],
+    }
 
 
 def _first_tool_argument_name(tool: Any) -> str:
@@ -374,3 +523,13 @@ def _payload(value: Any) -> dict[str, Any]:
     if hasattr(value, "__dict__"):
         return dict(value.__dict__)
     return {"value": value}
+
+
+def _safe_summary(value: Any) -> Any:
+    if isinstance(value, str | int | float | bool) or value is None:
+        return value
+    if isinstance(value, list | tuple | set):
+        return [_safe_summary(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _safe_summary(item) for key, item in value.items()}
+    return type(value).__name__

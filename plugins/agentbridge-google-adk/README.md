@@ -12,11 +12,14 @@ AgentBridge adapter plugin for `google_adk`.
 ## Target Capabilities
 
 - Agent and tool mapping.
-- Runner execution with in-memory sessions.
+- Runner execution with in-memory or caller-supplied sessions.
 - Session propagation from `RunInput.session_id`.
-- Memory and artifact service configuration through `GoogleADKExtension`.
-- Sub-agent/delegation metadata.
-- Evals and deployment metadata as extension-level features.
+- Native ADK Agent options through `GoogleADKExtension`, including descriptions, global/static
+  instructions, schemas, generation config, mode, transfer controls, planners, code executors,
+  retry/timeout settings, lifecycle callbacks, and sub-agents.
+- Native Runner options through `GoogleADKExtension`, including session service, memory service,
+  artifact service, credential service, plugins, plugin close timeout, and auto-session behavior.
+- Evals and deployment metadata as extension-level summaries.
 
 ## Dependency Note
 
@@ -40,6 +43,11 @@ agentbridge conformance --backend google_adk
 The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
 compiles a Google ADK `Agent` and executes through the native `Runner`, but uses a tiny local ADK
 `BaseLlm` implementation so contract checks do not require cloud credentials.
+
+`GoogleADKExtension` forwards native ADK Agent/Runner options when supplied and reports
+serializable `run_kwargs`, `extension_config`, and `extension_summary` metadata on `RunResult`.
+Eval execution and deployment publishing are still metadata-only until AgentBridge has native
+no-network tests for those flows.
 
 ## Local Development Without Installing
 
