@@ -12,10 +12,12 @@ AgentBridge adapter plugin for `strands`.
 ## Target Capabilities
 
 - Agent and tool mapping.
-- MCP clients through `StrandsExtension`.
-- Hooks for lifecycle, guardrail, approval, and streaming events.
+- MCP client hints through `StrandsExtension`.
+- Native hooks, plugins, interventions, session managers, memory managers, context managers, retry
+  strategies, checkpointing, sandbox, storage, and background-task options through
+  `StrandsExtension`.
 - Structured output model pass-through with native contract tests.
-- Trace attributes and AWS/serverless deployment metadata.
+- Trace attributes and AWS/serverless deployment metadata summaries.
 
 ## Install
 
@@ -35,6 +37,11 @@ agentbridge conformance --backend strands
 The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
 compiles a Strands `Agent` and runs through the native event loop, but uses a tiny local Strands
 `Model` implementation so contract checks do not require cloud credentials.
+
+`StrandsExtension` forwards native Strands `Agent` constructor options when supplied and reports a
+serializable `extension_summary` in `RunResult.metadata`. MCP clients, guardrail labels, and
+deployment targets are recorded as extension metadata until AgentBridge has native no-network tests
+for those execution paths.
 
 ## Local Development Without Installing
 
