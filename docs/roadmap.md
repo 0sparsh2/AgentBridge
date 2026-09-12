@@ -31,6 +31,7 @@
 - Tool registry for manifest-declared tools.
 - Existing-project import helpers for common CrewAI and LangGraph structures.
 - Existing-project import helpers for common LangChain agent apps.
+- Conservative `MigrationReport` helpers for LangChain and LangGraph object shapes.
 - Tracing integrations.
 - Full AG-UI server example.
 
