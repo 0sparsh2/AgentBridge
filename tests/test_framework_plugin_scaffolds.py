@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 from agentbridge import AgentSpec, RunInput, get_adapter, list_adapters
 from agentbridge.plugins import load_adapter_plugins, reset_plugin_loader
@@ -9,7 +11,45 @@ from agentbridge.plugins import load_adapter_plugins, reset_plugin_loader
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class FakeOpenAIAgent:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+
+class FakeOpenAIResult:
+    final_output = "hello from native openai agents"
+    usage = {"requests": 1}
+    new_items = [SimpleNamespace(content="hello from native openai agents")]
+
+
+class FakeOpenAIRunner:
+    @staticmethod
+    def run_sync(agent, input, **kwargs):
+        return FakeOpenAIResult()
+
+    @staticmethod
+    def run_streamed(agent, input, **kwargs):
+        return FakeOpenAIResult()
+
+
+def fake_openai_function_tool(func, **kwargs):
+    return SimpleNamespace(func=func, kwargs=kwargs)
+
+
+def install_fake_openai_agents(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "agents",
+        SimpleNamespace(
+            Agent=FakeOpenAIAgent,
+            Runner=FakeOpenAIRunner,
+            function_tool=fake_openai_function_tool,
+        ),
+    )
+
+
 def test_next_wave_plugin_scaffolds_load_locally(monkeypatch) -> None:
+    install_fake_openai_agents(monkeypatch)
     plugin_roots = [
         ROOT / "plugins" / "agentbridge-openai-agents",
         ROOT / "plugins" / "agentbridge-google-adk",

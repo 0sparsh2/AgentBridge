@@ -34,7 +34,7 @@ Rationale:
 
 | Framework | Native Package | Adopted Range | Latest Observed | Status |
 | --- | --- | --- | --- | --- |
-| OpenAI Agents SDK | `openai-agents` | `>=0.22,<1` | `0.22.2` | Plugin scaffolded |
+| OpenAI Agents SDK | `openai-agents` | `>=0.20,<0.21` | `0.22.2`; compatible baseline `0.20.0` | Partial native adapter |
 | Strands Agents | `strands-agents` | `>=1.55,<2` | `1.55.1` | Plugin scaffolded |
 | LangChain | `langchain` | `>=1.4,<2` | `1.4.0` | Plugin scaffolded |
 | Google ADK | `google-adk` | `>=2.9,<3` | `2.9.0` | Plugin scaffolded |
@@ -101,6 +101,7 @@ Risks:
 - The SDK may evolve quickly.
 - Some runtime features may require OpenAI credentials or hosted services.
 - Handoffs and guardrails should be extension-level before becoming common API.
+- `openai-agents` 0.22.x requires `openai>=3`; current AgentBridge core uses LiteLLM with `openai<3`, so executable adapter work starts on `0.20.x`.
 
 ## Google ADK
 

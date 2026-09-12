@@ -46,12 +46,14 @@ ADOPTED_DEPENDENCIES = {
     },
     "openai_agents": {
         "package": "openai-agents",
-        "range": ">=0.22,<1",
+        "range": ">=0.20,<0.21",
         "role": "OpenAI Agents SDK adapter plugin",
-        "status": "planned",
+        "status": "partial",
         "notes": (
-            "PyPI latest observed as 0.22.2 on 2026-09-11. External plugin scaffold "
-            "targets Agent, Runner, tools, handoffs, guardrails, approvals, and tracing."
+            "PyPI latest observed as 0.22.2 on 2026-09-11, but 0.22.x requires openai>=3. "
+            "The executable baseline is 0.20.x because it remains compatible with the current "
+            "LiteLLM/OpenAI dependency path. External plugin maps Agent, Runner, tools, and "
+            "best-effort events; handoffs, guardrails, approvals, and tracing remain extension-level."
         ),
     },
     "google_adk": {
