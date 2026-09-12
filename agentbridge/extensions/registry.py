@@ -90,10 +90,10 @@ def extension_profiles() -> list[ExtensionProfile]:
                 "human_approval",
                 "observability.tracing",
             ],
-            status="scaffolded",
+            status="partial",
             notes=[
-                "External plugin target for OpenAI Agents SDK handoffs, guardrails, tracing, and approvals.",
-                "Real execution is planned after the plugin maps AgentSpec and ToolSpec to SDK Agent/Runner APIs.",
+                "External plugin maps AgentSpec and ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible 0.20.x line.",
+                "Handoffs, guardrails, tracing, approvals, and latest 0.22.x verification remain blocked or extension-level until dependency conflicts are resolved.",
             ],
         ),
         ExtensionProfile(

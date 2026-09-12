@@ -15,5 +15,6 @@ def test_dependency_versions_include_adopted_ranges() -> None:
     assert versions["strands"]["package"] == "strands-agents"
     assert versions["strands"]["adopted_range"] == ">=1.55,<2"
     assert versions["openai_agents"]["package"] == "openai-agents"
+    assert versions["openai_agents"]["adopted_range"] == ">=0.20,<0.21"
     assert versions["google_adk"]["package"] == "google-adk"
     assert versions["langchain"]["adopted_range"] == ">=1.4,<2"

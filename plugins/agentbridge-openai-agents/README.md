@@ -5,9 +5,9 @@ AgentBridge adapter plugin for `openai_agents`.
 ## Adopted Framework Version
 
 - Native package: `openai-agents`
-- Adopted range: `>=0.22,<1`
+- Adopted executable range: `>=0.20,<0.21`
 - Latest observed during scaffolding: `0.22.2` on 2026-09-11
-- Status: scaffolded; native `Agent`/`Runner` execution still needs implementation
+- Status: partial native adapter; `0.22.x` verification is blocked until AgentBridge's LiteLLM/OpenAI dependency path supports `openai>=3`
 
 ## Target Capabilities
 
@@ -16,6 +16,10 @@ AgentBridge adapter plugin for `openai_agents`.
 - Guardrails through `OpenAIAgentsExtension`.
 - Human approval flows.
 - Native tracing and raw run/result preservation.
+
+## Dependency Note
+
+`openai-agents` 0.22.x requires `openai>=3`, while the current AgentBridge core dependency path through LiteLLM uses `openai<3`. This plugin therefore adopts `openai-agents>=0.20,<0.21` first, because that line remains compatible with the current core environment. Upgrade the range only when the dependency conflict is resolved and contract tests pass.
 
 ## Install
 

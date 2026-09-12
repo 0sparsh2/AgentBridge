@@ -42,10 +42,9 @@ def test_plugin_status_reports_failed_env_plugin(monkeypatch) -> None:
 
     results = plugin_status()
 
-    assert results
-    assert not results[0].loaded
-    assert results[0].name == "missing_agentbridge_plugin"
-    assert results[0].error
+    result = next(item for item in results if item.name == "missing_agentbridge_plugin")
+    assert not result.loaded
+    assert result.error
 
 
 def test_env_plugin_cannot_override_builtin_without_opt_in(tmp_path, monkeypatch) -> None:
@@ -66,8 +65,9 @@ class Adapter(BackendAdapter):
 
     results = load_adapter_plugins(force=True)
 
-    assert results[0].loaded is False
-    assert "already registered" in results[0].error
+    result = next(item for item in results if item.name == "agentbridge_mock_plugin")
+    assert result.loaded is False
+    assert "already registered" in result.error
 
 
 def test_env_plugin_can_override_with_explicit_opt_in(tmp_path, monkeypatch) -> None:
@@ -88,5 +88,6 @@ class Adapter(BackendAdapter):
 
     results = load_adapter_plugins(force=True)
 
-    assert results[0].loaded is True
-    assert results[0].replaced is True
+    result = next(item for item in results if item.name == "agentbridge_override_plugin")
+    assert result.loaded is True
+    assert result.replaced is True
