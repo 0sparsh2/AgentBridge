@@ -36,6 +36,10 @@ agentbridge inspect-backend openai_agents --json
 agentbridge conformance --backend openai_agents
 ```
 
+The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
+compiles an OpenAI Agents SDK `Agent` and runs through the native `Runner`, but uses a tiny local
+SDK `Model` implementation so contract checks do not require paid API credentials.
+
 ## Local Development Without Installing
 
 ```bash

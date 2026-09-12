@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator
 from dataclasses import dataclass
 from importlib import import_module
@@ -63,7 +64,7 @@ class Adapter(BackendAdapter):
         agent_kwargs: dict[str, Any] = {
             "name": spec.name,
             "instructions": spec.instructions,
-            "model": spec.model,
+            "model": _model_for_spec(sdk, spec),
             "tools": native_tools,
         }
         if spec.output_type is not None:
@@ -127,6 +128,10 @@ class Adapter(BackendAdapter):
 
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         compiled_agent = _ensure_compiled(compiled)
+        if _uses_offline_model(compiled_agent):
+            yield from self.run(compiled_agent, run_input).events
+            return
+
         if not hasattr(compiled_agent.sdk.Runner, "run_streamed"):
             yield from self.run(compiled_agent, run_input).events
             return
@@ -175,6 +180,156 @@ def _to_function_tool(sdk: Any, tool: Any) -> Any:
     )
 
 
+def _model_for_spec(sdk: Any, spec: AgentSpec) -> Any:
+    if spec.model == "agentbridge/offline":
+
+        class AgentBridgeOfflineModel(_AgentBridgeOfflineModelBase, sdk.Model):
+            pass
+
+        return AgentBridgeOfflineModel(sdk)
+    return spec.model
+
+
+class _AgentBridgeOfflineModelBase:
+    """No-network OpenAI Agents SDK model used by conformance tests."""
+
+    def __init__(self, sdk: Any):
+        self._sdk = sdk
+
+    async def get_response(
+        self,
+        system_instructions: str | None,
+        input: Any,
+        model_settings: Any,
+        tools: list[Any],
+        output_schema: Any,
+        handoffs: list[Any],
+        tracing: Any,
+        *,
+        previous_response_id: str | None,
+        conversation_id: str | None,
+        prompt: Any,
+    ) -> Any:
+        del system_instructions, model_settings, output_schema, handoffs, tracing
+        del previous_response_id, conversation_id, prompt
+
+        items = input if isinstance(input, list) else [{"role": "user", "content": str(input)}]
+        tool_output = _latest_tool_output(items)
+        if tool_output is not None:
+            return self._message_response(f"offline tool result: {tool_output}")
+        if tools:
+            tool = tools[0]
+            argument_name = _first_tool_argument_name(tool)
+            return self._tool_call_response(
+                name=getattr(tool, "name", "tool"),
+                arguments={argument_name: _last_user_text(items)},
+            )
+        return self._message_response(f"offline response: {_last_user_text(items)}")
+
+    async def stream_response(
+        self,
+        system_instructions: str | None,
+        input: Any,
+        model_settings: Any,
+        tools: list[Any],
+        output_schema: Any,
+        handoffs: list[Any],
+        tracing: Any,
+        *,
+        previous_response_id: str | None,
+        conversation_id: str | None,
+        prompt: Any,
+    ) -> Any:
+        del system_instructions, input, model_settings, tools, output_schema, handoffs, tracing
+        del previous_response_id, conversation_id, prompt
+        if False:
+            yield None
+
+    def _message_response(self, text: str) -> Any:
+        items = import_module("agents.items")
+        usage = import_module("agents.usage")
+        responses = import_module("openai.types.responses")
+        message = responses.ResponseOutputMessage(
+            id="agentbridge-offline-message",
+            content=[
+                responses.ResponseOutputText(
+                    annotations=[],
+                    text=text,
+                    type="output_text",
+                )
+            ],
+            role="assistant",
+            status="completed",
+            type="message",
+        )
+        return items.ModelResponse(
+            output=[message],
+            usage=usage.Usage(requests=1),
+            response_id="agentbridge-offline-response",
+        )
+
+    def _tool_call_response(self, *, name: str, arguments: dict[str, Any]) -> Any:
+        items = import_module("agents.items")
+        usage = import_module("agents.usage")
+        responses = import_module("openai.types.responses")
+        tool_call = responses.ResponseFunctionToolCall(
+            arguments=json.dumps(arguments),
+            call_id="agentbridge-offline-tool-call",
+            name=name,
+            type="function_call",
+            id="agentbridge-offline-tool-call",
+            status="completed",
+        )
+        return items.ModelResponse(
+            output=[tool_call],
+            usage=usage.Usage(requests=1),
+            response_id="agentbridge-offline-response",
+        )
+
+
+def _uses_offline_model(compiled: CompiledOpenAIAgentsAgent) -> bool:
+    return isinstance(getattr(compiled.native_agent, "model", None), _AgentBridgeOfflineModelBase)
+
+
+def _first_tool_argument_name(tool: Any) -> str:
+    schema = getattr(tool, "params_json_schema", {}) or {}
+    required = schema.get("required") or []
+    if required:
+        return str(required[0])
+    properties = schema.get("properties") or {}
+    if properties:
+        return str(next(iter(properties)))
+    return "input"
+
+
+def _latest_tool_output(items: list[Any]) -> Any | None:
+    for item in reversed(items):
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") == "function_call_output":
+            return item.get("output")
+    return None
+
+
+def _last_user_text(items: list[Any]) -> str:
+    for item in reversed(items):
+        if not isinstance(item, dict):
+            continue
+        if item.get("role") == "user":
+            content = item.get("content")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                text_parts = [
+                    part.get("text", "")
+                    for part in content
+                    if isinstance(part, dict) and part.get("type") in {"input_text", "text"}
+                ]
+                if text_parts:
+                    return " ".join(text_parts)
+    return ""
+
+
 def _ensure_compiled(compiled: Any) -> CompiledOpenAIAgentsAgent:
     if not isinstance(compiled, CompiledOpenAIAgentsAgent):
         raise TypeError("OpenAI Agents adapter expected CompiledOpenAIAgentsAgent from compile().")
@@ -189,6 +344,8 @@ def _runner_kwargs(compiled: CompiledOpenAIAgentsAgent, run_input: RunInput) -> 
         kwargs["conversation_id"] = compiled.config["session_id"]
     if compiled.config.get("run_config"):
         kwargs["run_config"] = compiled.config["run_config"]
+    elif _uses_offline_model(compiled) and hasattr(compiled.sdk, "RunConfig"):
+        kwargs["run_config"] = compiled.sdk.RunConfig(tracing_disabled=True)
     return kwargs
 
 

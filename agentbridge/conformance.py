@@ -182,4 +182,6 @@ def _capture(name: str, callback: Callable[[], str]) -> ConformanceCheck:
 
 
 def _model_for_backend(backend: str) -> str:
+    if backend == "openai_agents":
+        return "agentbridge/offline"
     return "test" if backend == "pydantic_ai" else "openai/gpt-5"
