@@ -12,10 +12,12 @@ AgentBridge adapter plugin for `openai_agents`.
 ## Target Capabilities
 
 - Agent and tool mapping.
-- Handoffs through `OpenAIAgentsExtension`.
-- Guardrails through `OpenAIAgentsExtension`.
-- Human approval flows.
-- Native tracing and raw run/result preservation.
+- Native handoffs, handoff descriptions, MCP servers/config, prompts, model settings, hooks,
+  tool-use behavior, reset behavior, and input/output guardrails through `OpenAIAgentsExtension`.
+- Runner context, max turns, run hooks, run config, error handlers, previous response IDs,
+  conversation/session options, and session objects through `OpenAIAgentsExtension`.
+- Approval policy and tracing metadata summaries.
+- Raw run/result preservation.
 
 ## Dependency Note
 
@@ -39,6 +41,11 @@ agentbridge conformance --backend openai_agents
 The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
 compiles an OpenAI Agents SDK `Agent` and runs through the native `Runner`, but uses a tiny local
 SDK `Model` implementation so contract checks do not require paid API credentials.
+
+`OpenAIAgentsExtension` forwards native SDK options when supplied and reports serializable
+`runner_kwargs`, `extension_config`, and `extension_summary` metadata on `RunResult`. Human approval
+is still represented as approval-policy metadata until AgentBridge has native no-network tests for
+approval/resume flows.
 
 ## Local Development Without Installing
 

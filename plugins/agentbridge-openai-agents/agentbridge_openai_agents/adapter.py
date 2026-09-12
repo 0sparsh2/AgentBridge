@@ -48,9 +48,10 @@ class Adapter(BackendAdapter):
                 "agent.model": "Passes LiteLLM-style model strings through to the SDK; provider compatibility is SDK/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to OpenAI Agents function_tool wrappers.",
                 "structured_output": "Passes AgentSpec.output_type to SDK Agent output_type when present.",
-                "workflow.handoffs": "Planned through OpenAIAgentsExtension configuration.",
-                "guardrails": "Planned through OpenAIAgentsExtension configuration.",
-                "observability.tracing": "Planned through native trace/run metadata preservation.",
+                "workflow.handoffs": "Forwards native handoffs and handoff metadata through OpenAIAgentsExtension.",
+                "guardrails": "Forwards native input/output guardrails and records approval policy hints.",
+                "human_approval": "Records approval_policy metadata; native approval/resume flow tests are not implemented yet.",
+                "observability.tracing": "Preserves trace/run config summaries; SDK/provider tracing remains extension-level.",
                 "streaming.events": "Uses SDK run_streamed when available and normalizes streamed event objects best-effort.",
             },
         )
@@ -69,9 +70,24 @@ class Adapter(BackendAdapter):
         }
         if spec.output_type is not None:
             agent_kwargs["output_type"] = spec.output_type
-        if config.get("handoffs"):
-            agent_kwargs["handoffs"] = config["handoffs"]
-        if config.get("guardrails"):
+        _copy_native_agent_options(
+            config,
+            agent_kwargs,
+            (
+                "handoff_description",
+                "handoffs",
+                "mcp_servers",
+                "mcp_config",
+                "prompt",
+                "model_settings",
+                "input_guardrails",
+                "output_guardrails",
+                "hooks",
+                "tool_use_behavior",
+                "reset_tool_choice",
+            ),
+        )
+        if config.get("guardrails") and "input_guardrails" not in agent_kwargs:
             agent_kwargs["input_guardrails"] = config["guardrails"]
         if config.get("metadata"):
             agent_kwargs["metadata"] = config["metadata"]
@@ -95,10 +111,11 @@ class Adapter(BackendAdapter):
         """Run the compiled agent through OpenAI Agents Runner.run_sync."""
 
         compiled_agent = _ensure_compiled(compiled)
+        runner_kwargs = _runner_kwargs(compiled_agent, run_input)
         result = compiled_agent.sdk.Runner.run_sync(
             compiled_agent.native_agent,
             run_input.input,
-            **_runner_kwargs(compiled_agent, run_input),
+            **runner_kwargs,
         )
         output = _final_output(result)
         events = _events_from_result(result, backend=self.backend_name)
@@ -122,7 +139,13 @@ class Adapter(BackendAdapter):
             backend=self.backend_name,
             events=events,
             usage=_usage_from_result(result),
-            metadata={"agent": compiled_agent.spec.name},
+            metadata={
+                "agent": compiled_agent.spec.name,
+                "runner_kwargs": _safe_summary(runner_kwargs),
+                "extension_config": _safe_summary(compiled_agent.config),
+                "extension_summary": _extension_summary(compiled_agent.config, runner_kwargs),
+                "native_agent_type": type(compiled_agent.native_agent).__name__,
+            },
             raw=result,
         )
 
@@ -178,6 +201,23 @@ def _to_function_tool(sdk: Any, tool: Any) -> Any:
         name_override=tool.name,
         description_override=tool.description,
     )
+
+
+def _copy_native_agent_options(
+    config: dict[str, Any],
+    agent_kwargs: dict[str, Any],
+    option_names: tuple[str, ...],
+) -> None:
+    for option_name in option_names:
+        if option_name not in config:
+            continue
+        value = config[option_name]
+        if value is None:
+            continue
+        if option_name == "reset_tool_choice":
+            agent_kwargs[option_name] = bool(value)
+        else:
+            agent_kwargs[option_name] = value
 
 
 def _model_for_spec(sdk: Any, spec: AgentSpec) -> Any:
@@ -338,15 +378,83 @@ def _ensure_compiled(compiled: Any) -> CompiledOpenAIAgentsAgent:
 
 def _runner_kwargs(compiled: CompiledOpenAIAgentsAgent, run_input: RunInput) -> dict[str, Any]:
     kwargs: dict[str, Any] = {}
+    config = compiled.config
+    if "context" in config:
+        kwargs["context"] = config["context"]
+    if "max_turns" in config:
+        kwargs["max_turns"] = config["max_turns"]
+    if "run_hooks" in config:
+        kwargs["hooks"] = config["run_hooks"]
+    if "error_handlers" in config:
+        kwargs["error_handlers"] = config["error_handlers"]
+    if "previous_response_id" in config:
+        kwargs["previous_response_id"] = config["previous_response_id"]
+    if "auto_previous_response_id" in config:
+        kwargs["auto_previous_response_id"] = bool(config["auto_previous_response_id"])
     if run_input.session_id:
         kwargs["conversation_id"] = run_input.session_id
-    elif compiled.config.get("session_id"):
-        kwargs["conversation_id"] = compiled.config["session_id"]
-    if compiled.config.get("run_config"):
-        kwargs["run_config"] = compiled.config["run_config"]
+    elif config.get("conversation_id"):
+        kwargs["conversation_id"] = config["conversation_id"]
+    elif config.get("session_id"):
+        kwargs["conversation_id"] = config["session_id"]
+    if "session" in config:
+        kwargs["session"] = config["session"]
+    if config.get("run_config"):
+        kwargs["run_config"] = config["run_config"]
     elif _uses_offline_model(compiled) and hasattr(compiled.sdk, "RunConfig"):
         kwargs["run_config"] = compiled.sdk.RunConfig(tracing_disabled=True)
     return kwargs
+
+
+def _extension_summary(config: dict[str, Any], runner_kwargs: dict[str, Any]) -> dict[str, Any]:
+    native_agent_options = [
+        "handoff_description",
+        "handoffs",
+        "mcp_servers",
+        "mcp_config",
+        "prompt",
+        "model_settings",
+        "input_guardrails",
+        "output_guardrails",
+        "guardrails",
+        "hooks",
+        "tool_use_behavior",
+        "reset_tool_choice",
+    ]
+    native_runner_options = [
+        "context",
+        "max_turns",
+        "run_hooks",
+        "run_config",
+        "error_handlers",
+        "previous_response_id",
+        "auto_previous_response_id",
+        "conversation_id",
+        "session_id",
+        "session",
+    ]
+    return {
+        "handoffs_count": len(config.get("handoffs") or []),
+        "mcp_servers_count": len(config.get("mcp_servers") or []),
+        "guardrails_count": len(config.get("guardrails") or []),
+        "input_guardrails_count": len(config.get("input_guardrails") or []),
+        "output_guardrails_count": len(config.get("output_guardrails") or []),
+        "approval_policy": _safe_summary(config.get("approval_policy") or {}),
+        "tracing": bool(config.get("tracing", False)),
+        "metadata": _safe_summary(config.get("metadata") or {}),
+        "conversation_id": runner_kwargs.get("conversation_id"),
+        "runner_options": sorted(runner_kwargs),
+        "applied_native_agent_options": [
+            option_name
+            for option_name in native_agent_options
+            if option_name in config and config[option_name] is not None
+        ],
+        "applied_native_runner_options": [
+            option_name
+            for option_name in native_runner_options
+            if option_name in config and config[option_name] is not None
+        ],
+    }
 
 
 def _final_output(result: Any) -> Any:
@@ -403,3 +511,13 @@ def _payload(value: Any) -> dict[str, Any]:
     if hasattr(value, "__dict__"):
         return dict(value.__dict__)
     return {"value": value}
+
+
+def _safe_summary(value: Any) -> Any:
+    if isinstance(value, str | int | float | bool) or value is None:
+        return value
+    if isinstance(value, list | tuple | set):
+        return [_safe_summary(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _safe_summary(item) for key, item in value.items()}
+    return type(value).__name__
