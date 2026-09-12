@@ -23,6 +23,7 @@ Use this page as the navigation map for the repository.
 - [Design](design.md): Design decisions, tradeoffs, extension principles, and boundaries.
 - [Adapters](adapters.md): Backend support matrix, current limitations, and adapter-specific notes.
 - [CLI](cli.md): Command reference for validating, running, comparing, and inspecting agents.
+- [Conformance](conformance.md): Adapter contract checks and offline plugin model rules.
 - [Migration Helpers](migration.md): Conservative import reports for LangChain and LangGraph project shapes.
 - [Plugin Authoring](plugin_authoring.md): How to build adapter plugins outside the core package.
 
@@ -39,6 +40,7 @@ Before claiming support for a framework feature:
 
 - Add or update adapter capability metadata.
 - Add contract tests for every capability marked `full`.
+- Run conformance for the changed backend.
 - Update [Version Policy](version_policy.md) with adopted and verified versions.
 - Update [Adapters](adapters.md) with limitations and native escape hatches.
 - Add example coverage when the feature changes user-facing behavior.
