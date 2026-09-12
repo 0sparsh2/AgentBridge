@@ -8,7 +8,7 @@ import sys
 from typing import Any
 
 from agentbridge.builtin_tools import build_builtin_tool_registry
-from agentbridge.capabilities import capability_matrix
+from agentbridge.capabilities import capability_matrix, coverage_report
 from agentbridge.conformance import run_conformance
 from agentbridge.compare import compare_backends
 from agentbridge.extensions import extension_profile, extension_profiles
@@ -100,6 +100,20 @@ def main(argv: list[str] | None = None) -> int:
     matrix_format = matrix_parser.add_mutually_exclusive_group()
     matrix_format.add_argument("--json", action="store_true", help="Emit JSON.")
     matrix_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
+
+    coverage_parser = subparsers.add_parser(
+        "coverage-report",
+        help="Show detailed capability, version, source, and extension coverage by backend.",
+    )
+    coverage_parser.add_argument(
+        "--backend",
+        action="append",
+        dest="backends",
+        help="Backend to include. Repeat to report a subset.",
+    )
+    coverage_format = coverage_parser.add_mutually_exclusive_group()
+    coverage_format.add_argument("--json", action="store_true", help="Emit JSON.")
+    coverage_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
 
     conformance_parser = subparsers.add_parser(
         "conformance",
@@ -241,6 +255,16 @@ def main(argv: list[str] | None = None) -> int:
                 _print_capability_matrix(matrix.model_dump())
             return 0
 
+        if args.command == "coverage-report":
+            report = coverage_report(backends=args.backends)
+            if args.json:
+                print(report.model_dump_json(indent=2))
+            elif args.markdown:
+                print(report.as_markdown())
+            else:
+                _print_coverage_report(report.model_dump())
+            return 0
+
         if args.command == "conformance":
             reports = run_conformance(backends=args.backends)
             payload = [report.as_dict() for report in reports]
@@ -372,6 +396,37 @@ def _print_capability_matrix(payload: dict[str, Any]) -> None:
             f"{backend}={row['support'].get(backend, 'unsupported')}" for backend in backends
         )
         print(f"  {feature['key']}: {statuses}")
+
+
+def _print_coverage_report(payload: dict[str, Any]) -> None:
+    for report in payload["reports"]:
+        print(report["backend"])
+        if report.get("source"):
+            print(f"  source: {report['source']}")
+        if report.get("version"):
+            version = report["version"]
+            installed = version["installed_version"] or "not installed"
+            print(
+                f"  version: {version['package']} {installed} "
+                f"(adopted: {version['adopted_range']}, status: {version['status']})"
+            )
+        if report.get("extension"):
+            extension = report["extension"]
+            print(
+                f"  extension: {extension['framework']} "
+                f"({extension['status']}, {extension['config_model']})"
+            )
+        if report.get("summary"):
+            summary = ", ".join(
+                f"{status}={count}" for status, count in sorted(report["summary"].items())
+            )
+            print(f"  summary: {summary}")
+        for feature, status in sorted(report["features"].items()):
+            note = report.get("notes", {}).get(feature)
+            suffix = f" - {note}" if note else ""
+            print(f"  {feature}: {status}{suffix}")
+        if report.get("native_only"):
+            print(f"  native_only: {', '.join(report['native_only'])}")
 
 
 def _print_conformance(payload: list[dict[str, Any]]) -> None:

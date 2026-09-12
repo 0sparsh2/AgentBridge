@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from agentbridge import BackendCapabilities, capability_matrix, inspect_backend, inspect_backends
+from agentbridge import (
+    BackendCapabilities,
+    CoverageReport,
+    capability_matrix,
+    coverage_report,
+    inspect_backend,
+    inspect_backends,
+)
 
 
 def test_backend_capabilities_report_feature_support() -> None:
@@ -40,3 +47,19 @@ def test_capability_matrix_reports_canonical_features() -> None:
     assert "observability.tracing" in rows
     assert "state.memory" in rows
     assert "evals" in rows
+
+
+def test_coverage_report_includes_versions_sources_and_extensions() -> None:
+    report = coverage_report(backends=["mock", "langgraph"])
+
+    assert isinstance(report, CoverageReport)
+    assert report.backends == ["mock", "langgraph"]
+    by_backend = {item.backend: item for item in report.reports}
+    assert by_backend["mock"].source == "builtin"
+    assert by_backend["mock"].summary["full"] >= 1
+    assert by_backend["langgraph"].version is not None
+    assert by_backend["langgraph"].version["package"] == "langgraph"
+    assert by_backend["langgraph"].extension is not None
+    assert by_backend["langgraph"].extension["framework"] == "langgraph"
+    assert "workflow.graph" in by_backend["langgraph"].features
+    assert "## `mock`" in report.as_markdown()

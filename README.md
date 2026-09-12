@@ -196,6 +196,7 @@ agentbridge run --manifest examples/refund_agent.yaml --backend mock --tool-regi
 agentbridge compare --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge validate --manifest examples/refund_agent.yaml --backend mock --backend langgraph --json
 agentbridge capability-matrix --markdown
+agentbridge coverage-report --backend langgraph --markdown
 agentbridge conformance --backend mock --json
 agentbridge extensions --json
 agentbridge versions --json
