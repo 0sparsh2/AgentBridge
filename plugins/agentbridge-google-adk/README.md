@@ -37,6 +37,10 @@ agentbridge inspect-backend google_adk --json
 agentbridge conformance --backend google_adk
 ```
 
+The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
+compiles a Google ADK `Agent` and executes through the native `Runner`, but uses a tiny local ADK
+`BaseLlm` implementation so contract checks do not require cloud credentials.
+
 ## Local Development Without Installing
 
 ```bash
