@@ -33,3 +33,10 @@ def test_capability_matrix_reports_canonical_features() -> None:
     assert rows["workflow.graph"].support["mock"] == "unsupported"
     assert rows["workflow.graph"].support["langgraph"] == "full"
     assert "workflow.graph" in matrix.as_markdown()
+    assert "tools.mcp" in rows
+    assert "guardrails" in rows
+    assert "workflow.handoffs" in rows
+    assert "deployment.serverless" in rows
+    assert "observability.tracing" in rows
+    assert "state.memory" in rows
+    assert "evals" in rows

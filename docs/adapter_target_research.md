@@ -3,28 +3,41 @@
 This document tracks next adapter targets beyond the first v0 backends. It should be updated whenever new framework research changes adapter priority, package names, or capability expectations.
 
 Research date: 2026-09-11.
+Package index check: 2026-09-11.
 
 ## Summary
 
 Recommended priority:
 
 1. `agentbridge-openai-agents`
-2. `agentbridge-google-adk`
-3. `agentbridge-strands`
+2. `agentbridge-strands`
+3. `agentbridge-langchain`
+4. `agentbridge-google-adk`
 
 Rationale:
 
 - OpenAI Agents SDK maps closely to AgentBridge's current concepts: agents, tools, handoffs, guardrails, runner/results, tracing, and human approval.
-- Google ADK is strategically important for enterprise-scale, multi-language, deployment-oriented agent systems and has strong session/memory/deployment concepts.
 - Strands is important for AWS-native production agents, hooks, MCP, conversation managers, structured output, observability, and AgentCore/Lambda-style deployment paths.
+- Direct LangChain support complements the built-in LangGraph adapter for teams with existing LangChain agents, middleware, callbacks, memory, retrievers, and LangSmith-style observability.
+- Google ADK is strategically important for enterprise-scale, multi-language, deployment-oriented agent systems and has strong session/memory/deployment concepts.
 
 ## Target Matrix
 
 | Target | Package Target | Distribution | Priority | Why |
 | --- | --- | --- | --- | --- |
 | OpenAI Agents SDK | `agentbridge-openai-agents` | External plugin | P0 | Close conceptual fit with AgentBridge events, tools, handoffs, guardrails, tracing, approvals. |
-| Google ADK | `agentbridge-google-adk` | External plugin | P1 | Strong enterprise, deployment, session/memory, multi-agent story across Google ecosystem. |
 | Strands Agents | `agentbridge-strands` | External plugin | P1 | AWS-native production agent path with hooks, MCP, structured output, observability, and AgentCore alignment. |
+| LangChain | `agentbridge-langchain` | External plugin | P1 | Direct compatibility for existing LangChain agent apps beyond the built-in LangGraph adapter. |
+| Google ADK | `agentbridge-google-adk` | External plugin | P2 | Strong enterprise, deployment, session/memory, multi-agent story across Google ecosystem. |
+
+## Adopted Version Targets
+
+| Framework | Native Package | Adopted Range | Latest Observed | Status |
+| --- | --- | --- | --- | --- |
+| OpenAI Agents SDK | `openai-agents` | `>=0.22,<1` | `0.22.2` | Plugin scaffolded |
+| Strands Agents | `strands-agents` | `>=1.55,<2` | `1.55.1` | Plugin scaffolded |
+| LangChain | `langchain` | `>=1.4,<2` | `1.4.0` | Plugin scaffolded |
+| Google ADK | `google-adk` | `>=2.9,<3` | `2.9.0` | Plugin scaffolded |
 
 ## OpenAI Agents SDK
 
@@ -153,6 +166,67 @@ Risks:
 - Session/memory services may require environment-specific setup.
 - Google ecosystem deployment features should be extension-level.
 
+## LangChain
+
+Sources:
+
+- [LangChain Python docs](https://docs.langchain.com/oss/python/langchain/overview)
+- [LangChain agents docs](https://docs.langchain.com/oss/python/langchain/agents)
+- [LangChain middleware docs](https://docs.langchain.com/oss/python/langchain/middleware)
+
+Observed concepts:
+
+- Agents built on LangGraph.
+- Tool calling and tool strategies.
+- Middleware.
+- Model/provider abstraction.
+- Short-term memory and persistence patterns.
+- Retrieval and RAG chains.
+- Callbacks, tracing, and LangSmith ecosystem.
+
+AgentBridge mapping:
+
+| AgentBridge Area | LangChain Mapping |
+| --- | --- |
+| `AgentSpec.instructions` | System prompt / agent prompt template. |
+| `ToolSpec` | LangChain tools. |
+| `tools.async` | Async tool and runnable support. |
+| `state.memory` | LangChain memory/checkpointer patterns. |
+| `observability.tracing` | Callbacks and LangSmith-style tracing. |
+| `workflow.graph` | Prefer built-in LangGraph backend for graph-native orchestration. |
+
+First plugin shape:
+
+```bash
+agentbridge scaffold-plugin plugins/agentbridge-langchain --backend langchain
+```
+
+Initial extension namespace target:
+
+```python
+LangChainExtension.config(
+    agent_type="tool_calling",
+    middleware=[...],
+    callbacks=[...],
+    memory="conversation_buffer",
+    retrievers=[...],
+)
+```
+
+Acceptance path:
+
+- Compile simple `AgentSpec` into a direct LangChain agent.
+- Map `ToolSpec` callables into LangChain tools.
+- Support middleware and callbacks through extension config.
+- Preserve raw agent/result/callback metadata.
+- Clearly distinguish direct LangChain support from the built-in LangGraph adapter.
+
+Risks:
+
+- LangChain agents are themselves built on LangGraph, so boundaries between `langchain` and `langgraph` adapters must stay clear.
+- Model provider behavior may overlap with LiteLLM; AgentBridge should not build a second model abstraction.
+- Retrieval/memory integrations should stay extension-level until common semantics are proven.
+
 ## Strands Agents
 
 Sources:
@@ -218,18 +292,21 @@ Risks:
 
 ## Capability Gaps To Add Before These Adapters
 
-- `tools.mcp`
-- `guardrails`
-- `workflow.handoffs`
-- `deployment.serverless`
-- `observability.tracing`
-- `state.memory`
-- `evals`
+- `tools.mcp`: added to canonical taxonomy.
+- `tools.openapi`: added to canonical taxonomy.
+- `guardrails`: added to canonical taxonomy.
+- `workflow.handoffs`: added to canonical taxonomy.
+- `deployment.serverless`: added to canonical taxonomy.
+- `observability.tracing`: added to canonical taxonomy.
+- `state.memory`: added to canonical taxonomy.
+- `runtime.retries`: added to canonical taxonomy.
+- `evals`: added to canonical taxonomy.
 
 ## Recommended Next Work
 
-1. Scaffold `plugins/agentbridge-openai-agents`.
-2. Add `agentbridge.extensions.openai_agents` config namespace.
-3. Add capability rows for handoffs, guardrails, MCP tools, tracing, and deployment.
-4. Add mocked adapter contract tests.
-5. Repeat for `google_adk` and `strands` once the OpenAI Agents plugin pattern is proven.
+1. Complete native OpenAI Agents plugin execution and mocked/offline contract tests.
+2. Complete native Strands plugin execution for Agent/Tool/MCP/structured output basics.
+3. Complete direct LangChain plugin execution and clarify overlap with LangGraph.
+4. Complete Google ADK plugin execution for sessions, memory, sub-agents, and eval/deploy metadata.
+5. Add import/migration helpers for existing LangChain and LangGraph apps.
+6. Add coverage reports that combine canonical capabilities, extension schemas, and native-only features.

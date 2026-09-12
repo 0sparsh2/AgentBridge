@@ -12,3 +12,8 @@ def test_dependency_versions_include_adopted_ranges() -> None:
     assert versions["crewai"]["package"] == "agentbridge-crewai"
     assert versions["crewai"]["status"] == "blocked"
     assert "installed_version" in versions["crewai"]
+    assert versions["strands"]["package"] == "strands-agents"
+    assert versions["strands"]["adopted_range"] == ">=1.55,<2"
+    assert versions["openai_agents"]["package"] == "openai-agents"
+    assert versions["google_adk"]["package"] == "google-adk"
+    assert versions["langchain"]["adopted_range"] == ">=1.4,<2"

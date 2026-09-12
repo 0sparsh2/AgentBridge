@@ -22,6 +22,7 @@
 - Keep `docs/version_policy.md` updated as adapter dependency ranges change.
 - Add static JSON/YAML manifests for CLI runs.
 - Add a scaffold command for lightweight external adapter plugins.
+- Scaffold external plugins for OpenAI Agents SDK, Strands Agents, direct LangChain, and Google ADK with adopted version ranges.
 
 ## v1: Migration and Comparison
 
@@ -29,6 +30,7 @@
 - `agentbridge compare` command for backend fit analysis.
 - Tool registry for manifest-declared tools.
 - Existing-project import helpers for common CrewAI and LangGraph structures.
+- Existing-project import helpers for common LangChain agent apps.
 - Tracing integrations.
 - Full AG-UI server example.
 
@@ -39,3 +41,4 @@
 - Conformance test suite that every adapter must pass.
 - Coverage reports showing which framework features are fully supported, partially supported, unsupported, or intentionally native-only.
 - Adapter authoring guide for new frameworks and tools.
+- First-class external adapter packages for OpenAI Agents SDK, Strands Agents, LangChain, Google ADK, CrewAI, and additional ecosystem frameworks.

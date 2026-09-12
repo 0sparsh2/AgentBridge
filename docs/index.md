@@ -12,7 +12,7 @@ Use this page as the navigation map for the repository.
 ## Product And Research
 
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
-- [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Google ADK, and Strands.
+- [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Strands, direct LangChain, and Google ADK.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
 - [Version Policy](version_policy.md): Adopted package ranges, verified local versions, and adapter version rules.
 - [Release Workflow](release.md): Package build checks, tag workflow, and future PyPI publishing path.

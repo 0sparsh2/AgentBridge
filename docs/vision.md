@@ -131,9 +131,10 @@ These plugins run `AgentSpec` on an agent framework.
 | LangGraph | `agentbridge-langgraph` | Durable graph orchestration, state, checkpoints. | Core optional until dependency pressure says otherwise. |
 | Pydantic AI | `agentbridge-pydantic-ai` | Typed Python-native agents and structured output. | Core optional until dependency pressure says otherwise. |
 | CrewAI | `agentbridge-crewai` | Role/task/crew prototyping and multi-agent teams. | External plugin. |
-| Google ADK | `agentbridge-google-adk` | Google ecosystem agent development. | External plugin. |
-| Strands Agents | `agentbridge-strands` | AWS-oriented agent SDK path. | External plugin. |
 | OpenAI Agents SDK | `agentbridge-openai-agents` | OpenAI-native agent runtime and tools. | External plugin unless core strategy changes. |
+| Strands Agents | `agentbridge-strands` | AWS-oriented agent SDK path with MCP, hooks, and AgentCore alignment. | External plugin. |
+| LangChain | `agentbridge-langchain` | Existing LangChain agents, tools, middleware, memory, retrievers, and callback/tracing ecosystem. | External plugin. |
+| Google ADK | `agentbridge-google-adk` | Google ecosystem agent development. | External plugin. |
 | AgentCore | `agentbridge-agentcore` | Production agent runtime target. | External plugin. |
 | Hugging Face smolagents | `agentbridge-smolagents` | Lightweight open-source agent experimentation. | External plugin. |
 | LlamaIndex Workflows | `agentbridge-llamaindex` | RAG-heavy workflow and indexing ecosystem. | External plugin. |
@@ -145,7 +146,7 @@ These plugins run `AgentSpec` on an agent framework.
 
 This table is not final. It is the known target universe we should keep expanding as frameworks emerge.
 
-See [Adapter Target Research](adapter_target_research.md) for the current adapter priority plan and implementation notes for OpenAI Agents SDK, Google ADK, and Strands.
+See [Adapter Target Research](adapter_target_research.md) for the current adapter priority plan and implementation notes for OpenAI Agents SDK, Strands, direct LangChain, and Google ADK.
 
 ### Tool Ecosystem Plugins
 
@@ -222,7 +223,8 @@ Examples:
 - CrewAI crews, roles, tasks, delegation, and process modes.
 - Pydantic AI validation retries, dependency injection, and typed output behavior.
 - Google ADK session/app concepts.
-- Strands and AgentCore runtime/deployment primitives.
+- Strands hooks, MCP clients, trace attributes, and AgentCore runtime/deployment primitives.
+- LangChain middleware, callbacks, memory, retrievers, and LangSmith-style tracing.
 
 Extension namespaces should feel native to the framework they represent. They are how AgentBridge can eventually cover "all of it" without turning the common API into a confusing mega-object.
 

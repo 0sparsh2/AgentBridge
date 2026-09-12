@@ -44,6 +44,47 @@ ADOPTED_DEPENDENCIES = {
             "ranges with conflicts in this environment."
         ),
     },
+    "openai_agents": {
+        "package": "openai-agents",
+        "range": ">=0.22,<1",
+        "role": "OpenAI Agents SDK adapter plugin",
+        "status": "planned",
+        "notes": (
+            "PyPI latest observed as 0.22.2 on 2026-09-11. External plugin scaffold "
+            "targets Agent, Runner, tools, handoffs, guardrails, approvals, and tracing."
+        ),
+    },
+    "google_adk": {
+        "package": "google-adk",
+        "range": ">=2.9,<3",
+        "role": "Google ADK adapter plugin",
+        "status": "planned",
+        "notes": (
+            "PyPI latest observed as 2.9.0 on 2026-09-11. External plugin scaffold "
+            "targets sessions, memory services, sub-agents, evals, and deployment surfaces."
+        ),
+    },
+    "strands": {
+        "package": "strands-agents",
+        "range": ">=1.55,<2",
+        "role": "Strands Agents adapter plugin",
+        "status": "planned",
+        "notes": (
+            "PyPI latest observed as 1.55.1 on 2026-09-11. External plugin scaffold "
+            "targets Agent/tool mapping, MCP clients, hooks, structured output, and tracing."
+        ),
+    },
+    "langchain": {
+        "package": "langchain",
+        "range": ">=1.4,<2",
+        "role": "Direct LangChain adapter plugin",
+        "status": "planned",
+        "notes": (
+            "PyPI latest observed as 1.4.0 on 2026-09-11. This complements the built-in "
+            "LangGraph backend with broader LangChain agent, middleware, callback, memory, "
+            "and retriever compatibility."
+        ),
+    },
 }
 
 

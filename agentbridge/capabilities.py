@@ -74,6 +74,18 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can support async tool execution semantics.",
     ),
     CapabilityFeature(
+        key="tools.mcp",
+        category="Tools",
+        label="MCP tools",
+        description="Backend can consume or expose Model Context Protocol tools.",
+    ),
+    CapabilityFeature(
+        key="tools.openapi",
+        category="Tools",
+        label="OpenAPI tools",
+        description="Backend can consume OpenAPI-described tools or action schemas.",
+    ),
+    CapabilityFeature(
         key="structured_output",
         category="Structured output",
         label="Structured output",
@@ -110,6 +122,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can delegate work between roles, agents, or crews.",
     ),
     CapabilityFeature(
+        key="workflow.handoffs",
+        category="Workflow",
+        label="Handoffs",
+        description="Backend can transfer execution between specialized agents.",
+    ),
+    CapabilityFeature(
         key="state.session",
         category="State",
         label="Session state",
@@ -128,10 +146,28 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can use durable or long-term memory features.",
     ),
     CapabilityFeature(
+        key="state.memory",
+        category="State",
+        label="Memory services",
+        description="Backend can attach native short-term or long-term memory services.",
+    ),
+    CapabilityFeature(
         key="streaming.events",
         category="Streaming",
         label="Normalized events",
         description="Backend can stream or synthesize normalized AgentEvent values.",
+    ),
+    CapabilityFeature(
+        key="guardrails",
+        category="Runtime behavior",
+        label="Guardrails",
+        description="Backend can enforce input, output, or tool-use guardrails.",
+    ),
+    CapabilityFeature(
+        key="runtime.retries",
+        category="Runtime behavior",
+        label="Retries",
+        description="Backend can configure retries around model, tool, or validation failures.",
     ),
     CapabilityFeature(
         key="human_approval",
@@ -144,6 +180,24 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         category="Observability",
         label="Raw observability",
         description="Adapter preserves raw backend objects for inspection and tracing.",
+    ),
+    CapabilityFeature(
+        key="observability.tracing",
+        category="Observability",
+        label="Tracing",
+        description="Backend can emit traces, spans, run IDs, or trace metadata.",
+    ),
+    CapabilityFeature(
+        key="evals",
+        category="Observability",
+        label="Evaluations",
+        description="Backend can attach evaluation hooks, datasets, or scoring workflows.",
+    ),
+    CapabilityFeature(
+        key="deployment.serverless",
+        category="Deployment",
+        label="Serverless deployment",
+        description="Backend has an adapter path for serverless or managed deployment surfaces.",
     ),
     CapabilityFeature(
         key="agui.events",

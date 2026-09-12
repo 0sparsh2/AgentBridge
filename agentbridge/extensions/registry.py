@@ -7,8 +7,12 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from agentbridge.extensions.crewai import CrewAIConfig
+from agentbridge.extensions.google_adk import GoogleADKConfig
+from agentbridge.extensions.langchain import LangChainConfig
 from agentbridge.extensions.langgraph import LangGraphConfig
+from agentbridge.extensions.openai_agents import OpenAIAgentsConfig
 from agentbridge.extensions.pydantic_ai import PydanticAIConfig
+from agentbridge.extensions.strands import StrandsConfig
 
 
 class ExtensionProfile(BaseModel):
@@ -73,6 +77,77 @@ def extension_profiles() -> list[ExtensionProfile]:
             notes=[
                 "External plugin maps role, goal, task, process, delegation, memory, and human input.",
                 "Real CrewAI execution remains blocked in this Python 3.14 workspace.",
+            ],
+        ),
+        ExtensionProfile(
+            framework="openai_agents",
+            module="agentbridge.extensions.openai_agents",
+            config_model="OpenAIAgentsConfig",
+            config_schema=OpenAIAgentsConfig.model_json_schema(),
+            capabilities=[
+                "workflow.handoffs",
+                "guardrails",
+                "human_approval",
+                "observability.tracing",
+            ],
+            status="scaffolded",
+            notes=[
+                "External plugin target for OpenAI Agents SDK handoffs, guardrails, tracing, and approvals.",
+                "Real execution is planned after the plugin maps AgentSpec and ToolSpec to SDK Agent/Runner APIs.",
+            ],
+        ),
+        ExtensionProfile(
+            framework="google_adk",
+            module="agentbridge.extensions.google_adk",
+            config_model="GoogleADKConfig",
+            config_schema=GoogleADKConfig.model_json_schema(),
+            capabilities=[
+                "state.session",
+                "state.memory",
+                "workflow.delegation",
+                "deployment.serverless",
+                "evals",
+            ],
+            status="scaffolded",
+            notes=[
+                "External plugin target for Google ADK sessions, memory services, sub-agents, evals, and deployment.",
+                "Native service wiring should remain extension-level until portable semantics are proven.",
+            ],
+        ),
+        ExtensionProfile(
+            framework="strands",
+            module="agentbridge.extensions.strands",
+            config_model="StrandsConfig",
+            config_schema=StrandsConfig.model_json_schema(),
+            capabilities=[
+                "tools.mcp",
+                "structured_output",
+                "streaming.events",
+                "guardrails",
+                "observability.tracing",
+                "deployment.serverless",
+            ],
+            status="scaffolded",
+            notes=[
+                "External plugin target for Strands tools, MCP clients, hooks, structured output, and AWS deployment paths.",
+                "Hook-driven lifecycle support should drive future AgentEvent expansion.",
+            ],
+        ),
+        ExtensionProfile(
+            framework="langchain",
+            module="agentbridge.extensions.langchain",
+            config_model="LangChainConfig",
+            config_schema=LangChainConfig.model_json_schema(),
+            capabilities=[
+                "tools.sync",
+                "tools.async",
+                "state.memory",
+                "observability.tracing",
+            ],
+            status="scaffolded",
+            notes=[
+                "Complements the built-in LangGraph adapter with direct LangChain agent, middleware, callback, memory, and retriever configuration.",
+                "LangGraph remains the preferred stateful orchestration backend; this plugin targets broader LangChain app compatibility.",
             ],
         ),
     ]

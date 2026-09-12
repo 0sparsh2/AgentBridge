@@ -2,7 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from agentbridge.extensions import FrameworkExtension, UnsupportedExtension
+from agentbridge.extensions import (
+    FrameworkExtension,
+    GoogleADKExtension,
+    LangChainExtension,
+    OpenAIAgentsExtension,
+    StrandsExtension,
+    UnsupportedExtension,
+)
 from agentbridge.extensions.crewai import CrewAIExtension
 from agentbridge.extensions.langgraph import LangGraphExtension
 from agentbridge.extensions.pydantic_ai import PydanticAIExtension
@@ -25,6 +32,10 @@ def test_framework_specific_extension_namespaces_exist() -> None:
     assert LangGraphExtension.framework == "langgraph"
     assert PydanticAIExtension.framework == "pydantic_ai"
     assert CrewAIExtension.framework == "crewai"
+    assert OpenAIAgentsExtension.framework == "openai_agents"
+    assert GoogleADKExtension.framework == "google_adk"
+    assert StrandsExtension.framework == "strands"
+    assert LangChainExtension.framework == "langchain"
 
 
 def test_extension_native_placeholders_fail_clearly() -> None:
@@ -94,13 +105,77 @@ def test_crewai_extension_builds_serializable_config() -> None:
     }
 
 
+def test_future_framework_extensions_build_serializable_config() -> None:
+    openai_config = OpenAIAgentsExtension.config(
+        handoffs=["billing_agent"],
+        guardrails=["refund_policy"],
+        tracing=True,
+        approval_policy={"refunds_over": 100},
+    )
+    google_config = GoogleADKExtension.config(
+        app_name="support",
+        session_service="memory",
+        memory_service="vertex",
+        sub_agents=["refund"],
+    )
+    strands_config = StrandsExtension.config(
+        conversation_manager="sliding_window",
+        mcp_clients=["orders"],
+        trace_attributes={"service": "support"},
+    )
+    langchain_config = LangChainExtension.config(
+        agent_type="tool_calling",
+        middleware=["redaction"],
+        callbacks=["langsmith"],
+        memory="conversation_buffer",
+        retrievers=["policy_docs"],
+    )
+
+    assert openai_config == {
+        "handoffs": ["billing_agent"],
+        "guardrails": ["refund_policy"],
+        "tracing": True,
+        "approval_policy": {"refunds_over": 100},
+    }
+    assert google_config == {
+        "app_name": "support",
+        "session_service": "memory",
+        "memory_service": "vertex",
+        "sub_agents": ["refund"],
+    }
+    assert strands_config == {
+        "conversation_manager": "sliding_window",
+        "mcp_clients": ["orders"],
+        "trace_attributes": {"service": "support"},
+    }
+    assert langchain_config == {
+        "agent_type": "tool_calling",
+        "middleware": ["redaction"],
+        "callbacks": ["langsmith"],
+        "memory": "conversation_buffer",
+        "retrievers": ["policy_docs"],
+    }
+
+
 def test_extension_registry_lists_framework_profiles() -> None:
     profiles = {profile.framework: profile for profile in extension_profiles()}
 
-    assert {"langgraph", "pydantic_ai", "crewai"}.issubset(profiles)
+    assert {
+        "langgraph",
+        "pydantic_ai",
+        "crewai",
+        "openai_agents",
+        "google_adk",
+        "strands",
+        "langchain",
+    }.issubset(profiles)
     assert "node_name" in profiles["langgraph"].config_schema["properties"]
     assert "retries" in profiles["pydantic_ai"].config_schema["properties"]
     assert "role" in profiles["crewai"].config_schema["properties"]
+    assert "handoffs" in profiles["openai_agents"].config_schema["properties"]
+    assert "session_service" in profiles["google_adk"].config_schema["properties"]
+    assert "mcp_clients" in profiles["strands"].config_schema["properties"]
+    assert "middleware" in profiles["langchain"].config_schema["properties"]
 
 
 def test_extension_profile_returns_one_framework() -> None:
