@@ -82,11 +82,12 @@ ADOPTED_DEPENDENCIES = {
         "package": "langchain",
         "range": ">=1.4,<2",
         "role": "Direct LangChain adapter plugin",
-        "status": "planned",
+        "status": "partial",
         "notes": (
-            "PyPI latest observed as 1.4.0 on 2026-09-11. This complements the built-in "
-            "LangGraph backend with broader LangChain agent, middleware, callback, memory, "
-            "and retriever compatibility."
+            "Verified install with langchain 1.4.0. This complements the built-in LangGraph "
+            "backend with direct create_agent execution, StructuredTool mapping, model string "
+            "normalization, and best-effort stream normalization. Middleware, callbacks, memory, "
+            "retrievers, and LangSmith tracing remain extension-level."
         ),
     },
 }

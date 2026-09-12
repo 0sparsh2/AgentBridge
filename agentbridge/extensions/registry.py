@@ -144,10 +144,10 @@ def extension_profiles() -> list[ExtensionProfile]:
                 "state.memory",
                 "observability.tracing",
             ],
-            status="scaffolded",
+            status="partial",
             notes=[
-                "Complements the built-in LangGraph adapter with direct LangChain agent, middleware, callback, memory, and retriever configuration.",
-                "LangGraph remains the preferred stateful orchestration backend; this plugin targets broader LangChain app compatibility.",
+                "External plugin maps AgentSpec to LangChain create_agent and ToolSpec to StructuredTool.",
+                "LangGraph remains the preferred stateful orchestration backend; middleware, callbacks, memory, retrievers, and tracing remain extension-level.",
             ],
         ),
     ]
