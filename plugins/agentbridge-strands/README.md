@@ -6,15 +6,15 @@ AgentBridge adapter plugin for `strands`.
 
 - Native package: `strands-agents`
 - Adopted range: `>=1.55,<2`
-- Latest observed during scaffolding: `1.55.1` on 2026-09-11
-- Status: scaffolded; native Strands `Agent` execution still needs implementation
+- Verified locally: `1.55.1`
+- Status: partial native adapter
 
 ## Target Capabilities
 
 - Agent and tool mapping.
 - MCP clients through `StrandsExtension`.
 - Hooks for lifecycle, guardrail, approval, and streaming events.
-- Structured output mapping.
+- Structured output model pass-through.
 - Trace attributes and AWS/serverless deployment metadata.
 
 ## Install

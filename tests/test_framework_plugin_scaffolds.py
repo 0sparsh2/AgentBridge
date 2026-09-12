@@ -48,8 +48,36 @@ def install_fake_openai_agents(monkeypatch) -> None:
     )
 
 
+class FakeStrandsAgent:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def __call__(self, prompt, **kwargs):
+        return SimpleNamespace(
+            message={"content": [{"text": f"hello from native strands: {prompt}"}]},
+            metrics={"requests": 1},
+            stop_reason="end_turn",
+            structured_output=None,
+            interrupts=None,
+            checkpoint=None,
+        )
+
+
+def fake_strands_tool(func, **kwargs):
+    return SimpleNamespace(func=func, kwargs=kwargs)
+
+
+def install_fake_strands(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "strands",
+        SimpleNamespace(Agent=FakeStrandsAgent, tool=fake_strands_tool),
+    )
+
+
 def test_next_wave_plugin_scaffolds_load_locally(monkeypatch) -> None:
     install_fake_openai_agents(monkeypatch)
+    install_fake_strands(monkeypatch)
     plugin_roots = [
         ROOT / "plugins" / "agentbridge-openai-agents",
         ROOT / "plugins" / "agentbridge-google-adk",
@@ -94,6 +122,6 @@ def test_next_wave_plugin_capabilities_are_honest(monkeypatch) -> None:
 
     capabilities = get_adapter("strands").capabilities()
 
-    assert capabilities.status("tools.sync") == "unsupported"
+    assert capabilities.status("tools.sync") == "full"
     assert capabilities.status("tools.mcp") == "extension"
     assert capabilities.status("observability.tracing") == "extension"

@@ -70,10 +70,12 @@ ADOPTED_DEPENDENCIES = {
         "package": "strands-agents",
         "range": ">=1.55,<2",
         "role": "Strands Agents adapter plugin",
-        "status": "planned",
+        "status": "partial",
         "notes": (
-            "PyPI latest observed as 1.55.1 on 2026-09-11. External plugin scaffold "
-            "targets Agent/tool mapping, MCP clients, hooks, structured output, and tracing."
+            "Verified install with strands-agents 1.55.1. External plugin maps AgentSpec "
+            "to Strands Agent, ToolSpec to @tool wrappers, structured output model pass-through, "
+            "and best-effort stream event normalization. MCP clients, hooks, guardrails, tracing, "
+            "and deployment remain extension-level."
         ),
     },
     "langchain": {
