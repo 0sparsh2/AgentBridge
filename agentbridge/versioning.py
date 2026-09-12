@@ -53,8 +53,8 @@ ADOPTED_DEPENDENCIES = {
             "PyPI latest observed as 0.22.2 on 2026-09-11, but 0.22.x requires openai>=3. "
             "The executable baseline is 0.20.x because it remains compatible with the current "
             "LiteLLM/OpenAI dependency path. External plugin maps Agent, Runner, tools, native "
-            "handoff/guardrail/MCP/run options, best-effort events, and extension metadata; "
-            "approval/resume flows remain extension-level."
+            "structured output, handoff/guardrail/MCP/run options, best-effort events, and "
+            "extension metadata; approval/resume flows remain extension-level."
         ),
     },
     "google_adk": {
