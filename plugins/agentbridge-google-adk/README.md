@@ -6,16 +6,21 @@ AgentBridge adapter plugin for `google_adk`.
 
 - Native package: `google-adk`
 - Adopted range: `>=2.9,<3`
-- Latest observed during scaffolding: `2.9.0` on 2026-09-11
-- Status: scaffolded; native ADK agent/session execution still needs implementation
+- Verified locally: `2.9.0`
+- Status: partial native adapter
 
 ## Target Capabilities
 
 - Agent and tool mapping.
+- Runner execution with in-memory sessions.
 - Session propagation from `RunInput.session_id`.
 - Memory and artifact service configuration through `GoogleADKExtension`.
 - Sub-agent/delegation metadata.
 - Evals and deployment metadata as extension-level features.
+
+## Dependency Note
+
+`google-adk==2.9.0` currently pins older OpenTelemetry packages than the Strands stack. If you are developing both native plugins locally, prefer isolated virtual environments until those dependency ranges converge.
 
 ## Install
 

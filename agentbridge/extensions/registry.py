@@ -108,10 +108,10 @@ def extension_profiles() -> list[ExtensionProfile]:
                 "deployment.serverless",
                 "evals",
             ],
-            status="scaffolded",
+            status="partial",
             notes=[
-                "External plugin target for Google ADK sessions, memory services, sub-agents, evals, and deployment.",
-                "Native service wiring should remain extension-level until portable semantics are proven.",
+                "External plugin maps AgentSpec to ADK Agent, ToolSpec to FunctionTool, and runs through Runner with in-memory sessions.",
+                "Native memory services, sub-agents, evals, deployment, and dependency-sensitive service wiring remain extension-level.",
             ],
         ),
         ExtensionProfile(
