@@ -28,6 +28,11 @@ class BackendAdapter:
 
         raise NotImplementedError
 
+    def resume(self, compiled: Any, run_input: RunInput) -> RunResult:
+        """Resume a previously interrupted compiled agent."""
+
+        raise NotImplementedError(f"{self.backend_name} does not implement resume().")
+
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         """Stream normalized events for a compiled agent."""
 

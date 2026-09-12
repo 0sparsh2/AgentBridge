@@ -31,7 +31,7 @@ from agentbridge.registry import (
     register_adapter,
     reset_adapters,
 )
-from agentbridge.runner import run_agent, stream_agent
+from agentbridge.runner import resume_agent, run_agent, stream_agent
 from agentbridge.tool_registry import (
     ToolRegistry,
     coerce_tool_registry,
@@ -91,6 +91,7 @@ __all__ = [
     "register_tool",
     "register_adapter",
     "reset_adapters",
+    "resume_agent",
     "run_conformance",
     "run_agent",
     "stream_agent",

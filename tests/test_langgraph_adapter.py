@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter
+from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter, resume_agent
 from agentbridge.errors import MissingDependencyError
 from agentbridge.extensions.langgraph import LangGraphExtension
 
@@ -145,6 +145,52 @@ def test_langgraph_adapter_reports_interrupt_state_when_available() -> None:
     assert result.metadata["next"] == ["agent"]
     assert result.metadata["checkpoint"]["thread_id"] == "approval-session"
     assert any(event.data["phase"] == "interrupted" for event in workflow_events)
+
+
+def test_langgraph_adapter_resumes_checkpointed_interrupt_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = LangGraphExtension.with_config(
+        AgentSpec(
+            name="approval_agent",
+            instructions="Pause before work.",
+            model="openai/gpt-5",
+        ),
+        enable_checkpointing=True,
+        interrupt_before=["agent"],
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    interrupted = adapter.run(
+        compiled,
+        run_input=RunInput(input="Needs approval.", session_id="approval-session"),
+    )
+    resumed = adapter.resume(
+        compiled,
+        run_input=RunInput(input="Approved.", session_id="approval-session"),
+    )
+    adapter.run(
+        compiled,
+        run_input=RunInput(input="Needs helper approval.", session_id="approval-session-2"),
+    )
+    helper_resumed = resume_agent(
+        compiled,
+        backend="langgraph",
+        input="Approved again.",
+        session_id="approval-session-2",
+    )
+
+    assert interrupted.metadata["interrupted"] is True
+    assert resumed.metadata["resumed"] is True
+    assert "interrupted" not in resumed.metadata
+    assert resumed.output["route"] == "agent"
+    assert resumed.output["input"] == "Needs approval."
+    assert resumed.events[0].data["phase"] == "resumed"
+    assert helper_resumed.metadata["resumed"] is True
+    assert helper_resumed.output["input"] == "Needs helper approval."
 
 
 def test_langgraph_capabilities_include_checkpointing_extension() -> None:

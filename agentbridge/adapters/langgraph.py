@@ -54,7 +54,7 @@ class LangGraphAdapter(BackendAdapter):
             },
             notes={
                 "workflow.graph": "LangGraph is the strongest v0 target for explicit state graphs.",
-                "human_approval": "Interrupt state is reported when configured; portable approval/resume helpers are planned.",
+                "human_approval": "Interrupt state is reported when configured and checkpointed runs can resume through resume_agent().",
                 "agent.model": "Current adapter demonstrates graph execution without calling a model.",
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True).",
@@ -170,6 +170,41 @@ class LangGraphAdapter(BackendAdapter):
             raw=raw,
         )
 
+    def resume(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
+        if not compiled.config.enable_checkpointing:
+            raise ValueError("LangGraph resume requires enable_checkpointing=True.")
+        invoke_config = self._invoke_config(compiled, run_input)
+        raw = compiled.graph.invoke(None, config=invoke_config)
+        raw = raw or {}
+        interrupt_state = self._interrupt_state(compiled, invoke_config)
+        output = raw.get("output", raw)
+        if interrupt_state and not output:
+            output = {
+                "agent": compiled.spec.name,
+                "input": raw.get("input", run_input.input),
+                "interrupted": True,
+                "next": interrupt_state["next"],
+                "message": "LangGraph execution paused again at an interrupt boundary.",
+            }
+        events = self._events_from_raw(raw, output, interrupt_state=interrupt_state, resumed=True)
+        metadata = {
+            "node_name": compiled.config.node_name,
+            "checkpointing": compiled.config.enable_checkpointing,
+            "route": raw.get("route", compiled.config.node_name),
+            "resumed": True,
+        }
+        if interrupt_state:
+            metadata["interrupted"] = True
+            metadata["next"] = interrupt_state["next"]
+            metadata["checkpoint"] = interrupt_state.get("checkpoint")
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            metadata=metadata,
+            raw=raw,
+        )
+
     def _build_checkpointer(self, config: LangGraphConfig) -> Any | None:
         if not config.enable_checkpointing:
             return None
@@ -270,12 +305,16 @@ class LangGraphAdapter(BackendAdapter):
         output: Any,
         *,
         interrupt_state: dict[str, Any] | None = None,
+        resumed: bool = False,
     ) -> list[AgentEvent]:
         events = [
             AgentEvent(
                 type="workflow",
                 backend=self.backend_name,
-                data={"phase": "node_complete", "route": raw.get("route")},
+                data={
+                    "phase": "resumed" if resumed else "node_complete",
+                    "route": raw.get("route"),
+                },
             ),
         ]
         if interrupt_state:

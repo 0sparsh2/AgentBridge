@@ -67,6 +67,8 @@ Current focus:
 - Preserve native raw objects for deeper graph behavior.
 - Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, in-memory checkpointing, and context-based conditional routing.
 - Report checkpoint-backed interrupt state when `interrupt_before` or `interrupt_after` pauses execution.
+- Resume checkpointed interrupts through `resume_agent(compiled, backend="langgraph", session_id=...)`
+  or `get_adapter("langgraph").resume(...)`.
 
 Next areas:
 
@@ -104,9 +106,33 @@ result = run_agent(
 ```
 
 If an interrupt pauses execution, `RunResult.metadata["interrupted"]` is `True` and workflow events
-include `phase="interrupted"` with the next node and checkpoint identifiers. Full portable approval
-and resume helpers are still planned, so `human_approval` is currently extension-level rather than
-`full`.
+include `phase="interrupted"` with the next node and checkpoint identifiers. Resume requires the same
+compiled graph object when using the default in-memory checkpointer, because that compiled runtime owns
+the checkpoint state:
+
+```python
+from agentbridge import AgentSpec, RunInput, get_adapter, resume_agent
+
+adapter = get_adapter("langgraph")
+compiled = adapter.compile(agent)
+
+paused = adapter.run(
+    compiled,
+    RunInput(input="Approve refund A123", session_id="customer-123"),
+)
+
+if paused.metadata.get("interrupted"):
+    resumed = resume_agent(
+        compiled,
+        backend="langgraph",
+        input="Approved by manager.",
+        session_id="customer-123",
+    )
+```
+
+Human approval remains `extension` rather than `full` because AgentBridge can pause and resume
+checkpointed LangGraph execution, but does not yet provide a backend-neutral review queue or approval
+policy model.
 
 ## `pydantic_ai`
 
