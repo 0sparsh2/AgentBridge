@@ -64,9 +64,10 @@ ADOPTED_DEPENDENCIES = {
         "status": "partial",
         "notes": (
             "Verified install with google-adk 2.9.0. External plugin maps AgentSpec to ADK "
-            "Agent, ToolSpec to FunctionTool, and runs through Runner with an in-memory "
-            "session service. Native ADK currently pins older OpenTelemetry packages than "
-            "Strands, so installing both native plugins may require isolated environments."
+            "Agent, ToolSpec to FunctionTool, native Agent/Runner option forwarding, and "
+            "extension metadata for sessions, memory, artifacts, evals, and deployment. "
+            "Native ADK currently pins older OpenTelemetry packages than Strands, so installing "
+            "both native plugins may require isolated environments."
         ),
     },
     "strands": {
