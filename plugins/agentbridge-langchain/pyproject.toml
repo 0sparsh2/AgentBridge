@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentbridge-langchain"
+version = "0.1.0"
+description = "AgentBridge adapter plugin for langchain."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "agentbridge>=0.1.0",
+  "langchain>=1.4,<2",
+]
+
+[project.entry-points."agentbridge.adapters"]
+langchain = "agentbridge_langchain.adapter:Adapter"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

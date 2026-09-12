@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentbridge-openai-agents"
+version = "0.1.0"
+description = "AgentBridge adapter plugin for openai_agents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "agentbridge>=0.1.0",
+  "openai-agents>=0.22,<1",
+]
+
+[project.entry-points."agentbridge.adapters"]
+openai_agents = "agentbridge_openai_agents.adapter:Adapter"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

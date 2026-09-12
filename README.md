@@ -35,6 +35,10 @@ Current backend status:
 | `langgraph` | Core optional extra | Verified locally | Executes a minimal graph and supports normalized results/events. |
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
+| `openai_agents` | External plugin scaffold | Planned | Targets OpenAI Agents SDK handoffs, guardrails, approvals, tracing, and runner/result normalization. |
+| `strands` | External plugin scaffold | Planned | Targets Strands Agent/tool mapping, MCP clients, hooks, structured output, and tracing. |
+| `langchain` | External plugin scaffold | Planned | Targets direct LangChain agents, middleware, callbacks, memory, retrievers, and tracing. |
+| `google_adk` | External plugin scaffold | Planned | Targets ADK sessions, memory services, sub-agents, eval hooks, and deployment metadata. |
 
 Adopted package versions are tracked in [docs/version_policy.md](docs/version_policy.md).
 
@@ -197,6 +201,7 @@ agentbridge extensions --json
 agentbridge versions --json
 agentbridge plugins --json
 agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
+agentbridge extensions strands --json
 ```
 
 See [docs/cli.md](docs/cli.md) for command details.

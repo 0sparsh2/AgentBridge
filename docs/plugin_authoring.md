@@ -88,6 +88,15 @@ Use overrides sparingly. Published adapter packages should avoid backend names o
 
 During tests or interactive development, `reset_adapters()` restores the registry to the built-in adapters, and `reset_plugin_loader()` also clears plugin discovery state.
 
-## CrewAI Recommendation
+## Current External Plugin Targets
 
 CrewAI is currently blocked in the core Python 3.14 environment because its adopted package range pulls older LangChain/LangSmith dependencies. The scaffold lives in `plugins/agentbridge-crewai` as an external plugin package with its own Python and dependency constraints.
+
+Additional external plugin scaffolds live under `plugins/`:
+
+- `agentbridge-openai-agents`: targets `openai-agents>=0.22,<1`.
+- `agentbridge-strands`: targets `strands-agents>=1.55,<2`.
+- `agentbridge-langchain`: targets `langchain>=1.4,<2`.
+- `agentbridge-google-adk`: targets `google-adk>=2.9,<3`.
+
+These packages should stay outside the core dependency set until their native framework execution is verified and their dependency footprint is acceptable for all users.

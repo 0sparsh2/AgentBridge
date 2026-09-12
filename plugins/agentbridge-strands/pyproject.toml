@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentbridge-strands"
+version = "0.1.0"
+description = "AgentBridge adapter plugin for strands."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "agentbridge>=0.1.0",
+  "strands-agents>=1.55,<2",
+]
+
+[project.entry-points."agentbridge.adapters"]
+strands = "agentbridge_strands.adapter:Adapter"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

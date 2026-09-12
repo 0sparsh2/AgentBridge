@@ -222,3 +222,14 @@ This avoids two traps:
 2. Add contract tests for every backend capability marked `full`.
 3. Add backend-specific extension namespaces for features that cannot fit the common core.
 4. Expand docs with a matrix for CrewAI, LangGraph, Pydantic AI, Google ADK, Strands, OpenAI Agents SDK, AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.
+
+## Next Adapter Wave
+
+The next wave expands framework coverage through external plugins, keeping the core install path light:
+
+- `agentbridge-openai-agents`: OpenAI Agents SDK handoffs, guardrails, approvals, tracing, and runner/result normalization.
+- `agentbridge-strands`: Strands Agent/tool mapping, MCP clients, hooks, structured output, tracing, and AWS deployment metadata.
+- `agentbridge-langchain`: direct LangChain agent compatibility for tools, middleware, callbacks, memory, retrievers, and tracing, complementing the built-in LangGraph adapter.
+- `agentbridge-google-adk`: ADK sessions, memory services, sub-agents, eval hooks, and deployment metadata.
+
+Each plugin should start scaffolded, advertise only honest capability statuses, then graduate individual capabilities to `full` only when contract tests exercise the native framework version documented in `docs/version_policy.md`.
