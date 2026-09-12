@@ -1,20 +1,68 @@
 from __future__ import annotations
 
-from agentbridge_langchain.adapter import Adapter
+import sys
+from types import SimpleNamespace
+
 from agentbridge import AgentSpec, RunInput
+from agentbridge_langchain.adapter import Adapter, CompiledLangChainAgent
 
 
-def test_adapter_runs_template_agent() -> None:
+class FakeStructuredTool:
+    @staticmethod
+    def from_function(**kwargs):
+        return SimpleNamespace(**kwargs)
+
+
+class FakeNativeAgent:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def invoke(self, payload, config=None):
+        return {
+            "messages": [
+                {"role": "assistant", "content": f"native langchain: {payload['messages'][0]['content']}"}
+            ]
+        }
+
+    def stream(self, payload, config=None):
+        yield {"messages": [{"content": "stream chunk"}]}
+
+
+def fake_create_agent(**kwargs):
+    return FakeNativeAgent(**kwargs)
+
+
+def test_adapter_compiles_and_runs_native_agent(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
     adapter = Adapter()
+
+    def lookup_order(order_id: str) -> str:
+        """Look up an order."""
+        return order_id
+
     spec = AgentSpec(
-        name="template_agent",
+        name="support_agent",
         instructions="Echo the user request.",
-        model="mock/model",
+        model="openai/gpt-5",
+        tools=[],
     )
 
     compiled = adapter.compile(spec)
     result = adapter.run(compiled, RunInput(input="hello"))
 
+    assert isinstance(compiled, CompiledLangChainAgent)
+    assert compiled.native_agent.kwargs["name"] == "support_agent"
+    assert compiled.native_agent.kwargs["model"] == "openai:gpt-5"
+    assert compiled.native_agent.kwargs["system_prompt"] == "Echo the user request."
     assert result.backend == "langchain"
-    assert "hello" in result.output
+    assert result.output == "native langchain: hello"
     assert [event.type for event in result.events] == ["message", "complete"]

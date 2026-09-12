@@ -6,13 +6,13 @@ AgentBridge adapter plugin for `langchain`.
 
 - Native package: `langchain`
 - Adopted range: `>=1.4,<2`
-- Latest observed during scaffolding: `1.4.0` on 2026-09-11
-- Status: scaffolded; direct LangChain agent execution still needs implementation
+- Verified locally: `1.4.0`
+- Status: partial native adapter
 
 ## Target Capabilities
 
-- Direct LangChain agent compatibility alongside the built-in LangGraph backend.
-- LangChain tool mapping.
+- Direct LangChain `create_agent` compatibility alongside the built-in LangGraph backend.
+- `ToolSpec` to `StructuredTool` mapping.
 - Middleware, callbacks, memory, and retriever configuration through `LangChainExtension`.
 - LangSmith/callback-style tracing metadata.
 

@@ -36,7 +36,7 @@ Rationale:
 | --- | --- | --- | --- | --- |
 | OpenAI Agents SDK | `openai-agents` | `>=0.20,<0.21` | `0.22.2`; compatible baseline `0.20.0` | Partial native adapter |
 | Strands Agents | `strands-agents` | `>=1.55,<2` | `1.55.1` | Partial native adapter |
-| LangChain | `langchain` | `>=1.4,<2` | `1.4.0` | Plugin scaffolded |
+| LangChain | `langchain` | `>=1.4,<2` | `1.4.0` | Partial native adapter |
 | Google ADK | `google-adk` | `>=2.9,<3` | `2.9.0` | Plugin scaffolded |
 
 ## OpenAI Agents SDK

@@ -75,9 +75,48 @@ def install_fake_strands(monkeypatch) -> None:
     )
 
 
+class FakeLangChainStructuredTool:
+    @staticmethod
+    def from_function(**kwargs):
+        return SimpleNamespace(**kwargs)
+
+
+class FakeLangChainAgent:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def invoke(self, payload, config=None):
+        return {
+            "messages": [
+                {"role": "assistant", "content": f"hello from native langchain: {payload['messages'][0]['content']}"}
+            ]
+        }
+
+    def stream(self, payload, config=None):
+        yield {"messages": [{"content": "hello from stream"}]}
+
+
+def fake_langchain_create_agent(**kwargs):
+    return FakeLangChainAgent(**kwargs)
+
+
+def install_fake_langchain(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_langchain_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeLangChainStructuredTool),
+    )
+
+
 def test_next_wave_plugin_scaffolds_load_locally(monkeypatch) -> None:
     install_fake_openai_agents(monkeypatch)
     install_fake_strands(monkeypatch)
+    install_fake_langchain(monkeypatch)
     plugin_roots = [
         ROOT / "plugins" / "agentbridge-openai-agents",
         ROOT / "plugins" / "agentbridge-google-adk",
