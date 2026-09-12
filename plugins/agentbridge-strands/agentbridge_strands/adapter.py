@@ -37,7 +37,7 @@ class Adapter(BackendAdapter):
                 "agent.model": "partial",
                 "tools.sync": "full",
                 "tools.mcp": "extension",
-                "structured_output": "partial",
+                "structured_output": "full",
                 "guardrails": "extension",
                 "observability.tracing": "extension",
                 "deployment.serverless": "extension",
@@ -49,7 +49,7 @@ class Adapter(BackendAdapter):
                 "agent.model": "Passes model strings through to Strands; provider compatibility is Strands/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to Strands @tool wrappers.",
                 "tools.mcp": "Planned through StrandsExtension mcp_clients.",
-                "structured_output": "Passes AgentSpec.output_type to Strands structured_output_model when present.",
+                "structured_output": "Maps AgentSpec.output_type to Strands structured_output_model and validates native structured output.",
                 "observability.tracing": "Planned through trace_attributes and native run metadata.",
                 "streaming.events": "Uses Strands stream_async when available and normalizes events best-effort.",
             },
@@ -229,10 +229,9 @@ class _AgentBridgeOfflineModelBase:
         if tool_specs:
             tool_spec = tool_specs[0]
             tool_name = str(tool_spec.get("name", "tool"))
-            argument_name = _first_tool_argument_name(tool_spec)
             async for event in self._tool_use_stream(
                 name=tool_name,
-                arguments={argument_name: _last_user_text(messages)},
+                arguments=_arguments_for_tool_spec(tool_spec, messages),
             ):
                 yield event
             return
@@ -270,16 +269,39 @@ def _uses_offline_model(compiled: CompiledStrandsAgent) -> bool:
     return isinstance(getattr(compiled.native_agent, "model", None), _AgentBridgeOfflineModelBase)
 
 
-def _first_tool_argument_name(tool_spec: dict[str, Any]) -> str:
+def _arguments_for_tool_spec(tool_spec: dict[str, Any], messages: Any) -> dict[str, Any]:
     schema = tool_spec.get("inputSchema") or {}
     schema = schema.get("json", schema)
-    required = schema.get("required") or []
-    if required:
-        return str(required[0])
     properties = schema.get("properties") or {}
-    if properties:
-        return str(next(iter(properties)))
-    return "input"
+    required = schema.get("required") or []
+    if not properties:
+        return {"input": _last_user_text(messages)}
+
+    arguments: dict[str, Any] = {}
+    selected = list(required) or list(properties)
+    for name in selected:
+        property_schema = properties.get(name, {})
+        if "default" in property_schema:
+            arguments[name] = property_schema["default"]
+        else:
+            arguments[name] = _fallback_value_for_schema(property_schema, messages)
+    return arguments
+
+
+def _fallback_value_for_schema(property_schema: dict[str, Any], messages: Any) -> Any:
+    raw_type = property_schema.get("type", "string")
+    types = raw_type if isinstance(raw_type, list) else [raw_type]
+    if "boolean" in types:
+        return True
+    if "integer" in types:
+        return 1
+    if "number" in types:
+        return 1.0
+    if "array" in types:
+        return []
+    if "object" in types:
+        return {}
+    return _last_user_text(messages)
 
 
 def _latest_tool_result(messages: Any) -> Any | None:
@@ -354,8 +376,6 @@ def _invocation_state(run_input: RunInput) -> dict[str, Any]:
 def _final_output(result: Any) -> Any:
     structured_output = getattr(result, "structured_output", None)
     if structured_output is not None:
-        if hasattr(structured_output, "model_dump"):
-            return structured_output.model_dump()
         return structured_output
     message = getattr(result, "message", None)
     if message is None:
