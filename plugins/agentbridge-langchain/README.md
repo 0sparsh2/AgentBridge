@@ -31,6 +31,21 @@ agentbridge inspect-backend langchain --json
 agentbridge conformance --backend langchain
 ```
 
+The conformance runner uses the plugin-only `agentbridge/offline` model string. That path still
+builds a LangChain `create_agent` graph and executes it natively, but uses a tiny local
+`BaseChatModel` implementation so contract checks do not require provider packages or API keys.
+
+## LangChain vs LangGraph
+
+Use `langchain` when you are migrating or standardizing an existing LangChain agent app that depends
+on `create_agent`, `StructuredTool`, middleware, callbacks, memory, retrievers, or LangSmith-style
+instrumentation.
+
+Use `langgraph` when the app is primarily a durable workflow: explicit graph topology, checkpoints,
+interrupts, resumability, state routing, or production orchestration are the core requirement.
+LangChain agents are built on LangGraph internally, but AgentBridge keeps these adapters separate so
+teams can choose between direct app compatibility and explicit graph control.
+
 ## Local Development Without Installing
 
 ```bash

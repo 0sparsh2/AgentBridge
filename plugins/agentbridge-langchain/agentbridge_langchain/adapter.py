@@ -19,6 +19,7 @@ class CompiledLangChainAgent:
     native_agent: Any
     native_tools: list[Any]
     config: dict[str, Any]
+    offline: bool = False
 
 
 class Adapter(BackendAdapter):
@@ -57,7 +58,7 @@ class Adapter(BackendAdapter):
         config = dict(spec.backend_config.get(self.backend_name, {}))
         native_tools = [_to_langchain_tool(structured_tool, tool) for tool in spec.tools]
         agent_kwargs: dict[str, Any] = {
-            "model": config.get("model") or _normalize_model(spec.model),
+            "model": config.get("model") or _model_for_spec(spec),
             "tools": native_tools,
             "system_prompt": config.get("prompt_template") or spec.instructions,
             "name": spec.name,
@@ -79,6 +80,7 @@ class Adapter(BackendAdapter):
             native_agent=native_agent,
             native_tools=native_tools,
             config=config,
+            offline=spec.model == "agentbridge/offline",
         )
 
     def run(self, compiled: Any, run_input: RunInput) -> RunResult:
@@ -91,10 +93,9 @@ class Adapter(BackendAdapter):
             config=_runtime_config(compiled_agent, run_input),
         )
         output = _final_output(result)
-        return RunResult(
-            output=output,
-            backend=self.backend_name,
-            events=[
+        events = _events_from_result(result, backend=self.backend_name)
+        events.extend(
+            [
                 AgentEvent(
                     type="message",
                     backend=self.backend_name,
@@ -108,13 +109,22 @@ class Adapter(BackendAdapter):
                     backend=self.backend_name,
                     data={"output": output},
                 ),
-            ],
+            ]
+        )
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
             metadata={"agent": compiled_agent.spec.name},
             raw=result,
         )
 
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         compiled_agent = _ensure_compiled(compiled)
+        if _uses_offline_model(compiled_agent):
+            yield from self.run(compiled_agent, run_input).events
+            return
+
         if not hasattr(compiled_agent.native_agent, "stream"):
             yield from self.run(compiled_agent, run_input).events
             return
@@ -147,6 +157,100 @@ def _to_langchain_tool(structured_tool: Any, tool_spec: Any) -> Any:
         name=tool_spec.name,
         description=tool_spec.description,
     )
+
+
+def _model_for_spec(spec: AgentSpec) -> Any:
+    if spec.model == "agentbridge/offline":
+        model_base = import_module("langchain_core.language_models.chat_models").BaseChatModel
+
+        class AgentBridgeOfflineModel(_AgentBridgeOfflineModelBase, model_base):
+            pass
+
+        return AgentBridgeOfflineModel()
+    return _normalize_model(spec.model)
+
+
+class _AgentBridgeOfflineModelBase:
+    """No-network LangChain chat model used by conformance tests."""
+
+    bound_tools: list[Any] = []
+
+    @property
+    def _llm_type(self) -> str:
+        return "agentbridge-offline"
+
+    def bind_tools(
+        self,
+        tools: Any,
+        *,
+        tool_choice: str | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        del tool_choice, kwargs
+        return self.model_copy(update={"bound_tools": list(tools or [])})
+
+    def _generate(
+        self,
+        messages: list[Any],
+        stop: list[str] | None = None,
+        run_manager: Any | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        del stop, run_manager, kwargs
+        messages_module = import_module("langchain_core.messages")
+        outputs_module = import_module("langchain_core.outputs")
+
+        tool_result = _latest_tool_message_content(messages)
+        if tool_result is not None:
+            message = messages_module.AIMessage(content=f"offline tool result: {tool_result}")
+        elif self.bound_tools:
+            tool = self.bound_tools[0]
+            argument_name = _first_tool_argument_name(tool)
+            message = messages_module.AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": getattr(tool, "name", "tool"),
+                        "args": {argument_name: _last_user_text(messages)},
+                        "id": "agentbridge-offline-tool-call",
+                    }
+                ],
+            )
+        else:
+            message = messages_module.AIMessage(content=f"offline response: {_last_user_text(messages)}")
+
+        return outputs_module.ChatResult(
+            generations=[outputs_module.ChatGeneration(message=message)]
+        )
+
+
+def _uses_offline_model(compiled: CompiledLangChainAgent) -> bool:
+    return compiled.offline
+
+
+def _first_tool_argument_name(tool: Any) -> str:
+    args = getattr(tool, "args", {}) or {}
+    if args:
+        return str(next(iter(args)))
+    fields = getattr(getattr(tool, "args_schema", None), "model_fields", {}) or {}
+    if fields:
+        return str(next(iter(fields)))
+    return "input"
+
+
+def _latest_tool_message_content(messages: list[Any]) -> Any | None:
+    for message in reversed(messages):
+        if getattr(message, "type", None) == "tool":
+            return getattr(message, "content", None)
+    return None
+
+
+def _last_user_text(messages: list[Any]) -> str:
+    for message in reversed(messages):
+        if getattr(message, "type", None) in {"human", "user"}:
+            content = getattr(message, "content", "")
+            return content if isinstance(content, str) else str(content)
+    return ""
 
 
 def _ensure_compiled(compiled: Any) -> CompiledLangChainAgent:
@@ -222,6 +326,32 @@ def _message_content(message: Any) -> str:
             for item in content
         )
     return str(content)
+
+
+def _events_from_result(result: Any, *, backend: str) -> list[AgentEvent]:
+    events: list[AgentEvent] = []
+    for message in _mapping_get(result, "messages") or []:
+        tool_calls = getattr(message, "tool_calls", None)
+        if isinstance(message, dict):
+            tool_calls = message.get("tool_calls", tool_calls)
+        for tool_call in tool_calls or []:
+            events.append(
+                AgentEvent(
+                    type="tool_call",
+                    backend=backend,
+                    data=_payload(tool_call),
+                )
+            )
+        message_type = message.get("type") if isinstance(message, dict) else getattr(message, "type", None)
+        if message_type == "tool":
+            events.append(
+                AgentEvent(
+                    type="tool_result",
+                    backend=backend,
+                    data=_payload(message),
+                )
+            )
+    return events
 
 
 def _normalize_native_event(native_event: Any, *, backend: str) -> AgentEvent:
