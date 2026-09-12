@@ -186,4 +186,6 @@ def _model_for_backend(backend: str) -> str:
         return "agentbridge/offline"
     if backend == "strands":
         return "agentbridge/offline"
+    if backend == "langchain":
+        return "agentbridge/offline"
     return "test" if backend == "pydantic_ai" else "openai/gpt-5"
