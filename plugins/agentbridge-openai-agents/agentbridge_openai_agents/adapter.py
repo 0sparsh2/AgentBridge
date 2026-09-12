@@ -35,7 +35,7 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "full",
                 "agent.model": "partial",
                 "tools.sync": "full",
-                "structured_output": "partial",
+                "structured_output": "full",
                 "workflow.handoffs": "extension",
                 "guardrails": "extension",
                 "human_approval": "extension",
@@ -47,7 +47,7 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "Maps AgentSpec name/instructions/model/tools to SDK Agent.",
                 "agent.model": "Passes LiteLLM-style model strings through to the SDK; provider compatibility is SDK/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to OpenAI Agents function_tool wrappers.",
-                "structured_output": "Passes AgentSpec.output_type to SDK Agent output_type when present.",
+                "structured_output": "Passes AgentSpec.output_type to SDK Agent output_type and validates typed final_output.",
                 "workflow.handoffs": "Forwards native handoffs and handoff metadata through OpenAIAgentsExtension.",
                 "guardrails": "Forwards native input/output guardrails and records approval policy hints.",
                 "human_approval": "Records approval_policy metadata; native approval/resume flow tests are not implemented yet.",
@@ -250,13 +250,15 @@ class _AgentBridgeOfflineModelBase:
         conversation_id: str | None,
         prompt: Any,
     ) -> Any:
-        del system_instructions, model_settings, output_schema, handoffs, tracing
+        del system_instructions, model_settings, handoffs, tracing
         del previous_response_id, conversation_id, prompt
 
         items = input if isinstance(input, list) else [{"role": "user", "content": str(input)}]
         tool_output = _latest_tool_output(items)
         if tool_output is not None:
             return self._message_response(f"offline tool result: {tool_output}")
+        if output_schema is not None:
+            return self._message_response(_structured_output_json(output_schema, items))
         if tools:
             tool = tools[0]
             argument_name = _first_tool_argument_name(tool)
@@ -340,6 +342,53 @@ def _first_tool_argument_name(tool: Any) -> str:
     if properties:
         return str(next(iter(properties)))
     return "input"
+
+
+def _structured_output_json(output_schema: Any, items: list[Any]) -> str:
+    schema = _output_json_schema(output_schema)
+    return json.dumps(_value_for_schema(schema, items))
+
+
+def _output_json_schema(output_schema: Any) -> dict[str, Any]:
+    json_schema = getattr(output_schema, "json_schema", None)
+    if callable(json_schema):
+        schema = json_schema()
+        if isinstance(schema, dict):
+            return schema
+    schema = getattr(output_schema, "_output_schema", None)
+    if isinstance(schema, dict):
+        return schema
+    output_type = getattr(output_schema, "output_type", None)
+    model_json_schema = getattr(output_type, "model_json_schema", None)
+    if callable(model_json_schema):
+        schema = model_json_schema()
+        if isinstance(schema, dict):
+            return schema
+    return {"type": "object"}
+
+
+def _value_for_schema(schema: dict[str, Any], items: list[Any]) -> Any:
+    if "default" in schema:
+        return schema["default"]
+    raw_type = schema.get("type", "string")
+    types = raw_type if isinstance(raw_type, list) else [raw_type]
+    if "object" in types:
+        properties = schema.get("properties") or {}
+        required = schema.get("required") or []
+        selected = list(required) or list(properties)
+        return {
+            name: _value_for_schema(properties.get(name, {}), items)
+            for name in selected
+        }
+    if "array" in types:
+        return []
+    if "boolean" in types:
+        return True
+    if "integer" in types:
+        return 1
+    if "number" in types:
+        return 1.0
+    return _last_user_text(items) or "ok"
 
 
 def _latest_tool_output(items: list[Any]) -> Any | None:

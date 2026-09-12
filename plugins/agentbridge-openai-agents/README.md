@@ -14,6 +14,7 @@ AgentBridge adapter plugin for `openai_agents`.
 - Agent and tool mapping.
 - Native handoffs, handoff descriptions, MCP servers/config, prompts, model settings, hooks,
   tool-use behavior, reset behavior, and input/output guardrails through `OpenAIAgentsExtension`.
+- Structured output through native SDK `output_type` and typed `final_output`.
 - Runner context, max turns, run hooks, run config, error handlers, previous response IDs,
   conversation/session options, and session objects through `OpenAIAgentsExtension`.
 - Approval policy and tracing metadata summaries.
