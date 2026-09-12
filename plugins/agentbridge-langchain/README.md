@@ -13,6 +13,7 @@ AgentBridge adapter plugin for `langchain`.
 
 - Direct LangChain `create_agent` compatibility alongside the built-in LangGraph backend.
 - `ToolSpec` to `StructuredTool` mapping.
+- Structured output through native LangChain `response_format` and typed `structured_response`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
 - LangSmith/callback-style tracing metadata via native LangChain runtime config.

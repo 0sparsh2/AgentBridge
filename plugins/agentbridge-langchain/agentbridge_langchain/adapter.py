@@ -35,6 +35,7 @@ class Adapter(BackendAdapter):
                 "agent.model": "partial",
                 "tools.sync": "full",
                 "tools.async": "partial",
+                "structured_output": "full",
                 "state.memory": "extension",
                 "observability.tracing": "extension",
                 "observability.raw": "full",
@@ -45,6 +46,7 @@ class Adapter(BackendAdapter):
                 "agent.model": "Normalizes provider/model to provider:model for LangChain provider parsing; provider support is environment dependent.",
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
                 "tools.async": "LangChain supports async runnables, but this adapter currently exposes synchronous run and best-effort stream.",
+                "structured_output": "Maps AgentSpec.output_type to LangChain response_format and validates native structured_response.",
                 "state.memory": "Records memory/retriever hints and forwards native checkpointer/store objects when provided; portable memory semantics remain extension-level.",
                 "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
                 "streaming.events": "Uses native stream() when available and normalizes event chunks best-effort.",
@@ -238,13 +240,12 @@ class _AgentBridgeOfflineModelBase:
             message = messages_module.AIMessage(content=f"offline tool result: {tool_result}")
         elif self.bound_tools:
             tool = self.bound_tools[0]
-            argument_name = _first_tool_argument_name(tool)
             message = messages_module.AIMessage(
                 content="",
                 tool_calls=[
                     {
                         "name": getattr(tool, "name", "tool"),
-                        "args": {argument_name: _last_user_text(messages)},
+                        "args": _arguments_for_tool(tool, messages),
                         "id": "agentbridge-offline-tool-call",
                     }
                 ],
@@ -269,6 +270,57 @@ def _first_tool_argument_name(tool: Any) -> str:
     if fields:
         return str(next(iter(fields)))
     return "input"
+
+
+def _arguments_for_tool(tool: Any, messages: list[Any]) -> dict[str, Any]:
+    args = getattr(tool, "args", {}) or {}
+    fields = getattr(getattr(tool, "args_schema", None), "model_fields", {}) or {}
+    if not args and fields:
+        args = {
+            name: getattr(field, "json_schema_extra", None) or {}
+            for name, field in fields.items()
+        }
+    if not args:
+        return {_first_tool_argument_name(tool): _last_user_text(messages)}
+
+    required = _required_tool_arguments(tool)
+    selected = required or list(args)
+    return {
+        name: _argument_value_for_schema(args.get(name, {}), messages)
+        for name in selected
+    }
+
+
+def _required_tool_arguments(tool: Any) -> list[str]:
+    args_schema = getattr(tool, "args_schema", None)
+    if isinstance(args_schema, dict):
+        return [str(item) for item in args_schema.get("required", [])]
+    schema = getattr(args_schema, "model_json_schema", lambda: {})()
+    if isinstance(schema, dict):
+        return [str(item) for item in schema.get("required", [])]
+    return []
+
+
+def _argument_value_for_schema(schema: Any, messages: list[Any]) -> Any:
+    if hasattr(schema, "model_dump"):
+        schema = schema.model_dump()
+    if not isinstance(schema, dict):
+        return _last_user_text(messages)
+    if "default" in schema:
+        return schema["default"]
+    raw_type = schema.get("type", "string")
+    types = raw_type if isinstance(raw_type, list) else [raw_type]
+    if "boolean" in types:
+        return True
+    if "integer" in types:
+        return 1
+    if "number" in types:
+        return 1.0
+    if "array" in types:
+        return []
+    if "object" in types:
+        return {}
+    return _last_user_text(messages)
 
 
 def _latest_tool_message_content(messages: list[Any]) -> Any | None:
@@ -362,8 +414,6 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
 def _final_output(result: Any) -> Any:
     structured_response = _mapping_get(result, "structured_response")
     if structured_response is not None:
-        if hasattr(structured_response, "model_dump"):
-            return structured_response.model_dump()
         return structured_response
     messages = _mapping_get(result, "messages")
     if messages:
