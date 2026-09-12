@@ -46,7 +46,7 @@ class Adapter(BackendAdapter):
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
                 "tools.async": "LangChain supports async runnables, but this adapter currently exposes synchronous run and best-effort stream.",
                 "state.memory": "Planned through LangChainExtension memory configuration.",
-                "observability.tracing": "Planned through callbacks and tracing metadata.",
+                "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
                 "streaming.events": "Uses native stream() when available and normalizes event chunks best-effort.",
             },
         )
@@ -88,9 +88,10 @@ class Adapter(BackendAdapter):
 
         compiled_agent = _ensure_compiled(compiled)
         payload = _input_payload(run_input)
+        runtime_config = _runtime_config(compiled_agent, run_input)
         result = compiled_agent.native_agent.invoke(
             payload,
-            config=_runtime_config(compiled_agent, run_input),
+            config=runtime_config,
         )
         output = _final_output(result)
         events = _events_from_result(result, backend=self.backend_name)
@@ -115,7 +116,12 @@ class Adapter(BackendAdapter):
             output=output,
             backend=self.backend_name,
             events=events,
-            metadata={"agent": compiled_agent.spec.name},
+            metadata={
+                "agent": compiled_agent.spec.name,
+                "runtime_config": _safe_summary(runtime_config),
+                "extension_config": _safe_summary(compiled_agent.config),
+                "native_agent_type": type(compiled_agent.native_agent).__name__,
+            },
             raw=result,
         )
 
@@ -378,3 +384,13 @@ def _payload(value: Any) -> dict[str, Any]:
     if hasattr(value, "__dict__"):
         return dict(value.__dict__)
     return {"value": value}
+
+
+def _safe_summary(value: Any) -> Any:
+    if isinstance(value, str | int | float | bool) or value is None:
+        return value
+    if isinstance(value, list | tuple | set):
+        return [_safe_summary(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _safe_summary(item) for key, item in value.items()}
+    return type(value).__name__
