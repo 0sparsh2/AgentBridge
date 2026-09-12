@@ -96,6 +96,18 @@ agentbridge capability-matrix --backend mock --backend langgraph --json
 
 Use this as the fast coverage report for adapters and plugins. `--include-unknown` also displays adapter-reported features that are not yet part of the canonical taxonomy.
 
+### `coverage-report`
+
+Render detailed coverage for selected backends, including adapter source, adopted dependency version, installed version, extension metadata, feature notes, and native-only escape hatches.
+
+```bash
+agentbridge coverage-report --backend mock --backend langgraph
+agentbridge coverage-report --backend langgraph --json
+agentbridge coverage-report --backend langgraph --markdown
+```
+
+Use this before claiming a backend supports a framework nuance. It complements `capability-matrix` by showing exactly which adapter package/version is being inspected.
+
 ### `conformance`
 
 Run lightweight adapter conformance checks.

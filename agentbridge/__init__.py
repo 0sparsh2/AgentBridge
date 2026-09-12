@@ -3,10 +3,13 @@
 from agentbridge.agui import event_to_agui
 from agentbridge.capabilities import (
     CANONICAL_CAPABILITIES,
+    BackendCoverageReport,
     CapabilityFeature,
     CapabilityMatrix,
     CapabilityMatrixRow,
+    CoverageReport,
     capability_matrix,
+    coverage_report,
 )
 from agentbridge.conformance import ConformanceCheck, ConformanceReport, run_conformance
 from agentbridge.compare import BackendComparison, compare_backends
@@ -47,12 +50,14 @@ __all__ = [
     "AgentSpec",
     "BackendComparison",
     "BackendCapabilities",
+    "BackendCoverageReport",
     "CANONICAL_CAPABILITIES",
     "CapabilityFeature",
     "CapabilityMatrix",
     "CapabilityMatrixRow",
     "ConformanceCheck",
     "ConformanceReport",
+    "CoverageReport",
     "ExtensionProfile",
     "ManifestValidation",
     "MigrationFinding",
@@ -65,6 +70,7 @@ __all__ = [
     "capability_matrix",
     "coerce_tool_registry",
     "compare_backends",
+    "coverage_report",
     "dependency_versions",
     "event_to_agui",
     "extension_profile",

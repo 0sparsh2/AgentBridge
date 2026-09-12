@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
-from agentbridge.registry import inspect_backend, list_adapters
+from agentbridge.extensions import extension_profile
+from agentbridge.registry import adapter_sources, inspect_backend, list_adapters
+from agentbridge.versioning import dependency_versions
 
 
 class CapabilityFeature(BaseModel):
@@ -46,6 +50,69 @@ class CapabilityMatrix(BaseModel):
             ]
             lines.append("| " + " | ".join(values) + " |")
         return "\n".join(lines)
+
+
+class BackendCoverageReport(BaseModel):
+    """Detailed coverage report for one backend."""
+
+    backend: str
+    source: str | None = None
+    version: dict[str, str | None] | None = None
+    features: dict[str, str] = Field(default_factory=dict)
+    notes: dict[str, str] = Field(default_factory=dict)
+    summary: dict[str, int] = Field(default_factory=dict)
+    extension: dict[str, Any] | None = None
+    native_only: list[str] = Field(default_factory=list)
+
+
+class CoverageReport(BaseModel):
+    """Detailed capability coverage for selected backends."""
+
+    backends: list[str]
+    reports: list[BackendCoverageReport]
+
+    def as_markdown(self) -> str:
+        """Render coverage reports as Markdown."""
+
+        lines: list[str] = []
+        for report in self.reports:
+            lines.append(f"## `{report.backend}`")
+            if report.source:
+                lines.append(f"- Source: `{report.source}`")
+            if report.version:
+                installed = report.version.get("installed_version") or "not installed"
+                lines.append(
+                    "- Version: "
+                    f"`{report.version.get('package')}` {installed} "
+                    f"(adopted `{report.version.get('adopted_range')}`, "
+                    f"status `{report.version.get('status')}`)"
+                )
+            if report.extension:
+                lines.append(
+                    "- Extension: "
+                    f"`{report.extension['framework']}` "
+                    f"({report.extension['status']}, {report.extension['config_model']})"
+                )
+            if report.summary:
+                lines.append(
+                    "- Summary: "
+                    + ", ".join(
+                        f"{status}={count}" for status, count in sorted(report.summary.items())
+                    )
+                )
+            lines.append("")
+            lines.append("| Feature | Status | Note |")
+            lines.append("| --- | --- | --- |")
+            for feature, status in sorted(report.features.items()):
+                note = report.notes.get(feature, "")
+                lines.append(f"| `{feature}` | {status} | {note} |")
+            if report.native_only:
+                lines.append("")
+                lines.append("Native-only:")
+                for item in report.native_only:
+                    lines.append(f"- `{item}`")
+            lines.append("")
+        return "\n".join(lines).strip()
 
 
 CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
@@ -251,3 +318,38 @@ def capability_matrix(
         rows.append(CapabilityMatrixRow(feature=feature, support=support, notes=notes))
 
     return CapabilityMatrix(backends=selected_backends, rows=rows)
+
+
+def coverage_report(*, backends: list[str] | None = None) -> CoverageReport:
+    """Build detailed capability coverage reports for selected backends."""
+
+    selected_backends = backends or list_adapters()
+    sources = adapter_sources()
+    versions = dependency_versions()
+    reports: list[BackendCoverageReport] = []
+    for backend in selected_backends:
+        capabilities = inspect_backend(backend)
+        summary: dict[str, int] = {}
+        native_only: list[str] = []
+        for feature, status in capabilities.features.items():
+            summary[status] = summary.get(status, 0) + 1
+            if status == "native_only":
+                native_only.append(feature)
+        extension = None
+        try:
+            extension = extension_profile(backend).model_dump()
+        except ValueError:
+            extension = None
+        reports.append(
+            BackendCoverageReport(
+                backend=backend,
+                source=sources.get(backend),
+                version=versions.get(backend),
+                features=capabilities.features,
+                notes=capabilities.notes,
+                summary=summary,
+                extension=extension,
+                native_only=native_only,
+            )
+        )
+    return CoverageReport(backends=selected_backends, reports=reports)

@@ -241,6 +241,27 @@ def test_cli_capability_matrix_markdown(capsys) -> None:
     assert "`agent.instructions`" in output
 
 
+def test_cli_coverage_report_json(capsys) -> None:
+    assert main(["coverage-report", "--backend", "langgraph", "--json"]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["backends"] == ["langgraph"]
+    assert payload["reports"][0]["backend"] == "langgraph"
+    assert payload["reports"][0]["source"] == "builtin"
+    assert payload["reports"][0]["version"]["package"] == "langgraph"
+    assert payload["reports"][0]["extension"]["framework"] == "langgraph"
+    assert payload["reports"][0]["summary"]["full"] >= 1
+
+
+def test_cli_coverage_report_markdown(capsys) -> None:
+    assert main(["coverage-report", "--backend", "langgraph", "--markdown"]) == 0
+
+    output = capsys.readouterr().out
+    assert "## `langgraph`" in output
+    assert "| Feature | Status | Note |" in output
+    assert "`workflow.graph`" in output
+
+
 def test_cli_conformance_json(capsys) -> None:
     assert main(["conformance", "--backend", "mock", "--json"]) == 0
 

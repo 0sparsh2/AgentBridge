@@ -71,6 +71,28 @@ agentbridge capability-matrix --include-unknown --markdown
 
 Then decide whether the feature belongs in the common taxonomy, a backend extension namespace, or native-only documentation.
 
+## Coverage Report Command
+
+Use the detailed coverage report when reviewing a framework adapter, plugin PR, or migration target:
+
+```bash
+agentbridge coverage-report --backend mock --backend langgraph
+agentbridge coverage-report --backend langgraph --json
+agentbridge coverage-report --backend langgraph --markdown
+```
+
+The report includes:
+
+- Adapter source, such as built-in, entry point, or environment plugin.
+- Adopted package name, adopted version range, installed version, and support status.
+- Every advertised feature and its support level.
+- Feature notes from the adapter.
+- Counts by support status.
+- Extension namespace metadata when the backend has AgentBridge-specific config.
+- Native-only features that should be documented as escape hatches instead of flattened into the common API.
+
+This command is stricter than the matrix. The matrix answers “how do these backends compare across the canonical taxonomy?” The coverage report answers “what exactly does this backend expose today, from which package version, and where are the framework-specific edges?”
+
 ## Conformance Checks
 
 Adapter authors should run:
