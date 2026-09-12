@@ -14,7 +14,7 @@ AgentBridge adapter plugin for `langchain`.
 - Direct LangChain `create_agent` compatibility alongside the built-in LangGraph backend.
 - `ToolSpec` to `StructuredTool` mapping.
 - Middleware, callbacks, memory, and retriever configuration through `LangChainExtension`.
-- LangSmith/callback-style tracing metadata.
+- LangSmith/callback-style tracing metadata via native LangChain runtime config.
 
 ## Install
 
@@ -45,6 +45,10 @@ Use `langgraph` when the app is primarily a durable workflow: explicit graph top
 interrupts, resumability, state routing, or production orchestration are the core requirement.
 LangChain agents are built on LangGraph internally, but AgentBridge keeps these adapters separate so
 teams can choose between direct app compatibility and explicit graph control.
+
+When `LangChainExtension.config(callbacks=..., metadata=...)` is used, the adapter passes those
+values into LangChain's native runtime config and includes a serializable `runtime_config` summary in
+`RunResult.metadata`.
 
 ## Local Development Without Installing
 
