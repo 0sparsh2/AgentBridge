@@ -14,7 +14,7 @@ if report.convertible:
 
 Available helpers:
 
-- `import_langchain_agent(obj)`: extracts obvious agent name, model, system prompt, tools, and extension hints from LangChain-like agents or compiled graph objects.
+- `import_langchain_agent(obj)`: extracts obvious agent name, model, system prompt, tools, runnable methods, LCEL sequence steps, graph summaries, schema hints, interrupts, and extension hints from LangChain-like agents or compiled graph objects.
 - `import_langgraph_graph(obj)`: extracts graph name and visible node names into LangGraph extension hints.
 
 ## Report Shape
@@ -34,7 +34,8 @@ When a feature is ambiguous, migration helpers should report it as `extension` o
 Examples:
 
 - LangChain middleware, callbacks, memory, and retrievers become `LangChainExtension` hints.
-- LangChain compiled graph topology is marked `native_only` unless it can be safely represented.
+- LangChain runnable methods, LCEL sequence steps, visible graph nodes/edges, input/output/config schema names, interrupt policies, native checkpointers, and native stores are surfaced as hints for review.
+- LangChain compiled graph topology and LCEL sequences are marked `native_only` unless they can be safely represented by an adapter-specific extension or by LangGraph helpers.
 - LangGraph nodes are surfaced as extension hints, but node behavior and edge conditions still require manual review.
 
 ## Non-Goals

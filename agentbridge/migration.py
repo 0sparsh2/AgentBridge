@@ -66,12 +66,42 @@ def import_langchain_agent(agent: Any, *, name: str | None = None) -> MigrationR
         ("callbacks", "callbacks"),
         ("memory", "memory"),
         ("retrievers", "retrievers"),
+        ("retriever", "retriever"),
+        ("checkpointer", "checkpointer"),
+        ("store", "store"),
     ]:
         value = getattr(agent, attr, None) or _nested_attr(agent, "kwargs", attr)
         if value:
             extension_hints["langchain"][capability] = _safe_summary(value)
 
-    if hasattr(agent, "get_graph") or "CompiledStateGraph" in source_type:
+    runnable_methods = _runnable_methods(agent)
+    if runnable_methods:
+        extension_hints["langchain"]["runnable_methods"] = runnable_methods
+        findings.append(
+            MigrationFinding(
+                category="runtime.runnable",
+                message="Runnable execution methods were detected; preserve native runnable behavior until covered by adapter tests.",
+            )
+        )
+
+    runnable_steps = _runnable_steps(agent)
+    if runnable_steps:
+        extension_hints["langchain"]["runnable_steps"] = runnable_steps
+        native_only.append("lcel_sequence")
+        findings.append(
+            MigrationFinding(
+                category="workflow.sequence",
+                message="LCEL sequence steps were detected and should be reviewed before flattening into AgentSpec.",
+            )
+        )
+
+    schemas = _schema_hints(agent)
+    if schemas:
+        extension_hints["langchain"]["schemas"] = schemas
+
+    graph_summary = _graph_summary(agent)
+    if graph_summary:
+        extension_hints["langchain"]["graph"] = graph_summary
         native_only.append("compiled_graph")
         findings.append(
             MigrationFinding(
@@ -79,6 +109,11 @@ def import_langchain_agent(agent: Any, *, name: str | None = None) -> MigrationR
                 message="Compiled graph topology should be reviewed manually or migrated with LangGraph helpers.",
             )
         )
+
+    interrupt_summary = _interrupt_hints(agent)
+    if interrupt_summary:
+        extension_hints["langchain"]["interrupts"] = interrupt_summary
+        native_only.append("interrupt_policy")
 
     agent_spec = AgentSpec(
         name=name or _string_attr(agent, "name") or _nested_string_attr(agent, "kwargs", "name") or "migrated_langchain_agent",
@@ -182,6 +217,136 @@ def _graph_nodes(graph: Any) -> list[str]:
         except Exception:  # pragma: no cover - defensive introspection
             return []
     return []
+
+
+def _graph_summary(agent: Any) -> dict[str, Any]:
+    if not (hasattr(agent, "get_graph") or "CompiledStateGraph" in type(agent).__name__):
+        return {}
+    summary: dict[str, Any] = {}
+    nodes = _graph_nodes(agent)
+    if nodes:
+        summary["nodes"] = nodes
+    native_graph = _call_no_arg(agent, "get_graph")
+    edges = _graph_edges(native_graph)
+    if edges:
+        summary["edges"] = edges
+    if not summary and native_graph is not None:
+        summary["type"] = type(native_graph).__name__
+    return summary or {"detected": True}
+
+
+def _graph_edges(graph: Any) -> list[dict[str, str]]:
+    if graph is None:
+        return []
+    edges = getattr(graph, "edges", None)
+    if isinstance(edges, dict):
+        return [
+            {"source": str(source), "target": str(target)}
+            for source, targets in edges.items()
+            for target in _iter_targets(targets)
+        ]
+    if isinstance(edges, list | tuple | set):
+        normalized: list[dict[str, str]] = []
+        for edge in edges:
+            source = getattr(edge, "source", None) or getattr(edge, "from_node", None)
+            target = getattr(edge, "target", None) or getattr(edge, "to_node", None)
+            if source is None and isinstance(edge, list | tuple) and len(edge) >= 2:
+                source, target = edge[0], edge[1]
+            if source is not None and target is not None:
+                normalized.append({"source": str(source), "target": str(target)})
+        return normalized
+    return []
+
+
+def _iter_targets(value: Any) -> list[Any]:
+    if isinstance(value, list | tuple | set):
+        return list(value)
+    return [value]
+
+
+def _runnable_methods(agent: Any) -> list[str]:
+    return [
+        method
+        for method in (
+            "invoke",
+            "ainvoke",
+            "batch",
+            "abatch",
+            "stream",
+            "astream",
+            "stream_events",
+            "astream_events",
+        )
+        if callable(getattr(agent, method, None))
+    ]
+
+
+def _runnable_steps(agent: Any) -> list[str]:
+    steps = getattr(agent, "steps", None) or _nested_attr(agent, "kwargs", "steps")
+    if isinstance(steps, list | tuple):
+        return [_step_name(step) for step in steps]
+
+    ordered_steps = [
+        getattr(agent, attr, None) or _nested_attr(agent, "kwargs", attr)
+        for attr in ("first", "middle", "last")
+    ]
+    flattened: list[str] = []
+    for step in ordered_steps:
+        if not step:
+            continue
+        if isinstance(step, list | tuple):
+            flattened.extend(_step_name(item) for item in step)
+        else:
+            flattened.append(_step_name(step))
+    return flattened
+
+
+def _step_name(step: Any) -> str:
+    return _string_attr(step, "name") or type(step).__name__
+
+
+def _schema_hints(agent: Any) -> dict[str, str]:
+    hints: dict[str, str] = {}
+    for attr in ("input_schema", "output_schema", "config_schema"):
+        value = getattr(agent, attr, None) or _nested_attr(agent, "kwargs", attr)
+        if value and not callable(value):
+            hints[attr] = _safe_type_name(value)
+    for method_name, label in [
+        ("get_input_schema", "input_schema"),
+        ("get_output_schema", "output_schema"),
+        ("config_schema", "config_schema"),
+    ]:
+        if label in hints:
+            continue
+        value = _call_no_arg(agent, method_name)
+        if value:
+            hints[label] = _safe_type_name(value)
+    return hints
+
+
+def _interrupt_hints(agent: Any) -> dict[str, Any]:
+    hints: dict[str, Any] = {}
+    for attr in ("interrupt_before", "interrupt_after"):
+        value = getattr(agent, attr, None) or _nested_attr(agent, "kwargs", attr)
+        if value:
+            hints[attr] = _safe_summary(value)
+    return hints
+
+
+def _call_no_arg(obj: Any, method_name: str) -> Any:
+    method = getattr(obj, method_name, None)
+    if not callable(method):
+        return None
+    try:
+        return method()
+    except Exception:  # pragma: no cover - defensive introspection
+        return None
+
+
+def _safe_type_name(value: Any) -> str:
+    if isinstance(value, type):
+        return value.__name__
+    return type(value).__name__
 
 
 def _nested_attr(obj: Any, parent: str, child: str) -> Any:

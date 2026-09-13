@@ -309,12 +309,12 @@ Risks:
 
 1. Add OpenAI Agents approval/resume fixtures around SDK run state and application-owned approval stores.
 2. Add Strands end-to-end MCP server/client fixtures, hook/intervention lifecycle events, and guardrail behavior tests.
-3. Add LangChain real retriever/memory examples with native objects, LangSmith smoke tests when configured, and deeper Runnable/compiled-graph import coverage.
+3. Add LangChain real retriever/memory examples with native objects, LangSmith smoke tests when configured, and more real-world Runnable/compiled-graph import fixtures.
 4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment examples.
 5. Keep import/migration helpers for existing LangChain and LangGraph apps conservative, expanding only when object shapes can be inspected safely.
 6. Use `agentbridge conformance --all`, coverage reports, extension schemas, and issue checklists as the release gate before claiming broader framework parity.
 
 Current migration helper status:
 
-- `import_langchain_agent()` extracts obvious name, model, prompt, tools, and extension hints from LangChain-like objects.
+- `import_langchain_agent()` extracts obvious name, model, prompt, tools, runnable methods, LCEL steps, graph summaries, schema names, interrupt hints, native storage/checkpoint hints, and extension hints from LangChain-like objects.
 - `import_langgraph_graph()` extracts graph names and visible node names while marking topology as native-only/manual-review territory.

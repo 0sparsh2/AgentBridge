@@ -43,15 +43,78 @@ def test_import_langchain_compiled_graph_marks_native_only() -> None:
     class CompiledStateGraph:
         name = "compiled_support_graph"
         kwargs = {"model": "openai:gpt-5", "system_prompt": "Compiled graph."}
+        interrupt_before = ["tools"]
 
         def get_graph(self):
-            return SimpleNamespace(nodes={"agent": object(), "tools": object()})
+            return SimpleNamespace(
+                nodes={"agent": object(), "tools": object()},
+                edges=[("agent", "tools"), ("tools", "agent")],
+            )
 
     report = import_langchain_agent(CompiledStateGraph())
 
     assert report.convertible
     assert "compiled_graph" in report.native_only
+    assert "interrupt_policy" in report.native_only
+    assert report.extension_hints["langchain"]["graph"] == {
+        "nodes": ["agent", "tools"],
+        "edges": [
+            {"source": "agent", "target": "tools"},
+            {"source": "tools", "target": "agent"},
+        ],
+    }
+    assert report.extension_hints["langchain"]["interrupts"] == {
+        "interrupt_before": ["tools"]
+    }
     assert any(finding.category == "workflow.graph" for finding in report.findings)
+
+
+def test_import_langchain_runnable_sequence_reports_native_shape() -> None:
+    class InputSchema:
+        pass
+
+    class OutputSchema:
+        pass
+
+    runnable = SimpleNamespace(
+        name="support_chain",
+        kwargs={
+            "model": "openai:gpt-5",
+            "system_prompt": "Route support requests.",
+            "steps": [
+                SimpleNamespace(name="prompt"),
+                SimpleNamespace(name="model"),
+                SimpleNamespace(name="parser"),
+            ],
+            "retriever": SimpleNamespace(name="policy_docs"),
+            "store": SimpleNamespace(name="vector_store"),
+        },
+        invoke=lambda value: value,
+        stream=lambda value: iter([value]),
+        get_input_schema=lambda: InputSchema,
+        get_output_schema=lambda: OutputSchema,
+    )
+
+    report = import_langchain_agent(runnable)
+
+    assert report.convertible
+    assert "lcel_sequence" in report.native_only
+    assert report.extension_hints["langchain"]["runnable_methods"] == [
+        "invoke",
+        "stream",
+    ]
+    assert report.extension_hints["langchain"]["runnable_steps"] == [
+        "prompt",
+        "model",
+        "parser",
+    ]
+    assert report.extension_hints["langchain"]["schemas"] == {
+        "input_schema": "InputSchema",
+        "output_schema": "OutputSchema",
+    }
+    assert report.extension_hints["langchain"]["retriever"] == "SimpleNamespace"
+    assert report.extension_hints["langchain"]["store"] == "SimpleNamespace"
+    assert any(finding.category == "workflow.sequence" for finding in report.findings)
 
 
 def test_import_langgraph_graph_returns_graph_extension_hints() -> None:
