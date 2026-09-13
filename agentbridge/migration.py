@@ -204,7 +204,7 @@ def _required_capabilities(spec: AgentSpec) -> list[str]:
 def _graph_nodes(graph: Any) -> list[str]:
     nodes = getattr(graph, "nodes", None)
     if isinstance(nodes, dict):
-        return sorted(str(key) for key in nodes)
+        return sorted(str(getattr(node, "name", key)) for key, node in nodes.items())
     if isinstance(nodes, list | tuple | set):
         return sorted(str(item) for item in nodes)
     get_graph = getattr(graph, "get_graph", None)
@@ -213,7 +213,10 @@ def _graph_nodes(graph: Any) -> list[str]:
             native_graph = get_graph()
             native_nodes = getattr(native_graph, "nodes", None)
             if isinstance(native_nodes, dict):
-                return sorted(str(key) for key in native_nodes)
+                return sorted(
+                    str(getattr(node, "name", key))
+                    for key, node in native_nodes.items()
+                )
         except Exception:  # pragma: no cover - defensive introspection
             return []
     return []
@@ -223,11 +226,11 @@ def _graph_summary(agent: Any) -> dict[str, Any]:
     if not (hasattr(agent, "get_graph") or "CompiledStateGraph" in type(agent).__name__):
         return {}
     summary: dict[str, Any] = {}
+    native_graph = _call_no_arg(agent, "get_graph")
     nodes = _graph_nodes(agent)
     if nodes:
         summary["nodes"] = nodes
-    native_graph = _call_no_arg(agent, "get_graph")
-    edges = _graph_edges(native_graph)
+    edges = _graph_edges(native_graph, _graph_node_name_map(native_graph))
     if edges:
         summary["edges"] = edges
     if not summary and native_graph is not None:
@@ -235,13 +238,17 @@ def _graph_summary(agent: Any) -> dict[str, Any]:
     return summary or {"detected": True}
 
 
-def _graph_edges(graph: Any) -> list[dict[str, str]]:
+def _graph_edges(graph: Any, node_names: dict[str, str] | None = None) -> list[dict[str, str]]:
     if graph is None:
         return []
+    node_names = node_names or {}
     edges = getattr(graph, "edges", None)
     if isinstance(edges, dict):
         return [
-            {"source": str(source), "target": str(target)}
+            {
+                "source": node_names.get(str(source), str(source)),
+                "target": node_names.get(str(target), str(target)),
+            }
             for source, targets in edges.items()
             for target in _iter_targets(targets)
         ]
@@ -253,9 +260,24 @@ def _graph_edges(graph: Any) -> list[dict[str, str]]:
             if source is None and isinstance(edge, list | tuple) and len(edge) >= 2:
                 source, target = edge[0], edge[1]
             if source is not None and target is not None:
-                normalized.append({"source": str(source), "target": str(target)})
+                normalized.append(
+                    {
+                        "source": node_names.get(str(source), str(source)),
+                        "target": node_names.get(str(target), str(target)),
+                    }
+                )
         return normalized
     return []
+
+
+def _graph_node_name_map(graph: Any) -> dict[str, str]:
+    nodes = getattr(graph, "nodes", None)
+    if not isinstance(nodes, dict):
+        return {}
+    return {
+        str(node_id): str(getattr(node, "name", node_id))
+        for node_id, node in nodes.items()
+    }
 
 
 def _iter_targets(value: Any) -> list[Any]:

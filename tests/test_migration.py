@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
 from agentbridge import import_langchain_agent, import_langgraph_graph
 
 
@@ -115,6 +117,45 @@ def test_import_langchain_runnable_sequence_reports_native_shape() -> None:
     assert report.extension_hints["langchain"]["retriever"] == "SimpleNamespace"
     assert report.extension_hints["langchain"]["store"] == "SimpleNamespace"
     assert any(finding.category == "workflow.sequence" for finding in report.findings)
+
+
+def test_import_real_langchain_runnable_sequence_reports_graph_shape() -> None:
+    langchain_core = pytest.importorskip("langchain_core.runnables")
+    runnable_lambda = langchain_core.RunnableLambda
+    chain = runnable_lambda(lambda value: {"text": value}) | runnable_lambda(
+        lambda value: value["text"]
+    )
+
+    report = import_langchain_agent(chain, name="real_lcel_chain")
+
+    assert report.convertible
+    assert report.agent_spec is not None
+    assert report.agent_spec.name == "real_lcel_chain"
+    assert "lcel_sequence" in report.native_only
+    assert "compiled_graph" in report.native_only
+    assert report.extension_hints["langchain"]["runnable_steps"] == [
+        "RunnableLambda",
+        "RunnableLambda",
+    ]
+    assert report.extension_hints["langchain"]["schemas"] == {
+        "input_schema": "RunnableLambdaInput",
+        "output_schema": "RunnableLambdaOutput",
+        "config_schema": "RunnableSequenceConfig",
+    }
+    assert report.extension_hints["langchain"]["graph"]["nodes"] == [
+        "Lambda",
+        "Lambda",
+        "LambdaInput",
+        "LambdaOutput",
+    ]
+    assert {
+        (edge["source"], edge["target"])
+        for edge in report.extension_hints["langchain"]["graph"]["edges"]
+    } == {
+        ("LambdaInput", "Lambda"),
+        ("Lambda", "Lambda"),
+        ("Lambda", "LambdaOutput"),
+    }
 
 
 def test_import_langgraph_graph_returns_graph_extension_hints() -> None:
