@@ -148,12 +148,9 @@ class Adapter(BackendAdapter):
             return
 
         yielded = False
-        for chunk in compiled_agent.native_agent.stream(
-            _input_payload(run_input),
-            config=_runtime_config(compiled_agent, run_input),
-        ):
+        for chunk in _native_stream(compiled_agent, run_input):
             yielded = True
-            yield _normalize_native_event(chunk, backend=self.backend_name)
+            yield from _normalize_native_events(chunk, backend=self.backend_name)
         if not yielded:
             yield from self.run(compiled_agent, run_input).events
 
@@ -377,6 +374,33 @@ def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> di
     return config
 
 
+def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Iterator[Any]:
+    payload = _input_payload(run_input)
+    runtime_config = _runtime_config(compiled, run_input)
+    native_agent = compiled.native_agent
+
+    if hasattr(native_agent, "stream_events"):
+        try:
+            yield from native_agent.stream_events(
+                payload,
+                config=runtime_config,
+                version="v3",
+            )
+            return
+        except TypeError:
+            pass
+
+    try:
+        yield from native_agent.stream(
+            payload,
+            config=runtime_config,
+            stream_mode=["messages", "updates", "custom"],
+            version="v2",
+        )
+    except TypeError:
+        yield from native_agent.stream(payload, config=runtime_config)
+
+
 def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
     native_agent_options = [
         "checkpointer",
@@ -469,6 +493,163 @@ def _events_from_result(result: Any, *, backend: str) -> list[AgentEvent]:
                 )
             )
     return events
+
+
+def _normalize_native_events(native_event: Any, *, backend: str) -> Iterator[AgentEvent]:
+    payload = _payload(native_event)
+    event_type = str(payload.get("type", "")).lower()
+
+    if event_type == "messages":
+        yield from _events_from_message_stream_data(payload.get("data"), backend=backend)
+        return
+    if event_type == "updates":
+        yield from _events_from_update_data(payload.get("data"), backend=backend)
+        return
+    if event_type == "custom":
+        payload.setdefault("native_type", type(native_event).__name__)
+        yield AgentEvent(type="workflow", backend=backend, data=payload)
+        return
+
+    if _looks_like_update_payload(payload):
+        yield from _events_from_update_data(payload, backend=backend)
+        return
+
+    messages = payload.get("messages")
+    if messages:
+        yielded = False
+        for event in _events_from_result({"messages": messages}, backend=backend):
+            yielded = True
+            yield event
+        if not yielded:
+            for message in messages:
+                yield AgentEvent(
+                    type="message",
+                    backend=backend,
+                    data={
+                        "content": _message_content(message),
+                        "native_type": type(message).__name__,
+                    },
+                )
+        return
+
+    yield _normalize_native_event(native_event, backend=backend)
+
+
+def _events_from_message_stream_data(data: Any, *, backend: str) -> Iterator[AgentEvent]:
+    token, metadata = _split_message_stream_data(data)
+    token_payload = _payload(token)
+    metadata_payload = _safe_summary(metadata or {})
+
+    for tool_call in _message_tool_call_chunks(token):
+        yield AgentEvent(
+            type="tool_call",
+            backend=backend,
+            data={
+                **_payload(tool_call),
+                "delta": True,
+                "metadata": metadata_payload,
+                "native_type": type(token).__name__,
+            },
+        )
+
+    for tool_call in _message_tool_calls(token):
+        yield AgentEvent(
+            type="tool_call",
+            backend=backend,
+            data={
+                **_payload(tool_call),
+                "delta": False,
+                "metadata": metadata_payload,
+                "native_type": type(token).__name__,
+            },
+        )
+
+    text = _message_text_delta(token)
+    if text:
+        yield AgentEvent(
+            type="message",
+            backend=backend,
+            data={
+                "content": text,
+                "metadata": metadata_payload,
+                "native_type": type(token).__name__,
+            },
+        )
+    elif not _message_tool_call_chunks(token) and not _message_tool_calls(token):
+        token_payload.setdefault("metadata", metadata_payload)
+        token_payload.setdefault("native_type", type(token).__name__)
+        yield AgentEvent(type="message", backend=backend, data=token_payload)
+
+
+def _events_from_update_data(data: Any, *, backend: str) -> Iterator[AgentEvent]:
+    if not isinstance(data, dict):
+        yield AgentEvent(
+            type="workflow",
+            backend=backend,
+            data={"value": data, "native_type": type(data).__name__},
+        )
+        return
+
+    yielded = False
+    for source, update in data.items():
+        messages = _mapping_get(update, "messages")
+        if messages:
+            for event in _events_from_result({"messages": messages}, backend=backend):
+                event.metadata["source"] = str(source)
+                yielded = True
+                yield event
+            continue
+        yield AgentEvent(
+            type="workflow",
+            backend=backend,
+            data={
+                "source": str(source),
+                "update": _safe_summary(update),
+                "native_type": type(update).__name__,
+            },
+        )
+        yielded = True
+    if not yielded:
+        yield AgentEvent(
+            type="workflow",
+            backend=backend,
+            data={"update": _safe_summary(data), "native_type": type(data).__name__},
+        )
+
+
+def _split_message_stream_data(data: Any) -> tuple[Any, Any]:
+    if isinstance(data, list | tuple) and data:
+        token = data[0]
+        metadata = data[1] if len(data) > 1 else {}
+        return token, metadata
+    return data, {}
+
+
+def _message_tool_call_chunks(message: Any) -> list[Any]:
+    chunks = _mapping_get(message, "tool_call_chunks")
+    return list(chunks or [])
+
+
+def _message_tool_calls(message: Any) -> list[Any]:
+    calls = _mapping_get(message, "tool_calls")
+    return list(calls or [])
+
+
+def _message_text_delta(message: Any) -> str:
+    if isinstance(message, dict) and "text" in message:
+        return str(message.get("text") or "")
+    if not isinstance(message, dict) and hasattr(message, "text"):
+        return str(getattr(message, "text") or "")
+    text = _mapping_get(message, "text")
+    if text:
+        return str(text)
+    return _message_content(message)
+
+
+def _looks_like_update_payload(payload: dict[str, Any]) -> bool:
+    if "type" in payload:
+        return False
+    return any(isinstance(value, dict) and "messages" in value for value in payload.values())
 
 
 def _normalize_native_event(native_event: Any, *, backend: str) -> AgentEvent:

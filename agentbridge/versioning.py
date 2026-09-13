@@ -93,7 +93,8 @@ ADOPTED_DEPENDENCIES = {
             "Verified install with langchain 1.4.0. This complements the built-in LangGraph "
             "backend with direct create_agent execution, StructuredTool mapping, model string "
             "normalization, structured output via native response_format, native create_agent "
-            "option forwarding, callback/runtime metadata, and best-effort stream normalization. "
+            "option forwarding, callback/runtime metadata, stream_events v3 normalization, and "
+            "stream_mode v2 normalization. "
             "Portable memory/retriever semantics and LangSmith provider behavior remain "
             "extension-level."
         ),

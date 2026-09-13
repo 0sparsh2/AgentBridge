@@ -17,6 +17,8 @@ AgentBridge adapter plugin for `langchain`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
 - LangSmith/callback-style tracing metadata via native LangChain runtime config.
+- Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
+  `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 
 ## Install
 
@@ -51,6 +53,12 @@ teams can choose between direct app compatibility and explicit graph control.
 When `LangChainExtension.config(callbacks=..., metadata=...)` is used, the adapter passes those
 values into LangChain's native runtime config and includes a serializable `runtime_config` summary in
 `RunResult.metadata`.
+
+When `stream_agent(..., backend="langchain")` is used, the adapter first tries LangChain's event
+streaming API and normalizes message deltas, tool-call chunks, completed tool calls, tool results,
+and custom updates into `AgentEvent` values. If a LangChain runtime only supports classic
+`stream()`, the adapter requests `messages`, `updates`, and `custom` stream modes before falling back
+to the runtime's default stream signature.
 
 When `LangChainExtension.config(memory=..., retrievers=...)` is used, AgentBridge records those hints
 in `RunResult.metadata["extension_summary"]`. Portable memory/retriever semantics are not claimed
