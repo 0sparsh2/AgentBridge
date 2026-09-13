@@ -35,10 +35,10 @@ Current backend status:
 | `langgraph` | Core optional extra | Verified locally | Executes a minimal graph, reports checkpoint interrupts, and resumes compiled checkpointed runs. |
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
-| `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output plus native handoff, guardrail, MCP, and Runner option pass-through; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
-| `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through, tracing summaries, guardrails, and deployment metadata remain extension-level. |
-| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output is contract-tested, while native runtime config, callbacks, checkpointers, stores, and other `create_agent` options are extension-level. |
-| `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output is contract-tested, while native Agent/Runner options, session/memory/artifact services, evals, and deployment metadata remain extension-level. |
+| `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
+| `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through, tracing summaries, structured deployment metadata, guardrail labels, and hook/intervention semantics remain extension-level. |
+| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output and richer stream events are contract-tested, while native memory/retriever behavior and LangSmith provider behavior remain extension-level. |
+| `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output and run diagnostics are contract-tested, while native service behavior, eval execution, and deployment publishing remain extension-level. |
 
 Adopted package versions are tracked in [docs/version_policy.md](docs/version_policy.md).
 
@@ -101,6 +101,8 @@ result = run_agent(agent, framework="langgraph", input="Check refund eligibility
 `framework=` is the user-facing way to choose the runtime. `backend=` remains supported as a lower-level adapter alias for compatibility.
 
 Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthropic/claude-sonnet`, or `google/gemini`. AgentBridge does not build a custom model-provider abstraction in v0.
+
+Framework-specific knobs live in extension namespaces instead of the portable `AgentSpec` core. See [examples/framework_extensions.py](examples/framework_extensions.py) for LangChain callbacks/retrievers, OpenAI Agents approvals/handoffs, Strands MCP/deployment metadata, and Google ADK sessions/evals/deployment labels.
 
 ## Streaming Quickstart
 
@@ -198,6 +200,7 @@ agentbridge validate --manifest examples/refund_agent.yaml --backend mock --back
 agentbridge capability-matrix --markdown
 agentbridge coverage-report --backend langgraph --markdown
 agentbridge conformance --backend mock --json
+agentbridge conformance --all
 agentbridge extensions --json
 agentbridge versions --json
 agentbridge plugins --json
