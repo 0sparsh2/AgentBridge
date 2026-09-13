@@ -33,6 +33,64 @@ class FakeNativeAgent:
         yield {"messages": [{"content": "stream chunk"}]}
 
 
+class FakeEventStreamAgent(FakeNativeAgent):
+    def stream_events(self, payload, config=None, version=None):
+        del payload, config
+        assert version == "v3"
+        yield {
+            "type": "messages",
+            "data": (
+                SimpleNamespace(
+                    text="",
+                    tool_call_chunks=[
+                        {
+                            "name": "lookup_order",
+                            "args": '{"order_id"',
+                            "id": "call-1",
+                            "index": 0,
+                        }
+                    ],
+                ),
+                {"lc_agent_name": "support_agent"},
+            ),
+        }
+        yield {
+            "type": "updates",
+            "data": {
+                "model": {
+                    "messages": [
+                        SimpleNamespace(
+                            type="ai",
+                            content="",
+                            tool_calls=[
+                                {
+                                    "name": "lookup_order",
+                                    "args": {"order_id": "A123"},
+                                    "id": "call-1",
+                                }
+                            ],
+                        )
+                    ]
+                },
+                "tools": {
+                    "messages": [
+                        SimpleNamespace(
+                            type="tool",
+                            content="found:A123",
+                            tool_call_id="call-1",
+                            name="lookup_order",
+                        )
+                    ]
+                },
+            },
+        }
+        yield {
+            "type": "messages",
+            "data": (SimpleNamespace(text="refund approved", content="refund approved"), {}),
+        }
+        yield {"type": "custom", "data": {"guardrail": "passed"}}
+
+
 def fake_create_agent(**kwargs):
     return FakeNativeAgent(**kwargs)
 
@@ -237,6 +295,94 @@ def test_adapter_runs_offline_tool_loop_through_create_agent() -> None:
     assert "tool_call" in event_types
     assert "tool_result" in event_types
     assert event_types[-1] == "complete"
+
+
+def test_adapter_streams_langchain_event_stream_shapes(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=lambda **kwargs: FakeEventStreamAgent(**kwargs)),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    adapter = Adapter()
+    spec = AgentSpec(
+        name="support_agent",
+        instructions="Use tools.",
+        model="openai/gpt-5",
+    )
+
+    compiled = adapter.compile(spec)
+    events = list(adapter.stream(compiled, RunInput(input="check A123")))
+
+    assert [event.type for event in events] == [
+        "tool_call",
+        "tool_call",
+        "tool_result",
+        "message",
+        "workflow",
+    ]
+    assert events[0].data["delta"] is True
+    assert events[0].data["metadata"] == {"lc_agent_name": "support_agent"}
+    assert events[1].data["args"] == {"order_id": "A123"}
+    assert events[1].metadata["source"] == "model"
+    assert events[2].data["content"] == "found:A123"
+    assert events[2].metadata["source"] == "tools"
+    assert events[3].data["content"] == "refund approved"
+    assert events[4].data["data"] == {"guardrail": "passed"}
+
+
+def test_adapter_streams_classic_langchain_stream_updates(monkeypatch) -> None:
+    class ClassicStreamAgent(FakeNativeAgent):
+        def stream(self, payload, config=None, stream_mode=None, version=None):
+            del payload, config
+            assert stream_mode == ["messages", "updates", "custom"]
+            assert version == "v2"
+            yield {
+                "model": {
+                    "messages": [
+                        {
+                            "type": "ai",
+                            "content": "",
+                            "tool_calls": [
+                                {
+                                    "name": "lookup_order",
+                                    "args": {"order_id": "A123"},
+                                }
+                            ],
+                        }
+                    ]
+                }
+            }
+            yield {"messages": [{"content": "stream chunk"}]}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=lambda **kwargs: ClassicStreamAgent(**kwargs)),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    adapter = Adapter()
+    spec = AgentSpec(
+        name="support_agent",
+        instructions="Use tools.",
+        model="openai/gpt-5",
+    )
+
+    compiled = adapter.compile(spec)
+    events = list(adapter.stream(compiled, RunInput(input="check A123")))
+
+    assert [event.type for event in events] == ["tool_call", "message"]
+    assert events[0].data["name"] == "lookup_order"
+    assert events[0].metadata["source"] == "model"
+    assert events[1].data["content"] == "stream chunk"
 
 
 def test_adapter_runs_offline_structured_output_through_create_agent() -> None:
