@@ -300,6 +300,7 @@ agentbridge conformance --backend custom
 - [docs/plugin_authoring.md](docs/plugin_authoring.md): External adapter plugin guide.
 - [docs/version_policy.md](docs/version_policy.md): Adopted and verified dependency versions.
 - [docs/roadmap.md](docs/roadmap.md): v0, v0.1, and v1 milestones.
+- [articles/README.md](articles/README.md): Shareable posts on why AgentBridge exists and how the compatibility layer works.
 
 ## Project Layout
 
