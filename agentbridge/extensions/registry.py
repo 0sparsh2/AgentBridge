@@ -97,8 +97,8 @@ def extension_profiles() -> list[ExtensionProfile]:
             status="partial",
             notes=[
                 "External plugin maps AgentSpec and ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible 0.20.x line.",
-                "Structured output, native handoff/guardrail/MCP/run options, tracing summaries, and best-effort events are covered by the plugin.",
-                "Approval/resume flows and latest 0.22.x verification remain blocked or extension-level until dependency conflicts are resolved.",
+                "Structured output, native handoff/guardrail/MCP/run options, approval interruption summaries, guardrail diagnostics, tracing summaries, and best-effort events are covered by the plugin.",
+                "Application-owned approval UIs/resume stores and latest 0.22.x verification remain blocked or extension-level until dependency conflicts are resolved.",
             ],
         ),
         ExtensionProfile(
