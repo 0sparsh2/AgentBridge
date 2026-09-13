@@ -136,6 +136,7 @@ class Adapter(BackendAdapter):
                 data={"output": output},
             )
         )
+        approval_store_result = _persist_approval_interruptions(result, compiled_agent.config)
         return RunResult(
             output=output,
             backend=self.backend_name,
@@ -147,7 +148,8 @@ class Adapter(BackendAdapter):
                 "extension_config": _safe_summary(compiled_agent.config),
                 "extension_summary": _extension_summary(compiled_agent.config, runner_kwargs),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
-                "run_diagnostics": _run_diagnostics(result),
+                "approval_store": approval_store_result,
+                "run_diagnostics": _run_diagnostics(result, approval_store_result),
             },
             raw=result,
         )
@@ -492,6 +494,7 @@ def _extension_summary(config: dict[str, Any], runner_kwargs: dict[str, Any]) ->
         "input_guardrails_count": len(config.get("input_guardrails") or []),
         "output_guardrails_count": len(config.get("output_guardrails") or []),
         "approval_policy": _safe_summary(config.get("approval_policy") or {}),
+        "approval_store": config.get("approval_store") is not None,
         "tracing": bool(config.get("tracing", False)),
         "metadata": _safe_summary(config.get("metadata") or {}),
         "conversation_id": runner_kwargs.get("conversation_id"),
@@ -600,13 +603,61 @@ def _raw_item_type(payload: dict[str, Any]) -> str:
     return str(getattr(raw_item, "type", ""))
 
 
-def _run_diagnostics(result: Any) -> dict[str, Any]:
+def _persist_approval_interruptions(result: Any, config: dict[str, Any]) -> dict[str, Any]:
+    interruptions = list(getattr(result, "interruptions", []) or [])
+    store = config.get("approval_store")
+    summary = {
+        "enabled": store is not None,
+        "requests_count": len(interruptions),
+        "stored_count": 0,
+        "store_type": type(store).__name__ if store is not None else None,
+    }
+    if store is None or not interruptions:
+        return summary
+
+    state = _state_snapshot(result)
+    for index, interruption in enumerate(interruptions):
+        record = {
+            "id": str(getattr(interruption, "id", None) or index),
+            "interruption": _safe_summary(interruption),
+            "state": _safe_summary(state),
+            "state_type": type(state).__name__ if state is not None else None,
+            "last_response_id": getattr(result, "last_response_id", None),
+            "last_agent": _safe_summary(getattr(result, "last_agent", None)),
+        }
+        if _write_approval_record(store, record):
+            summary["stored_count"] += 1
+    return summary
+
+
+def _write_approval_record(store: Any, record: dict[str, Any]) -> bool:
+    for method_name in ("record_approval_request", "save", "append"):
+        method = getattr(store, method_name, None)
+        if callable(method):
+            method(record)
+            return True
+    if isinstance(store, list):
+        store.append(record)
+        return True
+    if isinstance(store, dict):
+        store[record["id"]] = record
+        return True
+    return False
+
+
+def _run_diagnostics(result: Any, approval_store_result: dict[str, Any] | None = None) -> dict[str, Any]:
     interruptions = list(getattr(result, "interruptions", []) or [])
     to_state = getattr(result, "to_state", None)
     return {
         "interruptions": _safe_summary(interruptions),
         "resumable": bool(interruptions and callable(to_state)),
         "state_type": _state_type(result) if interruptions else None,
+        "approval_store": approval_store_result or {
+            "enabled": False,
+            "requests_count": len(interruptions),
+            "stored_count": 0,
+            "store_type": None,
+        },
         "last_agent": _safe_summary(getattr(result, "last_agent", None)),
         "last_response_id": getattr(result, "last_response_id", None),
         "raw_responses_count": len(getattr(result, "raw_responses", []) or []),
@@ -618,11 +669,16 @@ def _run_diagnostics(result: Any) -> dict[str, Any]:
 
 
 def _state_type(result: Any) -> str | None:
+    state = _state_snapshot(result)
+    return type(state).__name__ if state is not None else None
+
+
+def _state_snapshot(result: Any) -> Any:
     to_state = getattr(result, "to_state", None)
     if not callable(to_state):
         return None
     try:
-        return type(to_state()).__name__
+        return to_state()
     except Exception:  # pragma: no cover - defensive path for SDK/runtime failures.
         return None
 

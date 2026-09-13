@@ -35,7 +35,7 @@ Current backend status:
 | `langgraph` | Core optional extra | Verified locally | Executes a minimal graph, reports checkpoint interrupts, resumes compiled checkpointed runs, and exposes graph run diagnostics. |
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
-| `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
+| `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, app-owned approval request stores, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
 | `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through, hook/intervention/guardrail lifecycle event normalization, run diagnostics, tracing summaries, and structured deployment metadata are covered; live AWS deployment remains extension-level. |
 | `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, and run diagnostics are contract-tested, while native memory/retriever behavior and LangSmith provider behavior remain extension-level. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output and run diagnostics are contract-tested, while native service behavior, eval execution, and deployment publishing remain extension-level. |
@@ -337,7 +337,7 @@ Please keep adapter version changes paired with updates to [docs/version_policy.
 
 Near-term work is tracked in GitHub Issues. Current priorities include:
 
-- Add deeper native fixtures for OpenAI Agents approvals/resume, Strands end-to-end MCP/guardrail behavior, LangChain memory/retrievers/LangSmith, and Google ADK services/evals/deployment.
+- Add deeper native fixtures for OpenAI Agents approval resume queues, Strands end-to-end MCP/guardrail behavior, LangChain memory/retrievers/LangSmith, and Google ADK services/evals/deployment.
 - Turn the CrewAI scaffold into a separately verified plugin package in a dependency-compatible environment.
 - Keep conformance, version policy, and capability coverage synchronized as each framework-specific nuance graduates from extension metadata to tested behavior.
 - Continue researching additional adapter targets such as AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.

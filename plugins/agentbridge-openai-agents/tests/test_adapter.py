@@ -191,6 +191,7 @@ def test_adapter_forwards_openai_agents_extension_surface(monkeypatch) -> None:
         "input_guardrails_count": 1,
         "output_guardrails_count": 1,
         "approval_policy": {"refunds": "required"},
+        "approval_store": False,
         "tracing": True,
         "metadata": {"owner": "support"},
         "conversation_id": "runtime-session",
@@ -320,6 +321,12 @@ def test_adapter_preserves_openai_agents_run_diagnostics(monkeypatch) -> None:
         "interruptions": [{"id": "approval-1", "tool_name": "issue_refund"}],
         "resumable": True,
         "state_type": "SimpleNamespace",
+        "approval_store": {
+            "enabled": False,
+            "requests_count": 1,
+            "stored_count": 0,
+            "store_type": None,
+        },
         "last_agent": {"name": "billing_agent"},
         "last_response_id": "resp-2",
         "raw_responses_count": 2,
@@ -330,6 +337,57 @@ def test_adapter_preserves_openai_agents_run_diagnostics(monkeypatch) -> None:
             "tool_output": [{"name": "receipt_policy", "tripwire_triggered": False}],
         },
     }
+
+
+def test_adapter_persists_openai_agents_approval_requests(monkeypatch) -> None:
+    class ApprovalStore:
+        def __init__(self) -> None:
+            self.records = []
+
+        def append(self, record):
+            self.records.append(record)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "agents",
+        SimpleNamespace(
+            Agent=FakeAgent,
+            Runner=FakeDiagnosticRunner,
+            function_tool=fake_function_tool,
+        ),
+    )
+    adapter = Adapter()
+    approval_store = ApprovalStore()
+    spec = OpenAIAgentsExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Use approvals.",
+            model="mock/model",
+        ),
+        approval_policy={"issue_refund": "required"},
+        approval_store=approval_store,
+    )
+
+    compiled = adapter.compile(spec)
+    result = adapter.run(compiled, RunInput(input="refund order A123"))
+
+    assert result.metadata["approval_store"] == {
+        "enabled": True,
+        "requests_count": 1,
+        "stored_count": 1,
+        "store_type": "ApprovalStore",
+    }
+    assert result.metadata["run_diagnostics"]["approval_store"] == result.metadata["approval_store"]
+    assert approval_store.records == [
+        {
+            "id": "approval-1",
+            "interruption": {"id": "approval-1", "tool_name": "issue_refund"},
+            "state": {"id": "state-1"},
+            "state_type": "SimpleNamespace",
+            "last_response_id": "resp-2",
+            "last_agent": {"name": "billing_agent"},
+        }
+    ]
 
 
 def test_adapter_runs_offline_structured_output_through_native_runner() -> None:

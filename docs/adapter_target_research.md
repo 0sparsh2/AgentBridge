@@ -307,7 +307,7 @@ Risks:
 
 ## Recommended Next Work
 
-1. Add OpenAI Agents approval/resume fixtures around SDK run state and application-owned approval stores.
+1. Add OpenAI Agents backend-neutral approval resume queues and deeper real-SDK approval fixtures around SDK run state.
 2. Add Strands end-to-end MCP server/client fixtures and deeper guardrail behavior tests beyond normalized hook/intervention/guardrail lifecycle event shapes.
 3. Add LangChain real retriever/memory examples with native objects, LangSmith smoke tests when configured, and more real-world Runnable/compiled-graph import fixtures.
 4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment examples.

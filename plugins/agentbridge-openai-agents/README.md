@@ -19,6 +19,7 @@ AgentBridge adapter plugin for `openai_agents`.
   conversation/session options, and session objects through `OpenAIAgentsExtension`.
 - Approval policy, approval interruption, guardrail diagnostic, handoff item, and tracing metadata
   summaries.
+- Application-owned approval request stores through `OpenAIAgentsExtension.approval_store`.
 - Raw run/result preservation.
 
 ## Dependency Note
@@ -56,10 +57,17 @@ UIs and audits:
 - `state_type`: the SDK state object's type name, when it can be captured safely.
 - `last_agent`, `last_response_id`, and `raw_responses_count`: continuation and debugging hints.
 - `guardrails`: input, output, tool-input, and tool-output guardrail result summaries.
+- `approval_store`: whether approval requests were written to an application-owned store.
 
 Approval, guardrail, and handoff run items are also normalized as `AgentEvent(type="workflow")`.
-AgentBridge still does not implement a full approval UI or persisted resume store for OpenAI Agents;
-use the preserved raw result or SDK state with application-owned approval workflows.
+If `OpenAIAgentsExtension.approval_store` is supplied, approval interruptions are written as safe
+records containing the interruption summary, SDK state snapshot summary, last response ID, and last
+agent summary. Store objects can expose `record_approval_request(record)`, `save(record)`, or
+`append(record)`.
+
+AgentBridge still does not implement a full approval UI or backend-neutral resume queue for OpenAI
+Agents. Use the persisted approval records, preserved raw result, or SDK state with
+application-owned approval workflows.
 
 ## Local Development Without Installing
 
