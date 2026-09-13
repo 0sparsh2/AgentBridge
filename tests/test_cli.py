@@ -271,6 +271,15 @@ def test_cli_conformance_json(capsys) -> None:
     assert payload[0]["checks"][0]["name"] == "capabilities"
 
 
+def test_cli_conformance_all_json(capsys) -> None:
+    assert main(["conformance", "--all", "--json"]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    backends = {report["backend"] for report in payload}
+    assert "mock" in backends
+    assert "langgraph" in backends
+
+
 def test_cli_extensions_json(capsys) -> None:
     assert main(["extensions", "crewai", "--json"]) == 0
 
