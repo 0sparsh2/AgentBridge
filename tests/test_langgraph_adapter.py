@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import BaseModel
 
 from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter, resume_agent
 from agentbridge.errors import MissingDependencyError
@@ -198,9 +199,65 @@ def test_langgraph_adapter_resumes_checkpointed_interrupt_when_available() -> No
     assert helper_resumed.output["input"] == "Needs helper approval."
 
 
+def test_langgraph_adapter_returns_typed_structured_output_when_available() -> None:
+    class Decision(BaseModel):
+        eligible: bool
+        reason: str
+
+    adapter = get_adapter("langgraph")
+    agent = AgentSpec(
+        name="decision_agent",
+        instructions="Return a decision.",
+        model="openai/gpt-5",
+        output_type=Decision,
+        backend_config={"custom_output_args": {"eligible": True, "reason": "ok"}},
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    result = adapter.run(compiled, RunInput(input="decide"))
+
+    assert isinstance(result.output, Decision)
+    assert result.output.eligible is True
+    assert result.output.reason == "ok"
+    assert result.metadata["run_diagnostics"]["structured_output"] is True
+    assert result.events[-1].data["output"] == Decision(eligible=True, reason="ok")
+
+
+def test_langgraph_adapter_returns_schema_structured_output_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = AgentSpec(
+        name="schema_agent",
+        instructions="Return a schema-shaped object.",
+        model="openai/gpt-5",
+        output_schema={
+            "type": "object",
+            "properties": {
+                "eligible": {"type": "boolean"},
+                "reason": {"type": "string"},
+            },
+            "required": ["eligible", "reason"],
+        },
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    result = adapter.run(compiled, RunInput(input="decide"))
+
+    assert result.output == {"eligible": True, "reason": "ok"}
+    assert result.metadata["run_diagnostics"]["structured_output"] is True
+
+
 def test_langgraph_capabilities_include_checkpointing_extension() -> None:
     capabilities = get_adapter("langgraph").capabilities()
 
     assert capabilities.status("state.checkpointing") == "extension"
     assert capabilities.status("workflow.routing") == "extension"
     assert capabilities.status("human_approval") == "extension"
+    assert capabilities.status("structured_output") == "full"

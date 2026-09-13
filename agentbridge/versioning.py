@@ -24,7 +24,7 @@ ADOPTED_DEPENDENCIES = {
         "range": ">=1.2.11,<2",
         "role": "Stateful graph backend",
         "status": "verified",
-        "notes": "Verified with graph execution, ToolSpec calls, checkpoint resume, routing, and run diagnostics.",
+        "notes": "Verified with graph execution, ToolSpec calls, deterministic structured output, checkpoint resume, routing, and run diagnostics.",
     },
     "pydantic_ai": {
         "package": "pydantic-ai-slim",
