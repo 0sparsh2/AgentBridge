@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from examples.deep_scenario_report import build_report
+from examples.google_adk_enterprise_report import build_report as build_google_adk_report
 from examples.model_routes import build_model_route_catalog
 from examples.rag_migration_report import build_report as build_rag_report
 from examples.strands_agentcore_report import build_report as build_strands_report
@@ -101,3 +102,30 @@ def test_strands_agentcore_report_documents_production_path_shape() -> None:
         assert "complete" in report["offline_run_comparison"]["strands"]["events"]
     else:
         assert "error" in report["offline_run_comparison"]["strands"]
+
+
+def test_google_adk_enterprise_report_documents_service_and_eval_shape() -> None:
+    report = build_google_adk_report()
+
+    assert report["source_framework"] == "google_adk"
+    assert report["target_framework"] == "langgraph"
+    google_config = report["framework_extensions"]["google_adk_source"]
+    assert google_config["app_name"] == "enterprise_support"
+    assert google_config["session_service"] == "in_memory"
+    assert google_config["memory_service"] == "vertex_ai_memory_bank"
+    assert google_config["artifact_service"] == "gcs_artifact_service"
+    assert google_config["credential_service"] == "secret_manager_credentials"
+    assert google_config["sub_agents"] == ["billing_specialist", "technical_specialist"]
+    assert google_config["evals"] == ["enterprise_resolution_quality", "policy_compliance"]
+    assert google_config["capture_service_snapshots"] is True
+    assert google_config["deployment_target"] == "vertex_ai_agent_engine"
+    assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
+    assert report["model_routes"]["google_api"] == "google/gemini"
+    assert report["model_routes"]["local_ollama"] == "ollama/llama3.1"
+    assert report["offline_run_comparison"]["mock"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert "google_adk" in report["offline_run_comparison"]
+    if report["offline_run_comparison"]["google_adk"]["available"]:
+        assert "complete" in report["offline_run_comparison"]["google_adk"]["events"]
+    else:
+        assert "error" in report["offline_run_comparison"]["google_adk"]
