@@ -37,6 +37,8 @@ Without a bridge, switching frameworks means rewriting prompts, tools, event han
 - Let developers run the same agent specification on multiple backends.
 - Make backend differences visible through capability metadata instead of hiding them.
 - Give teams migration and comparison tooling before they commit to a new runtime.
+- Provide deep scenario reports that show framework nuance, migration deltas, normalized outputs,
+  and model routing across hosted APIs, local models, and OpenAI-compatible providers.
 - Keep core installation lightweight.
 - Let heavy, experimental, or framework-specific adapters live as plugins.
 - Preserve native backend escape hatches for advanced users.
@@ -105,6 +107,7 @@ AgentBridge should eventually cover these capability areas:
 | Human-in-the-loop | Approval gates, interrupts, review queues, resume after decision. |
 | Runtime controls | Timeouts, retries, cancellation, concurrency, idempotency. |
 | Observability | Traces, spans, logs, eval hooks, usage, cost, latency. |
+| Model routing | LiteLLM-style strings, backend-native model settings, local model paths, and OpenAI-compatible gateways. |
 | Deployment | Local, serverless, hosted runtime, workers, containers, background jobs. |
 | UI protocols | AG-UI-shaped event conversion, later server examples. |
 | Multi-agent | Teams, swarms, delegation, role/task mapping, agent-to-agent protocols. |
@@ -227,6 +230,15 @@ Examples:
 - LangChain middleware, callbacks, memory, retrievers, and LangSmith-style tracing.
 
 Extension namespaces should feel native to the framework they represent. They are how AgentBridge can eventually cover "all of it" without turning the common API into a confusing mega-object.
+
+## Scenario Report Rule
+
+Every major adapter should eventually have at least one deep scenario report. Reports should show
+realistic framework-specific features being used through AgentBridge, a migration or comparison
+against another backend, normalized output/event shapes, and model routing variants. Default report
+examples must run without paid credentials, while optional smoke sections can document OpenAI,
+Anthropic, Google, local Ollama-style models, OpenRouter, NVIDIA NIM, or custom OpenAI-compatible
+gateways when credentials are available.
 
 ## Milestone Target State
 

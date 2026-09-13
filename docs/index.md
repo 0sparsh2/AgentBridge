@@ -15,6 +15,7 @@ Use this page as the navigation map for the repository.
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
 - [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Strands, direct LangChain, and Google ADK.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
+- [Scenario Reports](scenario_reports.md): Target format for deep framework-nuance examples, migration comparisons, outputs, and model-provider routing.
 - [Version Policy](version_policy.md): Adopted package ranges, verified local versions, and adapter version rules.
 - [Release Workflow](release.md): Package build checks, tag workflow, and future PyPI publishing path.
 
@@ -35,6 +36,7 @@ Use this page as the navigation map for the repository.
 - [examples/agui_events.py](../examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
 - [examples/framework_extensions.py](../examples/framework_extensions.py): Framework-specific extension config examples for LangChain, OpenAI Agents, Strands, and Google ADK.
 - [examples/langchain_native_memory_retriever.py](../examples/langchain_native_memory_retriever.py): Offline LangChain example with native retriever, checkpointer, and store objects.
+- [examples/deep_scenario_report.py](../examples/deep_scenario_report.py): No-key report-shaped example for deep framework features, migrations, outputs, and model routing.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.
 
 ## Maintainer Checklist

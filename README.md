@@ -100,9 +100,9 @@ result = run_agent(agent, framework="langgraph", input="Check refund eligibility
 
 `framework=` is the user-facing way to choose the runtime. `backend=` remains supported as a lower-level adapter alias for compatibility.
 
-Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthropic/claude-sonnet`, or `google/gemini`. AgentBridge does not build a custom model-provider abstraction in v0.
+Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthropic/claude-sonnet`, or `google/gemini`. Reports and examples also track local models, OpenRouter, NVIDIA NIM, and custom OpenAI-compatible gateways through model strings plus backend-native endpoint settings. AgentBridge does not build a custom model-provider abstraction in v0.
 
-Framework-specific knobs live in extension namespaces instead of the portable `AgentSpec` core. See [examples/framework_extensions.py](examples/framework_extensions.py) for cross-framework extension config and [examples/langchain_native_memory_retriever.py](examples/langchain_native_memory_retriever.py) for native LangChain retriever/checkpointer/store objects.
+Framework-specific knobs live in extension namespaces instead of the portable `AgentSpec` core. See [examples/framework_extensions.py](examples/framework_extensions.py) for cross-framework extension config, [examples/langchain_native_memory_retriever.py](examples/langchain_native_memory_retriever.py) for native LangChain retriever/checkpointer/store objects, and [examples/deep_scenario_report.py](examples/deep_scenario_report.py) for a report-shaped migration/model-routing example.
 
 ## Streaming Quickstart
 
@@ -296,6 +296,7 @@ agentbridge conformance --backend custom
 - [docs/design.md](docs/design.md): Design decisions, tradeoffs, and extension principles.
 - [docs/adapters.md](docs/adapters.md): Adapter support matrix and framework-specific notes.
 - [docs/capability_coverage.md](docs/capability_coverage.md): Long-term feature coverage strategy.
+- [docs/scenario_reports.md](docs/scenario_reports.md): Deep framework-nuance reports, migration comparisons, normalized outputs, and model routing targets.
 - [docs/conformance.md](docs/conformance.md): Adapter contract checks and offline plugin model rules.
 - [docs/plugin_authoring.md](docs/plugin_authoring.md): External adapter plugin guide.
 - [docs/version_policy.md](docs/version_policy.md): Adopted and verified dependency versions.
