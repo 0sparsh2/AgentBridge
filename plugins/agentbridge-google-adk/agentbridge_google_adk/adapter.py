@@ -169,6 +169,7 @@ class Adapter(BackendAdapter):
                 "extension_summary": _extension_summary(compiled_agent.config, run_kwargs),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
                 "native_runner_type": type(compiled_agent.runner).__name__,
+                "run_diagnostics": _run_diagnostics(compiled_agent, events, run_kwargs),
             },
             raw=events,
         )
@@ -518,8 +519,13 @@ def _normalize_event(event: Any, *, backend: str) -> AgentEvent:
     function_response = _event_function_response(event)
     if function_response:
         payload["function_response"] = function_response
+    transfer_to_agent = _event_transfer_to_agent(event)
+    if transfer_to_agent:
+        payload["transfer_to_agent"] = transfer_to_agent
     keys = {str(key).lower() for key in payload}
-    if function_response:
+    if transfer_to_agent:
+        event_type = "workflow"
+    elif function_response:
         event_type = "tool_result"
     elif function_call:
         event_type = "tool_call"
@@ -535,6 +541,49 @@ def _normalize_event(event: Any, *, backend: str) -> AgentEvent:
         event_type = "message"
     payload.setdefault("native_type", type(event).__name__)
     return AgentEvent(type=event_type, backend=backend, data=payload)
+
+
+def _run_diagnostics(
+    compiled: CompiledGoogleADKAgent,
+    events: list[Any],
+    run_kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "events_count": len(events),
+        "event_types": [type(event).__name__ for event in events],
+        "text_events_count": sum(1 for event in events if _event_text(event)),
+        "function_calls_count": sum(1 for event in events if _event_function_call(event)),
+        "function_responses_count": sum(1 for event in events if _event_function_response(event)),
+        "transfers": [
+            transfer
+            for event in events
+            if (transfer := _event_transfer_to_agent(event))
+        ],
+        "session": {
+            "app_name": _runner_value(compiled.runner, "app_name"),
+            "user_id": run_kwargs.get("user_id"),
+            "session_id": run_kwargs.get("session_id"),
+            "auto_create_session": _runner_value(compiled.runner, "auto_create_session"),
+            "session_service": _safe_summary(_runner_value(compiled.runner, "session_service")),
+        },
+        "services": {
+            "memory_service": _safe_summary(_runner_value(compiled.runner, "memory_service")),
+            "artifact_service": _safe_summary(_runner_value(compiled.runner, "artifact_service")),
+            "credential_service": _safe_summary(_runner_value(compiled.runner, "credential_service")),
+        },
+        "extension": {
+            "sub_agents_count": len(compiled.config.get("sub_agents") or []),
+            "evals": _safe_summary(compiled.config.get("evals") or []),
+            "deployment_target": compiled.config.get("deployment_target"),
+        },
+    }
+
+
+def _runner_value(runner: Any, key: str) -> Any:
+    kwargs = getattr(runner, "kwargs", None)
+    if isinstance(kwargs, dict) and key in kwargs:
+        return kwargs[key]
+    return getattr(runner, key, None)
 
 
 def _event_function_call(event: Any) -> dict[str, Any] | None:
@@ -553,6 +602,19 @@ def _event_function_response(event: Any) -> dict[str, Any] | None:
             continue
         return _payload(function_response)
     return None
+
+
+def _event_transfer_to_agent(event: Any) -> str | None:
+    actions = getattr(event, "actions", None)
+    if actions is None and isinstance(event, dict):
+        actions = event.get("actions")
+    if isinstance(actions, dict):
+        transfer = actions.get("transfer_to_agent") or actions.get("transferToAgent")
+    else:
+        transfer = getattr(actions, "transfer_to_agent", None)
+        if transfer is None:
+            transfer = getattr(actions, "transferToAgent", None)
+    return str(transfer) if transfer else None
 
 
 def _event_parts(event: Any) -> list[Any]:

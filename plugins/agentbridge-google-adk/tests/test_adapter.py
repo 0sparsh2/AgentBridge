@@ -60,6 +60,50 @@ class FakeRunner:
         )
 
 
+class FakeDiagnosticRunner:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def run(self, *, user_id, session_id, new_message, state_delta=None, run_config=None):
+        del user_id, session_id, new_message, state_delta, run_config
+        yield SimpleNamespace(
+            actions=SimpleNamespace(transfer_to_agent="billing_agent"),
+            content=FakeContent(role="model", parts=[]),
+        )
+        yield SimpleNamespace(
+            content=FakeContent(
+                role="model",
+                parts=[
+                    SimpleNamespace(
+                        function_call=SimpleNamespace(
+                            name="lookup_order",
+                            args={"order_id": "A123"},
+                        )
+                    )
+                ],
+            )
+        )
+        yield SimpleNamespace(
+            content=FakeContent(
+                role="tool",
+                parts=[
+                    SimpleNamespace(
+                        function_response=SimpleNamespace(
+                            name="lookup_order",
+                            response={"result": "found:A123"},
+                        )
+                    )
+                ],
+            )
+        )
+        yield SimpleNamespace(
+            content=FakeContent(
+                role="model",
+                parts=[FakePart(text="native google adk: delegated")],
+            )
+        )
+
+
 def install_fake_google_adk(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "google.adk.agents", SimpleNamespace(Agent=FakeADKAgent))
     monkeypatch.setitem(sys.modules, "google.adk.runners", SimpleNamespace(Runner=FakeRunner))
@@ -306,6 +350,87 @@ def test_adapter_runs_offline_tool_loop_through_native_runner() -> None:
     assert "tool_call" in event_types
     assert "tool_result" in event_types
     assert event_types[-1] == "complete"
+
+
+def test_adapter_preserves_google_adk_run_diagnostics(monkeypatch) -> None:
+    install_fake_google_adk(monkeypatch)
+    monkeypatch.setitem(
+        sys.modules,
+        "google.adk.runners",
+        SimpleNamespace(Runner=FakeDiagnosticRunner),
+    )
+    adapter = Adapter()
+    session_service = object()
+    memory_service = object()
+    artifact_service = object()
+    credential_service = object()
+    sub_agent = object()
+    agent = GoogleADKExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Delegate billing questions.",
+            model="mock/model",
+        ),
+        app_name="support_app",
+        session_service=session_service,
+        memory_service=memory_service,
+        artifact_service=artifact_service,
+        credential_service=credential_service,
+        auto_create_session=False,
+        sub_agents=[sub_agent],
+        evals=["billing_delegation_eval"],
+        deployment_target="vertex_ai",
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(
+        compiled,
+        RunInput(
+            input="check order A123",
+            metadata={"user_id": "user-1"},
+            session_id="session-1",
+        ),
+    )
+
+    assert [event.type for event in result.events] == [
+        "workflow",
+        "tool_call",
+        "tool_result",
+        "message",
+        "complete",
+    ]
+    assert result.events[0].data["transfer_to_agent"] == "billing_agent"
+    assert result.output == "native google adk: delegated"
+    assert result.metadata["run_diagnostics"] == {
+        "events_count": 4,
+        "event_types": [
+            "SimpleNamespace",
+            "SimpleNamespace",
+            "SimpleNamespace",
+            "SimpleNamespace",
+        ],
+        "text_events_count": 1,
+        "function_calls_count": 1,
+        "function_responses_count": 1,
+        "transfers": ["billing_agent"],
+        "session": {
+            "app_name": "support_app",
+            "user_id": "user-1",
+            "session_id": "session-1",
+            "auto_create_session": False,
+            "session_service": "object",
+        },
+        "services": {
+            "memory_service": "object",
+            "artifact_service": "object",
+            "credential_service": "object",
+        },
+        "extension": {
+            "sub_agents_count": 1,
+            "evals": ["billing_delegation_eval"],
+            "deployment_target": "vertex_ai",
+        },
+    }
 
 
 def test_adapter_runs_offline_structured_output_through_native_runner() -> None:
