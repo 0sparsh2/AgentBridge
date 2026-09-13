@@ -29,6 +29,7 @@ class OpenAIAgentsConfig(BaseModel):
     reset_tool_choice: bool | None = None
     tracing: bool = False
     approval_policy: dict[str, Any] = Field(default_factory=dict)
+    approval_store: Any | None = None
     session_id: str | None = None
     context: Any | None = None
     max_turns: int | None = None
@@ -64,6 +65,7 @@ class OpenAIAgentsExtension(FrameworkExtension):
         reset_tool_choice: bool | None = None,
         tracing: bool = False,
         approval_policy: dict[str, Any] | None = None,
+        approval_store: Any | None = None,
         session_id: str | None = None,
         context: Any | None = None,
         max_turns: int | None = None,
@@ -93,6 +95,7 @@ class OpenAIAgentsExtension(FrameworkExtension):
             reset_tool_choice=reset_tool_choice,
             tracing=tracing,
             approval_policy=approval_policy or {},
+            approval_store=approval_store,
             session_id=session_id,
             context=context,
             max_turns=max_turns,
