@@ -51,6 +51,11 @@ variants = {
         sub_agents=["billing_agent"],
         evals=["refund_quality_eval"],
         deployment_target="vertex_ai",
+        deployment={
+            "runtime": "adk",
+            "entrypoint": "app:agent",
+            "region": "us-central1",
+        },
     ),
 }
 

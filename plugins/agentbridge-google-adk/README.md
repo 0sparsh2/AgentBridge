@@ -23,7 +23,7 @@ AgentBridge adapter plugin for `google_adk`.
   artifact service, credential service, plugins, plugin close timeout, and auto-session behavior.
 - Run diagnostics for ADK event counts/types, function call/response counts, transfer-to-agent
   events, session/service bindings, sub-agent counts, eval labels, and deployment target labels.
-- Evals and deployment metadata as extension-level summaries.
+- Eval labels, eval runner bindings, and structured deployment metadata as extension-level summaries.
 
 ## Dependency Note
 
@@ -53,9 +53,34 @@ serializable `run_kwargs`, `extension_config`, `extension_summary`, and `run_dia
 on `RunResult`.
 
 `run_diagnostics` includes event history counts, text/function-call/function-response counts,
-transfer-to-agent targets, session identity, service type summaries, and extension-level eval and
-deployment labels. Eval execution and deployment publishing are still metadata-only until
-AgentBridge has native no-network tests for those flows.
+transfer-to-agent targets, session identity, service type summaries, extension-level eval labels,
+eval runner bindings, and structured deployment metadata. Eval execution and deployment publishing
+are still metadata-only until AgentBridge has native no-network tests for those flows.
+
+Deployment metadata can be recorded without publishing to Google infrastructure:
+
+```python
+from agentbridge import AgentSpec
+from agentbridge.extensions.google_adk import GoogleADKExtension
+
+agent = GoogleADKExtension.with_config(
+    AgentSpec(
+        name="support_agent",
+        instructions="Help customers with refunds.",
+        model="google/gemini",
+    ),
+    evals=["refund_quality_eval"],
+    deployment_target="vertex_ai",
+    deployment={
+        "runtime": "adk",
+        "entrypoint": "app:agent",
+        "region": "us-central1",
+    },
+)
+```
+
+This metadata is preserved in `RunResult.metadata["extension_summary"]["deployment"]` and
+`RunResult.metadata["run_diagnostics"]["extension"]["deployment"]`.
 
 ## Local Development Without Installing
 
