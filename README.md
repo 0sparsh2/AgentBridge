@@ -32,12 +32,12 @@ Current backend status:
 | Backend | Package Path | Status | Notes |
 | --- | --- | --- | --- |
 | `mock` | Core | Verified | Deterministic backend for tests, docs, and no-key demos. |
-| `langgraph` | Core optional extra | Verified locally | Executes a minimal graph, reports checkpoint interrupts, and resumes compiled checkpointed runs. |
+| `langgraph` | Core optional extra | Verified locally | Executes a minimal graph, reports checkpoint interrupts, resumes compiled checkpointed runs, and exposes graph run diagnostics. |
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
 | `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
 | `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through, tracing summaries, structured deployment metadata, guardrail labels, and hook/intervention semantics remain extension-level. |
-| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output and richer stream events are contract-tested, while native memory/retriever behavior and LangSmith provider behavior remain extension-level. |
+| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, and run diagnostics are contract-tested, while native memory/retriever behavior and LangSmith provider behavior remain extension-level. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output and run diagnostics are contract-tested, while native service behavior, eval execution, and deployment publishing remain extension-level. |
 
 Adopted package versions are tracked in [docs/version_policy.md](docs/version_policy.md).

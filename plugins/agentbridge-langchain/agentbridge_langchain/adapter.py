@@ -38,6 +38,7 @@ class Adapter(BackendAdapter):
                 "structured_output": "full",
                 "state.memory": "extension",
                 "observability.tracing": "extension",
+                "observability.diagnostics": "full",
                 "observability.raw": "full",
                 "streaming.events": "partial",
             },
@@ -49,6 +50,7 @@ class Adapter(BackendAdapter):
                 "structured_output": "Maps AgentSpec.output_type to LangChain response_format and validates native structured_response.",
                 "state.memory": "Records memory/retriever hints and forwards native checkpointer/store objects when provided; portable memory semantics remain extension-level.",
                 "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
+                "observability.diagnostics": "Summarizes messages, tool lifecycle events, structured responses, runtime config, and extension options.",
                 "streaming.events": "Uses native stream() when available and normalizes event chunks best-effort.",
             },
         )
@@ -133,6 +135,12 @@ class Adapter(BackendAdapter):
                 "extension_config": _safe_summary(compiled_agent.config),
                 "extension_summary": _extension_summary(compiled_agent.config),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
+                "run_diagnostics": _run_diagnostics(
+                    result,
+                    events,
+                    compiled_agent,
+                    runtime_config,
+                ),
             },
             raw=result,
         )
@@ -493,6 +501,37 @@ def _events_from_result(result: Any, *, backend: str) -> list[AgentEvent]:
                 )
             )
     return events
+
+
+def _run_diagnostics(
+    result: Any,
+    events: list[AgentEvent],
+    compiled: CompiledLangChainAgent,
+    runtime_config: dict[str, Any],
+) -> dict[str, Any]:
+    event_counts: dict[str, int] = {}
+    for event in events:
+        event_counts[event.type] = event_counts.get(event.type, 0) + 1
+    messages = list(_mapping_get(result, "messages") or [])
+    return {
+        "messages_count": len(messages),
+        "tool_calls_count": sum(
+            1
+            for message in messages
+            for _tool_call in (_mapping_get(message, "tool_calls") or [])
+        ),
+        "tool_results_count": sum(
+            1
+            for message in messages
+            if (message.get("type") if isinstance(message, dict) else getattr(message, "type", None))
+            == "tool"
+        ),
+        "structured_response": _mapping_get(result, "structured_response") is not None,
+        "runtime_config": _safe_summary(runtime_config),
+        "extension_summary": _extension_summary(compiled.config),
+        "native_agent_type": type(compiled.native_agent).__name__,
+        "event_counts": event_counts,
+    }
 
 
 def _normalize_native_events(native_event: Any, *, backend: str) -> Iterator[AgentEvent]:

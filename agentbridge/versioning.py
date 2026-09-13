@@ -24,7 +24,7 @@ ADOPTED_DEPENDENCIES = {
         "range": ">=1.2.11,<2",
         "role": "Stateful graph backend",
         "status": "verified",
-        "notes": "Verified with graph execution and ToolSpec calls.",
+        "notes": "Verified with graph execution, ToolSpec calls, checkpoint resume, routing, and run diagnostics.",
     },
     "pydantic_ai": {
         "package": "pydantic-ai-slim",
@@ -96,7 +96,7 @@ ADOPTED_DEPENDENCIES = {
             "backend with direct create_agent execution, StructuredTool mapping, model string "
             "normalization, structured output via native response_format, native create_agent "
             "option forwarding, callback/runtime metadata, stream_events v3 normalization, and "
-            "stream_mode v2 normalization. "
+            "stream_mode v2 normalization, and run diagnostics. "
             "Portable memory/retriever semantics and LangSmith provider behavior remain "
             "extension-level."
         ),

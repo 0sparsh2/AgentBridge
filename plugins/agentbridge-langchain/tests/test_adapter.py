@@ -129,6 +129,8 @@ def test_adapter_compiles_and_runs_native_agent(monkeypatch) -> None:
     assert result.backend == "langchain"
     assert result.output == "native langchain: hello"
     assert [event.type for event in result.events] == ["message", "complete"]
+    assert result.metadata["run_diagnostics"]["messages_count"] == 1
+    assert result.metadata["run_diagnostics"]["event_counts"] == {"message": 1, "complete": 1}
 
 
 def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
@@ -173,6 +175,7 @@ def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
         },
     }
     assert result.metadata["runtime_config"] == compiled.native_agent.last_config
+    assert result.metadata["run_diagnostics"]["runtime_config"] == compiled.native_agent.last_config
     assert result.metadata["extension_config"]["callbacks"] == ["langsmith"]
     assert result.metadata["native_agent_type"] == "FakeNativeAgent"
 
@@ -414,3 +417,4 @@ def test_adapter_capabilities_mark_structured_output_full() -> None:
     capabilities = Adapter().capabilities()
 
     assert capabilities.status("structured_output") == "full"
+    assert capabilities.status("observability.diagnostics") == "full"

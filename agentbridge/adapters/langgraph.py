@@ -50,6 +50,7 @@ class LangGraphAdapter(BackendAdapter):
                 "streaming.events": "partial",
                 "human_approval": "extension",
                 "observability.raw": "full",
+                "observability.diagnostics": "full",
                 "agui.events": "partial",
             },
             notes={
@@ -59,6 +60,7 @@ class LangGraphAdapter(BackendAdapter):
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True).",
                 "workflow.routing": "Enable via LangGraphExtension.config(route_on_context_key=..., routes=...).",
+                "observability.diagnostics": "Summarizes route, checkpointing, interrupts, tools, and normalized event counts.",
             },
         )
 
@@ -157,6 +159,7 @@ class LangGraphAdapter(BackendAdapter):
             "node_name": compiled.config.node_name,
             "checkpointing": compiled.config.enable_checkpointing,
             "route": raw.get("route", compiled.config.node_name),
+            "run_diagnostics": self._run_diagnostics(raw, events, compiled, interrupt_state),
         }
         if interrupt_state:
             metadata["interrupted"] = True
@@ -192,6 +195,13 @@ class LangGraphAdapter(BackendAdapter):
             "checkpointing": compiled.config.enable_checkpointing,
             "route": raw.get("route", compiled.config.node_name),
             "resumed": True,
+            "run_diagnostics": self._run_diagnostics(
+                raw,
+                events,
+                compiled,
+                interrupt_state,
+                resumed=True,
+            ),
         }
         if interrupt_state:
             metadata["interrupted"] = True
@@ -353,3 +363,30 @@ class LangGraphAdapter(BackendAdapter):
             )
         events.append(AgentEvent(type="complete", backend=self.backend_name, data={"output": output}))
         return events
+
+    def _run_diagnostics(
+        self,
+        raw: dict[str, Any],
+        events: list[AgentEvent],
+        compiled: LangGraphCompiledAgent,
+        interrupt_state: dict[str, Any] | None,
+        *,
+        resumed: bool = False,
+    ) -> dict[str, Any]:
+        event_counts: dict[str, int] = {}
+        for event in events:
+            event_counts[event.type] = event_counts.get(event.type, 0) + 1
+        route_targets = self._route_targets(compiled.config)
+        return {
+            "route": raw.get("route", compiled.config.node_name),
+            "node_name": compiled.config.node_name,
+            "graph_name": compiled.config.graph_name,
+            "checkpointing": compiled.config.enable_checkpointing,
+            "interrupted": interrupt_state is not None,
+            "resumed": resumed,
+            "next": interrupt_state.get("next") if interrupt_state else [],
+            "checkpoint": interrupt_state.get("checkpoint") if interrupt_state else None,
+            "tool_outputs_count": len(raw.get("tool_outputs", []) or []),
+            "route_targets_count": len(route_targets),
+            "event_counts": event_counts,
+        }
