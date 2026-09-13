@@ -42,6 +42,20 @@ Current offline conformance paths:
 | `langchain` | LangChain `create_agent` graph | Local LangChain `BaseChatModel` subclass |
 | `google_adk` | Google ADK `Agent` and `Runner` | Local ADK `BaseLlm` subclass |
 
+## Current Snapshot
+
+As of the latest local sweep, `agentbridge conformance` passes for every discovered backend.
+
+| Backend | Baseline | Tools | Streaming | Structured Output |
+| --- | --- | --- | --- | --- |
+| `google_adk` | pass | pass | pass | pass |
+| `langchain` | pass | pass | pass | pass |
+| `langgraph` | pass | pass | pass | skipped, not advertised as `full` |
+| `mock` | pass | pass | pass | skipped, not advertised as `full` |
+| `openai_agents` | pass | pass | pass | pass |
+| `pydantic_ai` | pass | pass | pass | pass |
+| `strands` | pass | pass | pass | pass |
+
 Production users should keep using normal framework model identifiers, such as `openai/gpt-5`,
 `anthropic/claude-sonnet`, or framework-native model objects. Adapter-specific offline models are not
 provider-routing abstractions.
