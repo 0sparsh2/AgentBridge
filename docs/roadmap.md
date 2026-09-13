@@ -33,6 +33,7 @@
 - Existing-project import helpers for common LangChain agent apps.
 - Conservative `MigrationReport` helpers for LangChain and LangGraph object shapes.
 - Tracing and diagnostics surfaces for plugin backends, with provider-specific smoke tests where credentials/config are available.
+- Deep scenario reports that demonstrate framework-specific features, migration deltas, normalized outputs, and model routing variants.
 - Full AG-UI server example.
 
 ## v2: Full Framework Coverage
@@ -41,5 +42,6 @@
 - Framework-specific extension modules for features that do not fit the common core.
 - Conformance test suite that every adapter must pass.
 - Coverage reports showing which framework features are fully supported, partially supported, unsupported, or intentionally native-only.
+- Scenario report suite covering deep framework nuances, framework-to-framework migrations, and model routing across hosted APIs, local models, OpenRouter, NVIDIA NIM, and custom gateways.
 - Adapter authoring guide for new frameworks and tools.
 - First-class external adapter packages for OpenAI Agents SDK, Strands Agents, LangChain, Google ADK, CrewAI, and additional ecosystem frameworks.

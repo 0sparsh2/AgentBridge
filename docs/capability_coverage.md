@@ -24,6 +24,7 @@ AgentBridge should track framework support across these areas:
 - Human-in-the-loop: approval gates, interrupts, resume, review queues.
 - Runtime behavior: retries, timeouts, cancellation, parallelism, durable execution.
 - Observability: traces, spans, logs, run diagnostics, eval hooks, cost/usage reporting.
+- Model routing: provider model strings, local model adapters, OpenAI-compatible endpoints, and backend-native model settings.
 - Deployment: local execution, hosted runtimes, serverless, containers, background jobs.
 - UI protocols: AG-UI event conversion, generative UI, frontend tool calls.
 - Multi-agent behavior: roles, teams, swarms, delegation, agent-to-agent protocols.
@@ -92,6 +93,14 @@ The report includes:
 - Native-only features that should be documented as escape hatches instead of flattened into the common API.
 
 This command is stricter than the matrix. The matrix answers “how do these backends compare across the canonical taxonomy?” The coverage report answers “what exactly does this backend expose today, from which package version, and where are the framework-specific edges?”
+
+## Deep Scenario Reports
+
+Capability metadata should eventually be paired with scenario reports. A scenario report should
+exercise framework-specific nuance through AgentBridge, show migration or comparison from one
+framework to another, record normalized outputs/events, and document model-routing variants. Default
+examples should run without credentials; optional smoke paths can cover OpenAI, Anthropic, Google,
+local models, OpenRouter, NVIDIA NIM, or custom OpenAI-compatible gateways.
 
 ## Conformance Checks
 
