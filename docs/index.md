@@ -39,6 +39,7 @@ Use this page as the navigation map for the repository.
 - [examples/langchain_native_memory_retriever.py](../examples/langchain_native_memory_retriever.py): Offline LangChain example with native retriever, checkpointer, and store objects.
 - [examples/deep_scenario_report.py](../examples/deep_scenario_report.py): No-key report-shaped example for deep framework features, migrations, outputs, and model routing.
 - [examples/rag_migration_report.py](../examples/rag_migration_report.py): No-key LangChain-to-LangGraph RAG migration report with output comparison.
+- [examples/strands_agentcore_report.py](../examples/strands_agentcore_report.py): No-key Strands-to-LangGraph AgentCore production-path report with output comparison.
 - [examples/model_routes.py](../examples/model_routes.py): Machine-readable model route catalog for offline, hosted, local, OpenRouter, NVIDIA NIM, and custom gateways.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.
 

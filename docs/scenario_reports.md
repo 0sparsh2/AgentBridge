@@ -61,7 +61,7 @@ Reports should still document the tested shapes:
 | --- | --- | --- | --- | --- | --- |
 | Refund approval migration | OpenAI Agents | LangGraph | approvals, queue payloads, interrupts, checkpoint resume | `agentbridge/offline`, `openai/gpt-5`, OpenRouter-compatible | Offline by default |
 | Support RAG migration | LangChain | LangGraph | retriever, store, callbacks, graph topology | `agentbridge/offline`, local Ollama-style model | Offline output comparison |
-| AWS production path | Strands | LangGraph | MCP, guardrails, interventions, AgentCore metadata | Bedrock/NIM/OpenAI-compatible | Metadata-only by default |
+| AWS production path | Strands | LangGraph | MCP, guardrails, hooks, interventions, session/memory managers, AgentCore metadata | Bedrock/NIM/OpenAI-compatible/local | Offline output comparison; live AgentCore remains credentialed |
 | Google enterprise path | Google ADK | LangGraph | session, memory, artifacts, sub-agents, eval labels | `google/gemini`, local/offline test model | Offline by default |
 
 ## Acceptance Bar
