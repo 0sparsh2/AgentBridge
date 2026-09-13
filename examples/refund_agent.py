@@ -33,7 +33,14 @@ def build_agent() -> AgentSpec:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--framework", default="mock", choices=["mock", "pydantic_ai", "crewai", "langgraph"])
+    parser.add_argument(
+        "--framework",
+        default="mock",
+        help=(
+            "AgentBridge backend/framework name, for example mock, langgraph, "
+            "pydantic_ai, openai_agents, strands, langchain, or google_adk."
+        ),
+    )
     parser.add_argument("--input", default="Customer says order A123 was double charged.")
     args = parser.parse_args()
 

@@ -32,6 +32,7 @@ Use this page as the navigation map for the repository.
 - [examples/refund_agent.py](../examples/refund_agent.py): Same agent spec against selectable framework adapters.
 - [examples/research_agent.py](../examples/research_agent.py): Tool use and streaming event demo.
 - [examples/agui_events.py](../examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
+- [examples/framework_extensions.py](../examples/framework_extensions.py): Framework-specific extension config examples for LangChain, OpenAI Agents, Strands, and Google ADK.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.
 
 ## Maintainer Checklist
