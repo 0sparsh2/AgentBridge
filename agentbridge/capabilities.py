@@ -255,6 +255,12 @@ CANONICAL_CAPABILITIES: tuple[CapabilityFeature, ...] = (
         description="Backend can emit traces, spans, run IDs, or trace metadata.",
     ),
     CapabilityFeature(
+        key="observability.diagnostics",
+        category="Observability",
+        label="Run diagnostics",
+        description="Adapter exposes normalized run diagnostics in RunResult metadata.",
+    ),
+    CapabilityFeature(
         key="evals",
         category="Observability",
         label="Evaluations",

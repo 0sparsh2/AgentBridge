@@ -241,3 +241,4 @@ def test_google_adk_plugin_capabilities_are_honest(monkeypatch) -> None:
     assert capabilities.status("tools.sync") == "full"
     assert capabilities.status("state.session") == "extension"
     assert capabilities.status("deployment.serverless") == "extension"
+    assert capabilities.status("observability.diagnostics") == "full"

@@ -460,3 +460,4 @@ def test_adapter_capabilities_mark_structured_output_full() -> None:
     capabilities = Adapter().capabilities()
 
     assert capabilities.status("structured_output") == "full"
+    assert capabilities.status("observability.diagnostics") == "full"

@@ -93,6 +93,7 @@ def extension_profiles() -> list[ExtensionProfile]:
                 "guardrails",
                 "human_approval",
                 "observability.tracing",
+                "observability.diagnostics",
             ],
             status="partial",
             notes=[
@@ -113,6 +114,7 @@ def extension_profiles() -> list[ExtensionProfile]:
                 "workflow.delegation",
                 "deployment.serverless",
                 "evals",
+                "observability.diagnostics",
             ],
             status="partial",
             notes=[

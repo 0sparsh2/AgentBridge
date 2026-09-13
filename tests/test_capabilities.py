@@ -45,6 +45,7 @@ def test_capability_matrix_reports_canonical_features() -> None:
     assert "workflow.handoffs" in rows
     assert "deployment.serverless" in rows
     assert "observability.tracing" in rows
+    assert "observability.diagnostics" in rows
     assert "state.memory" in rows
     assert "evals" in rows
 
