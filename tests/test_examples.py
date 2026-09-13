@@ -27,3 +27,19 @@ def test_deep_scenario_report_documents_frameworks_and_model_routes() -> None:
     }
     assert report["framework_extensions"]["openai_agents_source"]["approval_store"] == "ApprovalQueue"
     assert "workflow" in report["expected_normalized_output"]["events"]
+    assert report["offline_run_comparison"]["mock"] == {
+        "available": True,
+        "backend": "mock",
+        "output": {
+            "agent": "refund_approval_agent",
+            "input": "Customer says order A123 was double charged.",
+            "message": "Mock backend completed successfully.",
+            "tools": [],
+        },
+        "events": ["message", "complete"],
+        "metadata_keys": [],
+    }
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["backend"] == "langgraph"
+    assert report["offline_run_comparison"]["openai_agents"]["available"] is True
+    assert "complete" in report["offline_run_comparison"]["openai_agents"]["events"]
