@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+import json
 from collections.abc import Iterator
 from dataclasses import dataclass
 from importlib import import_module
@@ -36,6 +37,7 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "full",
                 "agent.model": "partial",
                 "tools.sync": "full",
+                "structured_output": "full",
                 "state.session": "extension",
                 "state.memory": "extension",
                 "workflow.delegation": "extension",
@@ -48,6 +50,7 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "Maps AgentSpec instructions to ADK Agent instruction.",
                 "agent.model": "Passes model strings through to ADK; provider compatibility is ADK/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to ADK FunctionTool instances.",
+                "structured_output": "Passes AgentSpec.output_schema to ADK and validates JSON text into AgentSpec.output_type when available.",
                 "state.session": "Forwards native session_service/session ids and records run session metadata.",
                 "state.memory": "Forwards native memory_service and records memory metadata.",
                 "workflow.delegation": "Forwards native sub_agents and transfer controls when supplied.",
@@ -144,7 +147,7 @@ class Adapter(BackendAdapter):
         compiled_agent = _ensure_compiled(compiled)
         run_kwargs = _run_kwargs(compiled_agent, run_input)
         events = list(_run_events(compiled_agent, run_kwargs))
-        output = _final_output(events)
+        output = _final_output(events, compiled_agent.spec)
         normalized_events = [
             _normalize_event(event, backend=self.backend_name) for event in events
         ]
@@ -179,7 +182,7 @@ class Adapter(BackendAdapter):
         yield AgentEvent(
             type="complete",
             backend=self.backend_name,
-            data={"output": _final_output(events)},
+            data={"output": _final_output(events, compiled_agent.spec)},
         )
 
 
@@ -272,6 +275,10 @@ class _AgentBridgeOfflineModelBase:
                 ),
                 usage_metadata=self._usage_metadata(),
             )
+            return
+        response_schema = _response_schema(llm_request)
+        if response_schema:
+            yield self._text_response(json.dumps(_value_for_schema(response_schema, llm_request.contents)))
             return
         yield self._text_response(f"offline response: {_last_user_text(llm_request.contents)}")
 
@@ -399,6 +406,36 @@ def _first_tool_argument_name(tool: Any) -> str:
     return "input"
 
 
+def _response_schema(llm_request: Any) -> dict[str, Any] | None:
+    config = getattr(llm_request, "config", None)
+    schema = getattr(config, "response_schema", None)
+    return schema if isinstance(schema, dict) else None
+
+
+def _value_for_schema(schema: dict[str, Any], contents: list[Any]) -> Any:
+    if "default" in schema:
+        return schema["default"]
+    raw_type = schema.get("type", "string")
+    types = raw_type if isinstance(raw_type, list) else [raw_type]
+    if "object" in types:
+        properties = schema.get("properties") or {}
+        required = schema.get("required") or []
+        selected = list(required) or list(properties)
+        return {
+            name: _value_for_schema(properties.get(name, {}), contents)
+            for name in selected
+        }
+    if "array" in types:
+        return []
+    if "boolean" in types:
+        return True
+    if "integer" in types:
+        return 1
+    if "number" in types:
+        return 1.0
+    return _last_user_text(contents) or "ok"
+
+
 def _latest_function_response(contents: list[Any]) -> Any | None:
     for content in reversed(contents or []):
         for part in reversed(getattr(content, "parts", []) or []):
@@ -429,12 +466,26 @@ def _last_user_text(contents: list[Any]) -> str:
     return ""
 
 
-def _final_output(events: list[Any]) -> Any:
+def _final_output(events: list[Any], spec: AgentSpec) -> Any:
     for event in reversed(events):
         text = _event_text(event)
         if text:
-            return text
+            return _coerce_structured_output(text, spec)
     return ""
+
+
+def _coerce_structured_output(text: str, spec: AgentSpec) -> Any:
+    if spec.output_type is None and spec.output_schema is None:
+        return text
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return text
+    if spec.output_type is not None:
+        model_validate = getattr(spec.output_type, "model_validate", None)
+        if callable(model_validate):
+            return model_validate(payload)
+    return payload
 
 
 def _event_text(event: Any) -> str:

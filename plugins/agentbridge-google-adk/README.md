@@ -12,6 +12,8 @@ AgentBridge adapter plugin for `google_adk`.
 ## Target Capabilities
 
 - Agent and tool mapping.
+- Structured output through ADK `output_schema` plus AgentBridge validation into typed
+  `AgentSpec.output_type` when available.
 - Runner execution with in-memory or caller-supplied sessions.
 - Session propagation from `RunInput.session_id`.
 - Native ADK Agent options through `GoogleADKExtension`, including descriptions, global/static
