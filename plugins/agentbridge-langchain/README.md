@@ -54,6 +54,18 @@ When `LangChainExtension.config(callbacks=..., metadata=...)` is used, the adapt
 values into LangChain's native runtime config and includes a serializable `runtime_config` summary in
 `RunResult.metadata`.
 
+LangSmith smoke coverage is available but disabled by default to avoid accidental network calls:
+
+```bash
+export AGENTBRIDGE_LANGSMITH_SMOKE=1
+export LANGSMITH_API_KEY=...
+export LANGSMITH_PROJECT=agentbridge-smoke
+pytest plugins/agentbridge-langchain/tests/test_langsmith_smoke.py
+```
+
+The smoke test runs the offline LangChain adapter inside a LangSmith tracing context and verifies
+that AgentBridge runtime metadata is preserved.
+
 When `stream_agent(..., backend="langchain")` is used, the adapter first tries LangChain's event
 streaming API and normalizes message deltas, tool-call chunks, completed tool calls, tool results,
 and custom updates into `AgentEvent` values. If a LangChain runtime only supports classic

@@ -162,7 +162,7 @@ def extension_profiles() -> list[ExtensionProfile]:
             notes=[
                 "External plugin maps AgentSpec to LangChain create_agent and ToolSpec to StructuredTool.",
                 "Structured output is validated through native response_format and structured_response; run diagnostics summarize messages, tools, runtime config, and extension options.",
-                "LangGraph remains the preferred stateful orchestration backend; native retriever/checkpointer/store examples are covered, while LangSmith provider behavior remains extension-level.",
+                "LangGraph remains the preferred stateful orchestration backend; native retriever/checkpointer/store examples and a gated LangSmith smoke hook are covered.",
             ],
         ),
     ]
