@@ -36,6 +36,7 @@ Examples:
 - LangChain middleware, callbacks, memory, and retrievers become `LangChainExtension` hints.
 - LangChain runnable methods, LCEL sequence steps, visible graph nodes/edges, input/output/config schema names, interrupt policies, native checkpointers, and native stores are surfaced as hints for review.
 - LangChain compiled graph topology and LCEL sequences are marked `native_only` unless they can be safely represented by an adapter-specific extension or by LangGraph helpers.
+- Real LangChain `RunnableSequence` objects are covered by migration tests for steps, schemas, graph node names, and edge summaries.
 - LangGraph nodes are surfaced as extension hints, but node behavior and edge conditions still require manual review.
 
 ## Non-Goals
