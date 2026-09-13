@@ -3,6 +3,7 @@ from __future__ import annotations
 from examples.deep_scenario_report import build_report
 from examples.google_adk_enterprise_report import build_report as build_google_adk_report
 from examples.model_routes import build_model_route_catalog
+from examples.pydantic_validation_report import build_report as build_pydantic_report
 from examples.rag_migration_report import build_report as build_rag_report
 from examples.strands_agentcore_report import build_report as build_strands_report
 
@@ -129,3 +130,27 @@ def test_google_adk_enterprise_report_documents_service_and_eval_shape() -> None
         assert "complete" in report["offline_run_comparison"]["google_adk"]["events"]
     else:
         assert "error" in report["offline_run_comparison"]["google_adk"]
+
+
+def test_pydantic_validation_report_documents_typed_output_shape() -> None:
+    report = build_pydantic_report()
+
+    assert report["source_framework"] == "pydantic_ai"
+    assert report["target_framework"] == "langgraph"
+    pydantic_config = report["framework_extensions"]["pydantic_ai_source"]
+    assert pydantic_config["retries"] == 3
+    assert pydantic_config["tool_timeout"] == 8
+    assert pydantic_config["metadata"]["validation_policy"] == "strict_refund_decision_contract"
+    assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
+    assert report["model_routes"]["offline_test_model"] == "test"
+    assert report["model_routes"]["openrouter"] == "openrouter/openai/gpt-4o-mini"
+    assert report["capability_deltas"]["typed_output"] == "full"
+    assert report["offline_run_comparison"]["mock"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["output"]["eligible"] is True
+    assert "pydantic_ai" in report["offline_run_comparison"]
+    if report["offline_run_comparison"]["pydantic_ai"]["available"]:
+        assert report["offline_run_comparison"]["pydantic_ai"]["output"]["eligible"] is True
+        assert "complete" in report["offline_run_comparison"]["pydantic_ai"]["events"]
+    else:
+        assert "error" in report["offline_run_comparison"]["pydantic_ai"]

@@ -34,6 +34,7 @@ Reports should intentionally exercise non-trivial framework features:
 
 - LangGraph: graph routing, checkpointing, interrupts, resume, conditional edges, state schemas.
 - LangChain: LCEL runnable chains, middleware, callbacks, retrievers, stores, LangSmith tracing.
+- Pydantic AI: typed outputs, Pydantic validation, validation retries, tool timeouts, dependency injection boundaries.
 - OpenAI Agents SDK: handoffs, guardrails, approvals, Runner options, tracing and run items.
 - Strands Agents: MCP clients, hooks, interventions, guardrail traces, AgentCore deployment metadata.
 - Google ADK: session services, memory services, artifact services, sub-agents, eval/deployment metadata.
@@ -60,6 +61,7 @@ Reports should still document the tested shapes:
 | Scenario | Source | Target | Deep Features | Model Routes | Default Test Mode |
 | --- | --- | --- | --- | --- | --- |
 | Refund approval migration | OpenAI Agents | LangGraph | approvals, queue payloads, interrupts, checkpoint resume | `agentbridge/offline`, `openai/gpt-5`, OpenRouter-compatible | Offline by default |
+| Typed refund validation | Pydantic AI | LangGraph | typed outputs, validation retries, tool timeouts, graph checkpointing | `test`, hosted/local/OpenAI-compatible | Offline output comparison |
 | Support RAG migration | LangChain | LangGraph | retriever, store, callbacks, graph topology | `agentbridge/offline`, local Ollama-style model | Offline output comparison |
 | AWS production path | Strands | LangGraph | MCP, guardrails, hooks, interventions, session/memory managers, AgentCore metadata | Bedrock/NIM/OpenAI-compatible/local | Offline output comparison; live AgentCore remains credentialed |
 | Google enterprise path | Google ADK | LangGraph | session, memory, artifacts, credentials, callbacks, sub-agents, eval labels, deployment metadata | `google/gemini`, local/offline/OpenAI-compatible | Offline output comparison; live eval/deploy remains credentialed |
