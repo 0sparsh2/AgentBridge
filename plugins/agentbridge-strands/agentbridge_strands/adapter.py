@@ -40,6 +40,7 @@ class Adapter(BackendAdapter):
                 "structured_output": "full",
                 "guardrails": "extension",
                 "observability.tracing": "extension",
+                "observability.diagnostics": "full",
                 "deployment.serverless": "extension",
                 "observability.raw": "full",
                 "streaming.events": "partial",
@@ -52,6 +53,7 @@ class Adapter(BackendAdapter):
                 "structured_output": "Maps AgentSpec.output_type to Strands structured_output_model and validates native structured output.",
                 "guardrails": "Records guardrail/intervention hints and forwards native interventions when supplied.",
                 "observability.tracing": "Passes trace_attributes and preserves extension/runtime summaries.",
+                "observability.diagnostics": "Summarizes tool lifecycle events, guardrails, MCP clients, hooks, interventions, usage, interrupts, checkpoints, and extension options.",
                 "deployment.serverless": "Records deployment_target metadata for AgentCore/Lambda-style deployment paths.",
                 "streaming.events": "Uses Strands stream_async when available and normalizes events best-effort.",
             },
@@ -157,6 +159,12 @@ class Adapter(BackendAdapter):
                 "extension_config": _safe_summary(compiled_agent.config),
                 "extension_summary": _extension_summary(compiled_agent.config),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
+                "run_diagnostics": _run_diagnostics(
+                    result,
+                    events,
+                    compiled_agent,
+                    run_input,
+                ),
             },
             raw=result,
         )
@@ -475,6 +483,35 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _run_diagnostics(
+    result: Any,
+    events: list[AgentEvent],
+    compiled: CompiledStrandsAgent,
+    run_input: RunInput,
+) -> dict[str, Any]:
+    event_counts: dict[str, int] = {}
+    for event in events:
+        event_counts[event.type] = event_counts.get(event.type, 0) + 1
+    extension_summary = _extension_summary(compiled.config)
+    return {
+        "message_count": len(getattr(compiled.native_agent, "messages", []) or []),
+        "tool_calls_count": event_counts.get("tool_call", 0),
+        "tool_results_count": event_counts.get("tool_result", 0),
+        "event_counts": event_counts,
+        "stop_reason": getattr(result, "stop_reason", None),
+        "usage": _usage_from_result(result),
+        "interrupts": _safe_repr(getattr(result, "interrupts", None)),
+        "checkpoint": _safe_repr(getattr(result, "checkpoint", None)),
+        "invocation_state": _safe_summary(_invocation_state(run_input)),
+        "extension_summary": extension_summary,
+        "guardrails_count": len(compiled.config.get("guardrails") or []),
+        "hooks_count": extension_summary["hooks_count"],
+        "interventions_count": extension_summary["interventions_count"],
+        "native_mcp_clients_count": extension_summary["native_mcp_clients_count"],
+        "native_agent_type": type(compiled.native_agent).__name__,
+    }
+
+
 def _deployment_summary(config: dict[str, Any]) -> dict[str, Any]:
     deployment = dict(config.get("deployment") or {})
     target = config.get("deployment_target") or deployment.get("target")
@@ -550,7 +587,16 @@ def _normalize_native_event(native_event: Any, *, backend: str) -> AgentEvent:
         keys = {str(key).lower() for key in native_event}
     else:
         keys = {type(native_event).__name__.lower()}
-    if any("tool" in key and ("result" in key or "output" in key) for key in keys):
+    if any("guardrail" in key for key in keys):
+        event_type = "workflow"
+        payload.setdefault("phase", "guardrail")
+    elif any("intervention" in key for key in keys):
+        event_type = "workflow"
+        payload.setdefault("phase", "intervention")
+    elif any("hook" in key for key in keys):
+        event_type = "workflow"
+        payload.setdefault("phase", "hook")
+    elif any("tool" in key and ("result" in key or "output" in key) for key in keys):
         event_type = "tool_result"
     elif any("tool" in key for key in keys):
         event_type = "tool_call"
