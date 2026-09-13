@@ -243,7 +243,7 @@ Observed concepts:
 - `Agent` and `tool` decorators.
 - Conversation managers.
 - MCP clients/tools.
-- Hooks for tool lifecycle and guardrails.
+- Hooks for tool lifecycle, interventions, and guardrails.
 - Structured output.
 - Observability and trace attributes.
 - AWS/Bedrock/AgentCore deployment alignment.
@@ -284,6 +284,8 @@ Acceptance path:
 - Map `ToolSpec` callables into Strands tools.
 - Map `output_type` to structured output path.
 - Normalize hook/tool lifecycle events into `AgentEvent`.
+- Preserve native MCP clients, intervention actions, and guardrail traces while exposing JSON-safe
+  summaries.
 - Preserve trace attributes and raw result.
 
 Risks:
@@ -308,7 +310,7 @@ Risks:
 ## Recommended Next Work
 
 1. Add OpenAI Agents backend-neutral approval resume queues and deeper real-SDK approval fixtures around SDK run state.
-2. Add Strands deeper guardrail behavior tests beyond normalized hook/intervention/guardrail lifecycle event shapes and live deployment smoke coverage beyond metadata preservation.
+2. Add Strands live AgentCore/AWS deployment smoke coverage beyond metadata preservation.
 3. Add additional real-world LangChain Runnable/compiled-graph import fixtures as new project shapes appear.
 4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment publishing examples beyond metadata preservation.
 5. Keep import/migration helpers for existing LangChain and LangGraph apps conservative, expanding only when object shapes can be inspected safely.
