@@ -3,6 +3,7 @@ from __future__ import annotations
 from examples.deep_scenario_report import build_report
 from examples.model_routes import build_model_route_catalog
 from examples.rag_migration_report import build_report as build_rag_report
+from examples.strands_agentcore_report import build_report as build_strands_report
 
 
 def test_deep_scenario_report_documents_frameworks_and_model_routes() -> None:
@@ -77,3 +78,26 @@ def test_rag_migration_report_documents_langchain_to_langgraph_shape() -> None:
     assert report["offline_run_comparison"]["langgraph"]["available"] is True
     assert "workflow" in report["offline_run_comparison"]["langgraph"]["events"]
     assert "retriever" in " ".join(report["migration_notes"]).lower()
+
+
+def test_strands_agentcore_report_documents_production_path_shape() -> None:
+    report = build_strands_report()
+
+    assert report["source_framework"] == "strands"
+    assert report["target_framework"] == "langgraph"
+    strands_config = report["framework_extensions"]["strands_source"]
+    assert strands_config["deployment_target"] == "agentcore"
+    assert strands_config["deployment"]["runtime"] == "bedrock-agentcore"
+    assert strands_config["mcp_clients"] == ["orders_mcp", "payments_mcp"]
+    assert "refund_policy_guardrail" in strands_config["guardrails"]
+    assert "human_review_for_high_value_refunds" in strands_config["interventions"]
+    assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
+    assert report["model_routes"]["local_ollama"] == "ollama/llama3.1"
+    assert report["model_routes"]["nvidia_nim_openai_compatible"] == "openai/nvidia-model-name"
+    assert report["offline_run_comparison"]["mock"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert "strands" in report["offline_run_comparison"]
+    if report["offline_run_comparison"]["strands"]["available"]:
+        assert "complete" in report["offline_run_comparison"]["strands"]["events"]
+    else:
+        assert "error" in report["offline_run_comparison"]["strands"]
