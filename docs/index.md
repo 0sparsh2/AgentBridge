@@ -38,6 +38,7 @@ Use this page as the navigation map for the repository.
 - [examples/framework_extensions.py](../examples/framework_extensions.py): Framework-specific extension config examples for LangChain, OpenAI Agents, Strands, and Google ADK.
 - [examples/langchain_native_memory_retriever.py](../examples/langchain_native_memory_retriever.py): Offline LangChain example with native retriever, checkpointer, and store objects.
 - [examples/deep_scenario_report.py](../examples/deep_scenario_report.py): No-key report-shaped example for deep framework features, migrations, outputs, and model routing.
+- [examples/openai_agents_approval_report.py](../examples/openai_agents_approval_report.py): No-key OpenAI Agents-to-LangGraph approval queue/resume report with output comparison.
 - [examples/rag_migration_report.py](../examples/rag_migration_report.py): No-key LangChain-to-LangGraph RAG migration report with output comparison.
 - [examples/strands_agentcore_report.py](../examples/strands_agentcore_report.py): No-key Strands-to-LangGraph AgentCore production-path report with output comparison.
 - [examples/google_adk_enterprise_report.py](../examples/google_adk_enterprise_report.py): No-key Google ADK-to-LangGraph enterprise services/eval/deployment report with output comparison.

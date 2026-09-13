@@ -60,7 +60,7 @@ Reports should still document the tested shapes:
 
 | Scenario | Source | Target | Deep Features | Model Routes | Default Test Mode |
 | --- | --- | --- | --- | --- | --- |
-| Refund approval migration | OpenAI Agents | LangGraph | approvals, queue payloads, interrupts, checkpoint resume | `agentbridge/offline`, `openai/gpt-5`, OpenRouter-compatible | Offline by default |
+| Refund approval migration | OpenAI Agents | LangGraph | approvals, queue payloads, handoffs, guardrails, MCP, interrupts, checkpoint resume | `agentbridge/offline`, `openai/gpt-5`, OpenRouter-compatible | Offline output comparison; native resume remains credentialed |
 | Typed refund validation | Pydantic AI | LangGraph | typed outputs, validation retries, tool timeouts, graph checkpointing | `test`, hosted/local/OpenAI-compatible | Offline output comparison |
 | Support RAG migration | LangChain | LangGraph | retriever, store, callbacks, graph topology | `agentbridge/offline`, local Ollama-style model | Offline output comparison |
 | AWS production path | Strands | LangGraph | MCP, guardrails, hooks, interventions, session/memory managers, AgentCore metadata | Bedrock/NIM/OpenAI-compatible/local | Offline output comparison; live AgentCore remains credentialed |
