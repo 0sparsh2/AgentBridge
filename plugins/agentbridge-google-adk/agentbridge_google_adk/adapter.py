@@ -43,6 +43,7 @@ class Adapter(BackendAdapter):
                 "workflow.delegation": "extension",
                 "deployment.serverless": "extension",
                 "evals": "extension",
+                "observability.diagnostics": "full",
                 "observability.raw": "full",
                 "streaming.events": "partial",
             },
@@ -56,6 +57,7 @@ class Adapter(BackendAdapter):
                 "workflow.delegation": "Forwards native sub_agents and transfer controls when supplied.",
                 "deployment.serverless": "Records deployment_target metadata for ADK deployment paths.",
                 "evals": "Records eval metadata; native eval execution remains extension-level.",
+                "observability.diagnostics": "Normalizes event history, session/service bindings, and transfer-to-agent targets into run_diagnostics metadata.",
                 "streaming.events": "Normalizes Runner.run events best-effort.",
             },
         )

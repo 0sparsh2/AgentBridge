@@ -23,7 +23,7 @@ AgentBridge should track framework support across these areas:
 - Streaming: token streaming, message deltas, tool-call lifecycle, custom events.
 - Human-in-the-loop: approval gates, interrupts, resume, review queues.
 - Runtime behavior: retries, timeouts, cancellation, parallelism, durable execution.
-- Observability: traces, spans, logs, eval hooks, cost/usage reporting.
+- Observability: traces, spans, logs, run diagnostics, eval hooks, cost/usage reporting.
 - Deployment: local execution, hosted runtimes, serverless, containers, background jobs.
 - UI protocols: AG-UI event conversion, generative UI, frontend tool calls.
 - Multi-agent behavior: roles, teams, swarms, delegation, agent-to-agent protocols.

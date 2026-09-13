@@ -179,7 +179,9 @@ def test_extension_registry_lists_framework_profiles() -> None:
     assert "middleware" in profiles["langchain"].config_schema["properties"]
     assert "workflow.routing" in profiles["langgraph"].capabilities
     assert "tools.mcp" in profiles["openai_agents"].capabilities
+    assert "observability.diagnostics" in profiles["openai_agents"].capabilities
     assert "structured_output" in profiles["google_adk"].capabilities
+    assert "observability.diagnostics" in profiles["google_adk"].capabilities
     assert "structured_output" in profiles["langchain"].capabilities
     assert any("MCP client/tool-provider" in note for note in profiles["strands"].notes)
     assert any("resume_agent" in note for note in profiles["langgraph"].notes)

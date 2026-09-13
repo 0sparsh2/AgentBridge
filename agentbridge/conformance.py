@@ -54,6 +54,7 @@ def _run_backend_conformance(backend: str) -> ConformanceReport:
         _check_stream(backend),
         _check_sync_tools(backend),
         _check_structured_output(backend),
+        _check_run_diagnostics(backend),
     ]
     return ConformanceReport(backend=adapter.backend_name, checks=checks)
 
@@ -171,6 +172,32 @@ def _check_structured_output(backend: str) -> ConformanceCheck:
         return "structured output returned typed result"
 
     return _capture("structured_output", run)
+
+
+def _check_run_diagnostics(backend: str) -> ConformanceCheck:
+    adapter = get_adapter(backend)
+    if adapter.capabilities().status("observability.diagnostics") != "full":
+        return ConformanceCheck(
+            name="run_diagnostics",
+            passed=True,
+            skipped=True,
+            message="backend does not advertise full run diagnostics support",
+        )
+
+    def run() -> str:
+        spec = AgentSpec(
+            name=f"{backend}_diagnostics_agent",
+            instructions="Return diagnostics.",
+            model=_model_for_backend(backend),
+        )
+        compiled = adapter.compile(spec)
+        result = adapter.run(compiled, RunInput(input="hello", session_id="diagnostics-session"))
+        diagnostics = result.metadata.get("run_diagnostics")
+        if not isinstance(diagnostics, dict) or not diagnostics:
+            raise AssertionError("missing run_diagnostics metadata")
+        return "run diagnostics metadata is present"
+
+    return _capture("run_diagnostics", run)
 
 
 def _capture(name: str, callback: Callable[[], str]) -> ConformanceCheck:

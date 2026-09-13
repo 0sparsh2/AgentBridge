@@ -40,6 +40,7 @@ class Adapter(BackendAdapter):
                 "guardrails": "extension",
                 "human_approval": "extension",
                 "observability.tracing": "extension",
+                "observability.diagnostics": "full",
                 "observability.raw": "full",
                 "streaming.events": "partial",
             },
@@ -52,6 +53,7 @@ class Adapter(BackendAdapter):
                 "guardrails": "Forwards native input/output guardrails and records approval policy hints.",
                 "human_approval": "Records approval_policy metadata; native approval/resume flow tests are not implemented yet.",
                 "observability.tracing": "Preserves trace/run config summaries; SDK/provider tracing remains extension-level.",
+                "observability.diagnostics": "Normalizes approval interruptions, guardrail results, response IDs, and resumability hints into run_diagnostics metadata.",
                 "streaming.events": "Uses SDK run_streamed when available and normalizes streamed event objects best-effort.",
             },
         )

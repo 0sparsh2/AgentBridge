@@ -300,6 +300,7 @@ Risks:
 - `workflow.handoffs`: added to canonical taxonomy.
 - `deployment.serverless`: added to canonical taxonomy.
 - `observability.tracing`: added to canonical taxonomy.
+- `observability.diagnostics`: added to canonical taxonomy.
 - `state.memory`: added to canonical taxonomy.
 - `runtime.retries`: added to canonical taxonomy.
 - `evals`: added to canonical taxonomy.
