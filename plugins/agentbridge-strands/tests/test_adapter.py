@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from pydantic import BaseModel
 
 from agentbridge import AgentSpec, RunInput, ToolSpec
@@ -205,6 +207,55 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
             "record_direct_tool_call",
         ],
     }
+
+
+def test_adapter_supports_native_strands_mcp_stdio_client(monkeypatch) -> None:
+    pytest.importorskip("mcp")
+    mcp_module = pytest.importorskip("strands.tools.mcp")
+    stdio_module = pytest.importorskip("mcp.client.stdio")
+    server_path = Path(__file__).parent / "fixtures" / "mcp_refund_server.py"
+    client = mcp_module.MCPClient(
+        lambda: stdio_module.stdio_client(
+            stdio_module.StdioServerParameters(
+                command=sys.executable,
+                args=[str(server_path)],
+            )
+        )
+    )
+
+    with client:
+        tools = client.list_tools_sync()
+        assert [getattr(tool, "tool_name", getattr(tool, "name", None)) for tool in tools] == [
+            "check_order"
+        ]
+        tool_result = client.call_tool_sync(
+            "agentbridge-test-call",
+            "check_order",
+            {"order_id": "A123"},
+        )
+
+    monkeypatch.setitem(
+        sys.modules,
+        "strands",
+        SimpleNamespace(Agent=FakeStrandsAgent, tool=fake_tool),
+    )
+    adapter = Adapter()
+    agent = StrandsExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Use the MCP order server.",
+            model="mock/model",
+        ),
+        mcp_clients=[client],
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(compiled, RunInput(input="hello"))
+
+    assert tool_result["structuredContent"] == {"result": "found:A123"}
+    assert compiled.native_tools == [client]
+    assert compiled.native_agent.kwargs["tools"] == [client]
+    assert result.metadata["extension_summary"]["native_mcp_clients_count"] == 1
 
 
 def test_adapter_runs_offline_model_through_native_agent() -> None:

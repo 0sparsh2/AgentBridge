@@ -12,7 +12,8 @@ AgentBridge adapter plugin for `strands`.
 ## Target Capabilities
 
 - Agent and tool mapping.
-- MCP client/tool-provider pass-through through `StrandsExtension`; plain string labels are kept as
+- MCP client/tool-provider pass-through through `StrandsExtension`; a local MCP stdio server/client
+  fixture verifies native `MCPClient` tool listing and calls. Plain string labels are kept as
   metadata hints.
 - Native hooks, plugins, interventions, session managers, memory managers, context managers, retry
   strategies, checkpointing, sandbox, storage, and background-task options through
@@ -48,6 +49,11 @@ serializable `extension_summary` in `RunResult.metadata`. Native MCP client/tool
 stream events are normalized as workflow events with lifecycle phases. Plain string labels,
 guardrail labels, and deployment targets are recorded as extension metadata until AgentBridge has
 deeper native no-network tests for those execution paths.
+
+The plugin test suite includes a local MCP stdio fixture at
+`tests/fixtures/mcp_refund_server.py`. It starts an MCP 2.x `MCPServer`, lists the `check_order`
+tool through Strands `MCPClient`, calls the tool, and verifies the same native client object is
+passed through AgentBridge into the Strands Agent `tools` list.
 
 Deployment metadata can be recorded without installing AWS deployment tooling:
 
