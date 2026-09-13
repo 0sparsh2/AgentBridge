@@ -92,6 +92,7 @@ sequenceDiagram
 - `RunInput`: Input text plus context, metadata, and session id.
 - `AgentEvent`: Normalized event for messages, tool calls, tool results, errors, and completion.
 - `RunResult`: Normalized result with output, backend, events, usage, metadata, and raw backend result.
+- `ApprovalQueue`: Lightweight app-owned queue for pending human approval records and portable resume payloads.
 - `BackendCapabilities`: Feature coverage metadata advertised by each backend.
 - `BackendAdapter`: Framework adapter contract.
 - `AgentManifest`: Static JSON/YAML agent definition used by the CLI and future migration tooling.
@@ -155,7 +156,8 @@ AgentBridge should not flatten every framework into the lowest common denominato
 
 - Common core: Features every backend can reasonably support, such as instructions, model, tools, input, output, and normalized events.
 - Capability layer: Feature flags that describe what a backend supports, such as graph state, typed output, memory, human approval, retries, tracing, multimodal input, or multi-agent handoffs.
-- Extension layer: Backend-specific configuration and helper APIs for concepts that are useful but not portable.
+- Extension layer: Backend-specific configuration and helper APIs for concepts that are useful but not fully portable.
+- App-owned coordination helpers: Plain-data helpers such as `ApprovalQueue` that bridge common workflow needs while leaving native execution semantics with each adapter.
 - Native escape hatches: Backend-specific raw objects for features that cannot be expressed cleanly in the common model yet.
 
 ```mermaid

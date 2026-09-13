@@ -19,7 +19,8 @@ AgentBridge adapter plugin for `openai_agents`.
   conversation/session options, and session objects through `OpenAIAgentsExtension`.
 - Approval policy, approval interruption, guardrail diagnostic, handoff item, and tracing metadata
   summaries.
-- Application-owned approval request stores through `OpenAIAgentsExtension.approval_store`.
+- Application-owned approval request stores and the backend-neutral `ApprovalQueue` helper through
+  `OpenAIAgentsExtension.approval_store`.
 - Raw run/result preservation.
 
 ## Dependency Note
@@ -61,12 +62,39 @@ UIs and audits:
 
 Approval, guardrail, and handoff run items are also normalized as `AgentEvent(type="workflow")`.
 If `OpenAIAgentsExtension.approval_store` is supplied, approval interruptions are written as safe
-records containing the interruption summary, SDK state snapshot summary, last response ID, and last
-agent summary. Store objects can expose `record_approval_request(record)`, `save(record)`, or
-`append(record)`.
+records containing the backend, pending status, interruption summary, SDK state snapshot summary,
+last response ID, and last agent summary. Store objects can expose
+`record_approval_request(record)`, `save(record)`, or `append(record)`.
 
-AgentBridge still does not implement a full approval UI or backend-neutral resume queue for OpenAI
-Agents. Use the persisted approval records, preserved raw result, or SDK state with
+For a lightweight backend-neutral queue, pass `agentbridge.ApprovalQueue`:
+
+```python
+from agentbridge import AgentSpec, ApprovalQueue
+from agentbridge.extensions.openai_agents import OpenAIAgentsExtension
+
+approval_queue = ApprovalQueue()
+agent = OpenAIAgentsExtension.with_config(
+    AgentSpec(
+        name="support_agent",
+        instructions="Use approvals for refund tools.",
+        model="openai/gpt-5",
+    ),
+    approval_policy={"issue_refund": "required"},
+    approval_store=approval_queue,
+)
+
+# After a run records an interruption:
+pending = approval_queue.pending(backend="openai_agents")
+resume_payload = approval_queue.approve(
+    pending[0]["id"],
+    response={"approved": True},
+    reviewer="support-lead",
+)
+```
+
+The queue returns a portable resume payload containing the approval decision, SDK state summary,
+last response ID, and last agent summary. AgentBridge still does not execute the native OpenAI
+Agents SDK resume call for you; use the payload, preserved raw result, or SDK state with
 application-owned approval workflows.
 
 ## Local Development Without Installing

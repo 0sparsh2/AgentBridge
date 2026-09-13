@@ -54,8 +54,9 @@ ADOPTED_DEPENDENCIES = {
             "The executable baseline is 0.20.x because it remains compatible with the current "
             "LiteLLM/OpenAI dependency path. External plugin maps Agent, Runner, tools, native "
             "structured output, handoff/guardrail/MCP/run options, approval interruption "
-            "summaries, guardrail diagnostics, best-effort events, and extension metadata; "
-            "application-owned approval UIs/resume stores remain extension-level."
+            "summaries, app-owned approval stores, ApprovalQueue resume payload helpers, "
+            "guardrail diagnostics, best-effort events, and extension metadata; approval UIs "
+            "and native SDK resume execution remain extension-level."
         ),
     },
     "google_adk": {
