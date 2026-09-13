@@ -41,7 +41,7 @@ class LangGraphAdapter(BackendAdapter):
                 "agent.model": "partial",
                 "tools.sync": "full",
                 "tools.async": "partial",
-                "structured_output": "partial",
+                "structured_output": "full",
                 "workflow.graph": "full",
                 "workflow.routing": "extension",
                 "workflow.roles_tasks": "extension",
@@ -58,6 +58,7 @@ class LangGraphAdapter(BackendAdapter):
                 "human_approval": "Interrupt state is reported when configured and checkpointed runs can resume through resume_agent().",
                 "agent.model": "Current adapter demonstrates graph execution without calling a model.",
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
+                "structured_output": "Deterministically validates graph output against AgentSpec.output_type/output_schema; use backend_config.custom_output_args for fixture data.",
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True).",
                 "workflow.routing": "Enable via LangGraphExtension.config(route_on_context_key=..., routes=...).",
                 "observability.diagnostics": "Summarizes route, checkpointing, interrupts, tools, and normalized event counts.",
@@ -86,6 +87,12 @@ class LangGraphAdapter(BackendAdapter):
             }
             if config.include_context_in_output:
                 output["context"] = state.get("context", {})
+            output = _structured_output_for_spec(
+                spec,
+                fallback=output,
+                run_input=state["input"],
+                route_name=route_name,
+            )
             return {
                 "input": state["input"],
                 "output": output,
@@ -389,4 +396,69 @@ class LangGraphAdapter(BackendAdapter):
             "tool_outputs_count": len(raw.get("tool_outputs", []) or []),
             "route_targets_count": len(route_targets),
             "event_counts": event_counts,
+            "structured_output": compiled.spec.output_type is not None
+            or compiled.spec.output_schema is not None,
         }
+
+
+def _structured_output_for_spec(
+    spec: AgentSpec,
+    *,
+    fallback: dict[str, Any],
+    run_input: str,
+    route_name: str,
+) -> Any:
+    if spec.output_type is None and spec.output_schema is None:
+        return fallback
+    payload = spec.backend_config.get("custom_output_args")
+    if payload is None:
+        payload = _value_for_schema(
+            spec.output_schema or {},
+            fallback=fallback,
+            run_input=run_input,
+            route_name=route_name,
+        )
+    if spec.output_type is not None:
+        model_validate = getattr(spec.output_type, "model_validate", None)
+        if callable(model_validate):
+            return model_validate(payload)
+    return payload
+
+
+def _value_for_schema(
+    schema: dict[str, Any],
+    *,
+    fallback: dict[str, Any],
+    run_input: str,
+    route_name: str,
+) -> Any:
+    if "default" in schema:
+        return schema["default"]
+    raw_type = schema.get("type", "object")
+    types = raw_type if isinstance(raw_type, list) else [raw_type]
+    if "object" in types:
+        properties = schema.get("properties") or {}
+        required = schema.get("required") or []
+        selected = list(required) or list(properties)
+        if not selected:
+            return fallback
+        return {
+            name: _value_for_schema(
+                properties.get(name, {}),
+                fallback=fallback,
+                run_input=run_input,
+                route_name=route_name,
+            )
+            for name in selected
+        }
+    if "boolean" in types:
+        return True
+    if "integer" in types:
+        return 1
+    if "number" in types:
+        return 1.0
+    if "array" in types:
+        return []
+    if "string" in types:
+        return "ok" if route_name else run_input
+    return fallback

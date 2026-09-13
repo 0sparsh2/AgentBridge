@@ -32,7 +32,7 @@ Current backend status:
 | Backend | Package Path | Status | Notes |
 | --- | --- | --- | --- |
 | `mock` | Core | Verified | Deterministic backend for tests, docs, and no-key demos. |
-| `langgraph` | Core optional extra | Verified locally | Executes a minimal graph, reports checkpoint interrupts, resumes compiled checkpointed runs, and exposes graph run diagnostics. |
+| `langgraph` | Core optional extra | Verified locally | Executes a minimal graph, supports deterministic structured output, reports checkpoint interrupts, resumes compiled checkpointed runs, and exposes graph run diagnostics. |
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
 | `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, app-owned approval request stores, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |

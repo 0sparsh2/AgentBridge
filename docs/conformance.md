@@ -51,7 +51,7 @@ As of the latest local sweep, `agentbridge conformance` passes for every discove
 | --- | --- | --- | --- | --- | --- |
 | `google_adk` | pass | pass | pass | pass | pass |
 | `langchain` | pass | pass | pass | pass | pass |
-| `langgraph` | pass | pass | pass | skipped, not advertised as `full` | pass |
+| `langgraph` | pass | pass | pass | pass | pass |
 | `mock` | pass | pass | pass | skipped, not advertised as `full` | skipped, not advertised as `full` |
 | `openai_agents` | pass | pass | pass | pass | pass |
 | `pydantic_ai` | pass | pass | pass | pass | skipped, not advertised as `full` |

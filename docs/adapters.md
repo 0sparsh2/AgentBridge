@@ -66,6 +66,7 @@ Current focus:
 - Normalize graph outputs into `RunResult`.
 - Preserve native raw objects for deeper graph behavior.
 - Support `LangGraphExtension.config()` for node naming, graph naming, context echoing, in-memory checkpointing, and context-based conditional routing.
+- Validate deterministic structured output through `AgentSpec.output_type` or `output_schema`.
 - Report checkpoint-backed interrupt state when `interrupt_before` or `interrupt_after` pauses execution.
 - Resume checkpointed interrupts through `resume_agent(compiled, backend="langgraph", session_id=...)`
   or `get_adapter("langgraph").resume(...)`.
