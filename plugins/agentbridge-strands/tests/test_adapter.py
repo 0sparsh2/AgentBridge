@@ -108,6 +108,14 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
         load_tools_from_directory=True,
         record_direct_tool_call=False,
         deployment_target="agentcore",
+        deployment={
+            "runtime": "bedrock-agentcore",
+            "entrypoint": "app:agent",
+            "region": "us-east-1",
+            "session_header": "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id",
+            "trace_headers": ["X-Amzn-Trace-Id", "traceparent", "baggage"],
+            "observability": {"cloudwatch": True, "xray": True},
+        },
         metadata={"owner": "support"},
     )
 
@@ -159,7 +167,15 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
         "native_mcp_clients_count": 1,
         "trace_attributes": {"service": "support"},
         "guardrails": ["refund_policy"],
-        "deployment_target": "agentcore",
+        "deployment": {
+            "runtime": "bedrock-agentcore",
+            "entrypoint": "app:agent",
+            "region": "us-east-1",
+            "session_header": "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id",
+            "trace_headers": ["X-Amzn-Trace-Id", "traceparent", "baggage"],
+            "observability": {"cloudwatch": True, "xray": True},
+            "target": "agentcore",
+        },
         "session_manager": True,
         "memory_manager": True,
         "applied_native_options": [
@@ -254,3 +270,21 @@ def test_adapter_capabilities_mark_structured_output_full() -> None:
     capabilities = Adapter().capabilities()
 
     assert capabilities.status("structured_output") == "full"
+
+
+def test_strands_extension_records_deployment_metadata() -> None:
+    config = StrandsExtension.config(
+        deployment_target="agentcore",
+        deployment={
+            "runtime": "bedrock-agentcore",
+            "entrypoint": "app:agent",
+            "region": "us-east-1",
+        },
+    )
+
+    assert config["deployment_target"] == "agentcore"
+    assert config["deployment"] == {
+        "runtime": "bedrock-agentcore",
+        "entrypoint": "app:agent",
+        "region": "us-east-1",
+    }
