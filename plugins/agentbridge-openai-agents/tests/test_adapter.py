@@ -30,6 +30,36 @@ class FakeRunner:
         return FakeResult()
 
 
+class FakeDiagnosticResult:
+    final_output = None
+    usage = {"requests": 2}
+    new_items = [
+        SimpleNamespace(raw_item={"type": "handoff_call"}, target_agent="billing_agent"),
+        SimpleNamespace(raw_item={"type": "function_call"}, name="issue_refund"),
+        SimpleNamespace(raw_item={"type": "function_call_output"}, output="queued"),
+        SimpleNamespace(raw_item={"type": "mcp_approval_request"}, server="billing_mcp"),
+        SimpleNamespace(raw_item={"type": "guardrail_result"}, status="passed"),
+    ]
+    interruptions = [SimpleNamespace(id="approval-1", tool_name="issue_refund")]
+    input_guardrail_results = [SimpleNamespace(name="input_policy", tripwire_triggered=False)]
+    output_guardrail_results = [SimpleNamespace(name="output_policy", tripwire_triggered=False)]
+    tool_input_guardrail_results = [SimpleNamespace(name="refund_amount_policy", tripwire_triggered=True)]
+    tool_output_guardrail_results = [SimpleNamespace(name="receipt_policy", tripwire_triggered=False)]
+    last_agent = SimpleNamespace(name="billing_agent")
+    last_response_id = "resp-2"
+    raw_responses = [object(), object()]
+
+    def to_state(self):
+        return SimpleNamespace(id="state-1")
+
+
+class FakeDiagnosticRunner:
+    @staticmethod
+    def run_sync(agent, input, **kwargs):
+        del agent, input, kwargs
+        return FakeDiagnosticResult()
+
+
 def fake_function_tool(func, **kwargs):
     return SimpleNamespace(func=func, kwargs=kwargs)
 
@@ -243,6 +273,63 @@ def test_adapter_runs_offline_tool_loop_through_native_runner() -> None:
     assert "tool_call" in event_types
     assert "tool_result" in event_types
     assert event_types[-1] == "complete"
+
+
+def test_adapter_preserves_openai_agents_run_diagnostics(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "agents",
+        SimpleNamespace(
+            Agent=FakeAgent,
+            Runner=FakeDiagnosticRunner,
+            function_tool=fake_function_tool,
+        ),
+    )
+    adapter = Adapter()
+    spec = OpenAIAgentsExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Use approvals.",
+            model="mock/model",
+        ),
+        approval_policy={"issue_refund": "required"},
+    )
+
+    compiled = adapter.compile(spec)
+    result = adapter.run(compiled, RunInput(input="refund order A123"))
+
+    assert [event.type for event in result.events] == [
+        "workflow",
+        "tool_call",
+        "tool_result",
+        "workflow",
+        "workflow",
+        "workflow",
+        "workflow",
+        "workflow",
+        "workflow",
+        "workflow",
+        "complete",
+    ]
+    assert result.events[0].data["event"] == "handoff"
+    assert result.events[3].data["event"] == "approval"
+    assert result.events[4].data["event"] == "guardrail"
+    assert result.events[5].data["event"] == "approval_required"
+    assert result.events[9].data["kind"] == "tool_output"
+    assert result.metadata["run_diagnostics"] == {
+        "interruptions": [{"id": "approval-1", "tool_name": "issue_refund"}],
+        "resumable": True,
+        "state_type": "SimpleNamespace",
+        "last_agent": {"name": "billing_agent"},
+        "last_response_id": "resp-2",
+        "raw_responses_count": 2,
+        "guardrails": {
+            "input": [{"name": "input_policy", "tripwire_triggered": False}],
+            "output": [{"name": "output_policy", "tripwire_triggered": False}],
+            "tool_input": [{"name": "refund_amount_policy", "tripwire_triggered": True}],
+            "tool_output": [{"name": "receipt_policy", "tripwire_triggered": False}],
+        },
+    }
 
 
 def test_adapter_runs_offline_structured_output_through_native_runner() -> None:

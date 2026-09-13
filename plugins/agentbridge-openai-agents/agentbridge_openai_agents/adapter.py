@@ -145,6 +145,7 @@ class Adapter(BackendAdapter):
                 "extension_config": _safe_summary(compiled_agent.config),
                 "extension_summary": _extension_summary(compiled_agent.config, runner_kwargs),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
+                "run_diagnostics": _run_diagnostics(result),
             },
             raw=result,
         )
@@ -525,6 +526,32 @@ def _events_from_result(result: Any, *, backend: str) -> list[AgentEvent]:
     events: list[AgentEvent] = []
     for item in getattr(result, "new_items", []) or []:
         events.append(_normalize_native_event(item, backend=backend))
+    for interruption in getattr(result, "interruptions", []) or []:
+        events.append(
+            AgentEvent(
+                type="workflow",
+                backend=backend,
+                data={
+                    "event": "approval_required",
+                    "interruption": _safe_summary(interruption),
+                    "native_type": type(interruption).__name__,
+                },
+            )
+        )
+    for guardrail_kind, guardrail_results in _guardrail_result_groups(result).items():
+        for guardrail_result in guardrail_results:
+            events.append(
+                AgentEvent(
+                    type="workflow",
+                    backend=backend,
+                    data={
+                        "event": "guardrail_result",
+                        "kind": guardrail_kind,
+                        "result": _safe_summary(guardrail_result),
+                        "native_type": type(guardrail_result).__name__,
+                    },
+                )
+            )
     return events
 
 
@@ -539,18 +566,72 @@ def _normalize_native_event(native_event: Any, *, backend: str) -> AgentEvent:
     event_name = type(native_event).__name__
     payload = _payload(native_event)
     lowered = event_name.lower()
-    if "tool" in lowered and ("output" in lowered or "result" in lowered):
-        event_type = "tool_result"
-    elif "tool" in lowered:
-        event_type = "tool_call"
-    elif "error" in lowered or "exception" in lowered:
-        event_type = "error"
-    elif "handoff" in lowered or "agentupdated" in lowered:
+    raw_type = _raw_item_type(payload).lower()
+    classifier = f"{lowered} {raw_type}"
+    if "approval" in classifier:
         event_type = "workflow"
+        payload.setdefault("event", "approval")
+    elif "guardrail" in classifier:
+        event_type = "workflow"
+        payload.setdefault("event", "guardrail")
+    elif "handoff" in classifier or "agentupdated" in classifier:
+        event_type = "workflow"
+        payload.setdefault("event", "handoff")
+    elif "tool" in classifier and ("output" in classifier or "result" in classifier):
+        event_type = "tool_result"
+    elif "function_call_output" in classifier:
+        event_type = "tool_result"
+    elif "tool" in classifier or "function_call" in classifier:
+        event_type = "tool_call"
+    elif "error" in classifier or "exception" in classifier:
+        event_type = "error"
     else:
         event_type = "message"
     payload.setdefault("native_type", event_name)
     return AgentEvent(type=event_type, backend=backend, data=payload)
+
+
+def _raw_item_type(payload: dict[str, Any]) -> str:
+    raw_item = payload.get("raw_item")
+    if isinstance(raw_item, dict):
+        return str(raw_item.get("type", ""))
+    return str(getattr(raw_item, "type", ""))
+
+
+def _run_diagnostics(result: Any) -> dict[str, Any]:
+    interruptions = list(getattr(result, "interruptions", []) or [])
+    to_state = getattr(result, "to_state", None)
+    return {
+        "interruptions": _safe_summary(interruptions),
+        "resumable": bool(interruptions and callable(to_state)),
+        "state_type": _state_type(result) if interruptions else None,
+        "last_agent": _safe_summary(getattr(result, "last_agent", None)),
+        "last_response_id": getattr(result, "last_response_id", None),
+        "raw_responses_count": len(getattr(result, "raw_responses", []) or []),
+        "guardrails": {
+            key: _safe_summary(value)
+            for key, value in _guardrail_result_groups(result).items()
+        },
+    }
+
+
+def _state_type(result: Any) -> str | None:
+    to_state = getattr(result, "to_state", None)
+    if not callable(to_state):
+        return None
+    try:
+        return type(to_state()).__name__
+    except Exception:  # pragma: no cover - defensive path for SDK/runtime failures.
+        return None
+
+
+def _guardrail_result_groups(result: Any) -> dict[str, list[Any]]:
+    return {
+        "input": list(getattr(result, "input_guardrail_results", []) or []),
+        "output": list(getattr(result, "output_guardrail_results", []) or []),
+        "tool_input": list(getattr(result, "tool_input_guardrail_results", []) or []),
+        "tool_output": list(getattr(result, "tool_output_guardrail_results", []) or []),
+    }
 
 
 def _payload(value: Any) -> dict[str, Any]:
@@ -569,4 +650,10 @@ def _safe_summary(value: Any) -> Any:
         return [_safe_summary(item) for item in value]
     if isinstance(value, dict):
         return {str(key): _safe_summary(item) for key, item in value.items()}
+    if hasattr(value, "__dict__"):
+        return {
+            str(key): _safe_summary(item)
+            for key, item in value.__dict__.items()
+            if not key.startswith("_")
+        }
     return type(value).__name__

@@ -17,7 +17,8 @@ AgentBridge adapter plugin for `openai_agents`.
 - Structured output through native SDK `output_type` and typed `final_output`.
 - Runner context, max turns, run hooks, run config, error handlers, previous response IDs,
   conversation/session options, and session objects through `OpenAIAgentsExtension`.
-- Approval policy and tracing metadata summaries.
+- Approval policy, approval interruption, guardrail diagnostic, handoff item, and tracing metadata
+  summaries.
 - Raw run/result preservation.
 
 ## Dependency Note
@@ -44,9 +45,21 @@ compiles an OpenAI Agents SDK `Agent` and runs through the native `Runner`, but 
 SDK `Model` implementation so contract checks do not require paid API credentials.
 
 `OpenAIAgentsExtension` forwards native SDK options when supplied and reports serializable
-`runner_kwargs`, `extension_config`, and `extension_summary` metadata on `RunResult`. Human approval
-is still represented as approval-policy metadata until AgentBridge has native no-network tests for
-approval/resume flows.
+`runner_kwargs`, `extension_config`, `extension_summary`, and `run_diagnostics` metadata on
+`RunResult`.
+
+`run_diagnostics` preserves safe summaries of SDK result surfaces that are important for production
+UIs and audits:
+
+- `interruptions`: pending approval interruptions reported by the SDK.
+- `resumable`: whether interruptions exist and the result exposes `to_state()`.
+- `state_type`: the SDK state object's type name, when it can be captured safely.
+- `last_agent`, `last_response_id`, and `raw_responses_count`: continuation and debugging hints.
+- `guardrails`: input, output, tool-input, and tool-output guardrail result summaries.
+
+Approval, guardrail, and handoff run items are also normalized as `AgentEvent(type="workflow")`.
+AgentBridge still does not implement a full approval UI or persisted resume store for OpenAI Agents;
+use the preserved raw result or SDK state with application-owned approval workflows.
 
 ## Local Development Without Installing
 
