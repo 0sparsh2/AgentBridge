@@ -253,6 +253,6 @@ The current external adapter wave expands framework coverage through plugins, ke
 - `agentbridge-openai-agents`: OpenAI Agents SDK handoffs, guardrails, approval interruption diagnostics, app-owned approval stores, backend-neutral `ApprovalQueue` resume payload helpers, tracing, and runner/result normalization.
 - `agentbridge-strands`: Strands Agent/tool mapping, MCP clients with local stdio fixture coverage, native intervention/guardrail trace fixture coverage, hook/intervention/guardrail lifecycle events, structured output, run diagnostics, tracing, and structured AWS/AgentCore deployment metadata.
 - `agentbridge-langchain`: direct LangChain agent compatibility for tools, middleware, callbacks, native memory/retriever examples, stream events, run diagnostics, gated LangSmith smoke coverage, and tracing, complementing the built-in LangGraph adapter.
-- `agentbridge-google-adk`: ADK sessions, memory/artifact services, sub-agent transfer diagnostics, eval labels/runner bindings, run diagnostics, and structured deployment metadata.
+- `agentbridge-google-adk`: ADK sessions, opt-in memory/artifact service snapshots, sub-agent transfer diagnostics, eval labels/runner bindings, run diagnostics, and structured deployment metadata.
 
 Each plugin should start scaffolded, advertise only honest capability statuses, then graduate individual capabilities to `full` only when contract tests exercise the native framework version documented in `docs/version_policy.md`.

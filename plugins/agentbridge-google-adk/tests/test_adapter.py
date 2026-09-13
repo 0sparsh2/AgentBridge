@@ -104,6 +104,32 @@ class FakeDiagnosticRunner:
         )
 
 
+class FakeBehaviorSessionService:
+    def get_session_sync(self, *, app_name, user_id, session_id):
+        return {"app_name": app_name, "user_id": user_id, "id": session_id}
+
+    def list_sessions_sync(self, *, app_name, user_id):
+        return {"sessions": [{"app_name": app_name, "user_id": user_id, "id": "session-1"}]}
+
+    def get_user_state(self, *, app_name, user_id):
+        return {"app_name": app_name, "user_id": user_id, "tier": "gold"}
+
+
+class FakeBehaviorMemoryService:
+    def search_memory(self, *, app_name, user_id, query):
+        return {"memories": [{"app_name": app_name, "user_id": user_id, "text": query}]}
+
+
+class FakeBehaviorArtifactService:
+    def list_artifact_keys(self, *, app_name, user_id, session_id):
+        del app_name, user_id, session_id
+        return ["refund-policy.md"]
+
+    def list_versions(self, *, app_name, user_id, filename, session_id):
+        del app_name, user_id, filename, session_id
+        return [1, 2]
+
+
 def install_fake_google_adk(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "google.adk.agents", SimpleNamespace(Agent=FakeADKAgent))
     monkeypatch.setitem(sys.modules, "google.adk.runners", SimpleNamespace(Runner=FakeRunner))
@@ -273,6 +299,7 @@ def test_adapter_forwards_google_adk_extension_surface(monkeypatch) -> None:
         "runner_plugins_count": 1,
         "evals": ["golden_refund_eval"],
         "eval_runner": True,
+        "capture_service_snapshots": False,
         "deployment": {
             "runtime": "adk",
             "entrypoint": "app:agent",
@@ -444,7 +471,98 @@ def test_adapter_preserves_google_adk_run_diagnostics(monkeypatch) -> None:
             "eval_runner": None,
             "deployment": {"target": "vertex_ai"},
         },
+        "service_snapshots": {"enabled": False},
     }
+
+
+def test_adapter_captures_google_adk_service_behavior_snapshots(monkeypatch) -> None:
+    install_fake_google_adk(monkeypatch)
+    adapter = Adapter()
+    agent = GoogleADKExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Inspect services.",
+            model="mock/model",
+        ),
+        app_name="support_app",
+        session_service=FakeBehaviorSessionService(),
+        memory_service=FakeBehaviorMemoryService(),
+        artifact_service=FakeBehaviorArtifactService(),
+        capture_service_snapshots=True,
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(
+        compiled,
+        RunInput(
+            input="double charged order A123",
+            metadata={"user_id": "user-1"},
+            session_id="session-1",
+        ),
+    )
+
+    snapshots = result.metadata["service_snapshots"]
+    assert snapshots == {
+        "enabled": True,
+        "session": {
+            "available": True,
+            "service_type": "FakeBehaviorSessionService",
+            "session": {
+                "available": True,
+                "value": {
+                    "app_name": "support_app",
+                    "user_id": "user-1",
+                    "id": "session-1",
+                },
+            },
+            "sessions": {
+                "available": True,
+                "value": {
+                    "sessions": [
+                        {
+                            "app_name": "support_app",
+                            "user_id": "user-1",
+                            "id": "session-1",
+                        }
+                    ]
+                },
+            },
+            "user_state": {
+                "available": True,
+                "value": {
+                    "app_name": "support_app",
+                    "user_id": "user-1",
+                    "tier": "gold",
+                },
+            },
+        },
+        "memory": {
+            "available": True,
+            "service_type": "FakeBehaviorMemoryService",
+            "search": {
+                "available": True,
+                "value": {
+                    "memories": [
+                        {
+                            "app_name": "support_app",
+                            "user_id": "user-1",
+                            "text": "double charged order A123",
+                        }
+                    ]
+                },
+            },
+        },
+        "artifact": {
+            "available": True,
+            "service_type": "FakeBehaviorArtifactService",
+            "keys": {"available": True, "value": ["refund-policy.md"]},
+            "versions": {
+                "refund-policy.md": {"available": True, "value": [1, 2]}
+            },
+        },
+    }
+    assert result.metadata["run_diagnostics"]["service_snapshots"] == snapshots
+    assert result.metadata["extension_summary"]["capture_service_snapshots"] is True
 
 
 def test_adapter_runs_offline_structured_output_through_native_runner() -> None:

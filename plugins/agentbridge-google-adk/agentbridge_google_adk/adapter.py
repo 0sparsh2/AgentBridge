@@ -149,6 +149,7 @@ class Adapter(BackendAdapter):
         compiled_agent = _ensure_compiled(compiled)
         run_kwargs = _run_kwargs(compiled_agent, run_input)
         events = list(_run_events(compiled_agent, run_kwargs))
+        service_snapshots = _service_snapshots(compiled_agent, run_kwargs, run_input)
         output = _final_output(events, compiled_agent.spec)
         normalized_events = [
             _normalize_event(event, backend=self.backend_name) for event in events
@@ -171,7 +172,13 @@ class Adapter(BackendAdapter):
                 "extension_summary": _extension_summary(compiled_agent.config, run_kwargs),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
                 "native_runner_type": type(compiled_agent.runner).__name__,
-                "run_diagnostics": _run_diagnostics(compiled_agent, events, run_kwargs),
+                "service_snapshots": service_snapshots,
+                "run_diagnostics": _run_diagnostics(
+                    compiled_agent,
+                    events,
+                    run_kwargs,
+                    service_snapshots,
+                ),
             },
             raw=events,
         )
@@ -375,6 +382,7 @@ def _extension_summary(config: dict[str, Any], run_kwargs: dict[str, Any]) -> di
         "runner_plugins_count": len(config.get("runner_plugins") or []),
         "evals": _safe_summary(config.get("evals") or []),
         "eval_runner": config.get("eval_runner") is not None,
+        "capture_service_snapshots": bool(config.get("capture_service_snapshots", False)),
         "deployment": _deployment_summary(config),
         "metadata": _safe_summary(config.get("metadata") or {}),
         "user_id": run_kwargs.get("user_id"),
@@ -550,6 +558,7 @@ def _run_diagnostics(
     compiled: CompiledGoogleADKAgent,
     events: list[Any],
     run_kwargs: dict[str, Any],
+    service_snapshots: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "events_count": len(events),
@@ -580,6 +589,150 @@ def _run_diagnostics(
             "eval_runner": _safe_summary(compiled.config.get("eval_runner")),
             "deployment": _deployment_summary(compiled.config),
         },
+        "service_snapshots": service_snapshots,
+    }
+
+
+def _service_snapshots(
+    compiled: CompiledGoogleADKAgent,
+    run_kwargs: dict[str, Any],
+    run_input: RunInput,
+) -> dict[str, Any]:
+    if not compiled.config.get("capture_service_snapshots"):
+        return {"enabled": False}
+
+    app_name = str(_runner_value(compiled.runner, "app_name") or compiled.spec.name)
+    user_id = str(run_kwargs.get("user_id") or "agentbridge")
+    session_id = str(run_kwargs.get("session_id") or "default")
+    return {
+        "enabled": True,
+        "session": _session_service_snapshot(
+            _runner_value(compiled.runner, "session_service"),
+            app_name=app_name,
+            user_id=user_id,
+            session_id=session_id,
+        ),
+        "memory": _memory_service_snapshot(
+            _runner_value(compiled.runner, "memory_service"),
+            app_name=app_name,
+            user_id=user_id,
+            query=run_input.input,
+        ),
+        "artifact": _artifact_service_snapshot(
+            _runner_value(compiled.runner, "artifact_service"),
+            app_name=app_name,
+            user_id=user_id,
+            session_id=session_id,
+        ),
+    }
+
+
+def _session_service_snapshot(
+    service: Any,
+    *,
+    app_name: str,
+    user_id: str,
+    session_id: str,
+) -> dict[str, Any]:
+    if service is None:
+        return {"available": False}
+    return {
+        "available": True,
+        "service_type": type(service).__name__,
+        "session": _call_service_method(
+            service,
+            "get_session_sync",
+            app_name=app_name,
+            user_id=user_id,
+            session_id=session_id,
+        ),
+        "sessions": _call_service_method(
+            service,
+            "list_sessions_sync",
+            app_name=app_name,
+            user_id=user_id,
+        ),
+        "user_state": _call_service_method(
+            service,
+            "get_user_state",
+            app_name=app_name,
+            user_id=user_id,
+        ),
+    }
+
+
+def _memory_service_snapshot(
+    service: Any,
+    *,
+    app_name: str,
+    user_id: str,
+    query: str,
+) -> dict[str, Any]:
+    if service is None:
+        return {"available": False}
+    return {
+        "available": True,
+        "service_type": type(service).__name__,
+        "search": _call_service_method(
+            service,
+            "search_memory",
+            app_name=app_name,
+            user_id=user_id,
+            query=query,
+        ),
+    }
+
+
+def _artifact_service_snapshot(
+    service: Any,
+    *,
+    app_name: str,
+    user_id: str,
+    session_id: str,
+) -> dict[str, Any]:
+    if service is None:
+        return {"available": False}
+    keys = _call_service_method(
+        service,
+        "list_artifact_keys",
+        app_name=app_name,
+        user_id=user_id,
+        session_id=session_id,
+    )
+    versions: dict[str, Any] = {}
+    if isinstance(keys.get("value"), list):
+        for filename in keys["value"][:10]:
+            versions[str(filename)] = _call_service_method(
+                service,
+                "list_versions",
+                app_name=app_name,
+                user_id=user_id,
+                filename=str(filename),
+                session_id=session_id,
+            )
+    return {
+        "available": True,
+        "service_type": type(service).__name__,
+        "keys": keys,
+        "versions": versions,
+    }
+
+
+def _call_service_method(service: Any, method_name: str, **kwargs: Any) -> dict[str, Any]:
+    method = getattr(service, method_name, None)
+    if not callable(method):
+        return {"available": False}
+    try:
+        value = method(**kwargs)
+    except Exception as exc:  # pragma: no cover - defensive path for user services.
+        return {
+            "available": True,
+            "error": type(exc).__name__,
+            "message": str(exc),
+        }
+    return {
+        "available": True,
+        "value": _safe_summary(value),
     }
 
 
