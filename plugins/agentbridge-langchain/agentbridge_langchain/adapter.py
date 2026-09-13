@@ -724,4 +724,10 @@ def _safe_summary(value: Any) -> Any:
         return [_safe_summary(item) for item in value]
     if isinstance(value, dict):
         return {str(key): _safe_summary(item) for key, item in value.items()}
+    if hasattr(value, "__dict__"):
+        return {
+            str(key): _safe_summary(item)
+            for key, item in value.__dict__.items()
+            if not key.startswith("_")
+        }
     return type(value).__name__

@@ -259,6 +259,48 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
     }
 
 
+def test_adapter_summarizes_native_langchain_retrievers(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    adapter = Adapter()
+    retriever = SimpleNamespace(name="refund_policy_retriever")
+    checkpointer = object()
+    store = object()
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Use policy docs.",
+            model="openai/gpt-5",
+        ),
+        memory="langgraph_in_memory_checkpointer",
+        retrievers=[retriever],
+        checkpointer=checkpointer,
+        store=store,
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(compiled, RunInput(input="hello"))
+
+    assert compiled.native_agent.kwargs["checkpointer"] is checkpointer
+    assert compiled.native_agent.kwargs["store"] is store
+    assert result.metadata["extension_summary"]["memory"] == {
+        "requested": "langgraph_in_memory_checkpointer",
+        "native_checkpointer": True,
+    }
+    assert result.metadata["extension_summary"]["retrievers"] == {
+        "requested": [{"name": "refund_policy_retriever"}],
+        "native_store": True,
+    }
+
+
 def test_adapter_runs_offline_model_through_create_agent() -> None:
     adapter = Adapter()
     spec = AgentSpec(

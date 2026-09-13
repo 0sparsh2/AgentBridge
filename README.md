@@ -37,7 +37,7 @@ Current backend status:
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
 | `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, app-owned approval request stores, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
 | `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through, hook/intervention/guardrail lifecycle event normalization, run diagnostics, tracing summaries, and structured deployment metadata are covered; live AWS deployment remains extension-level. |
-| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, and run diagnostics are contract-tested, while native memory/retriever behavior and LangSmith provider behavior remain extension-level. |
+| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, run diagnostics, and native retriever/checkpointer/store examples are covered, while LangSmith provider behavior remains extension-level. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output, run diagnostics, eval runner bindings, and structured deployment metadata are contract-tested, while native service behavior, eval execution, and deployment publishing remain extension-level. |
 
 Adopted package versions are tracked in [docs/version_policy.md](docs/version_policy.md).
@@ -102,7 +102,7 @@ result = run_agent(agent, framework="langgraph", input="Check refund eligibility
 
 Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthropic/claude-sonnet`, or `google/gemini`. AgentBridge does not build a custom model-provider abstraction in v0.
 
-Framework-specific knobs live in extension namespaces instead of the portable `AgentSpec` core. See [examples/framework_extensions.py](examples/framework_extensions.py) for LangChain callbacks/retrievers, OpenAI Agents approvals/handoffs, Strands MCP/deployment metadata, and Google ADK sessions/evals/deployment labels.
+Framework-specific knobs live in extension namespaces instead of the portable `AgentSpec` core. See [examples/framework_extensions.py](examples/framework_extensions.py) for cross-framework extension config and [examples/langchain_native_memory_retriever.py](examples/langchain_native_memory_retriever.py) for native LangChain retriever/checkpointer/store objects.
 
 ## Streaming Quickstart
 
@@ -337,7 +337,7 @@ Please keep adapter version changes paired with updates to [docs/version_policy.
 
 Near-term work is tracked in GitHub Issues. Current priorities include:
 
-- Add deeper native fixtures for OpenAI Agents approval resume queues, Strands end-to-end MCP/guardrail behavior, LangChain memory/retrievers/LangSmith, and Google ADK service behavior/eval execution/deployment publishing.
+- Add deeper native fixtures for OpenAI Agents approval resume queues, Strands end-to-end MCP/guardrail behavior, LangChain LangSmith/broader Runnable fixtures, and Google ADK service behavior/eval execution/deployment publishing.
 - Turn the CrewAI scaffold into a separately verified plugin package in a dependency-compatible environment.
 - Keep conformance, version policy, and capability coverage synchronized as each framework-specific nuance graduates from extension metadata to tested behavior.
 - Continue researching additional adapter targets such as AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.

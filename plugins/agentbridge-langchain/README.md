@@ -65,6 +65,10 @@ in `RunResult.metadata["extension_summary"]`. Portable memory/retriever semantic
 unless the caller supplies native LangChain objects such as `checkpointer` and `store`, which the
 adapter forwards directly into `create_agent`.
 
+See [examples/langchain_native_memory_retriever.py](../../examples/langchain_native_memory_retriever.py)
+for an offline example that passes a real LangChain `BaseRetriever`, LangGraph `InMemorySaver`, and
+LangGraph `InMemoryStore` through `LangChainExtension`.
+
 ## Local Development Without Installing
 
 ```bash
