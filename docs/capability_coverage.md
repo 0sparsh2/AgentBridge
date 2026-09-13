@@ -243,11 +243,12 @@ This avoids two traps:
 1. Keep `BackendCapabilities` and `CapabilityStatus` updated as adapters deepen.
 2. Add contract tests for every backend capability marked `full`.
 3. Add backend-specific extension namespaces for features that cannot fit the common core.
-4. Expand docs with a matrix for CrewAI, LangGraph, Pydantic AI, Google ADK, Strands, OpenAI Agents SDK, AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.
+4. Run `agentbridge conformance --all` before merging capability claims.
+5. Expand docs with a matrix for CrewAI, LangGraph, Pydantic AI, Google ADK, Strands, OpenAI Agents SDK, AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.
 
-## Next Adapter Wave
+## Current External Adapter Wave
 
-The next wave expands framework coverage through external plugins, keeping the core install path light:
+The current external adapter wave expands framework coverage through plugins, keeping the core install path light:
 
 - `agentbridge-openai-agents`: OpenAI Agents SDK handoffs, guardrails, approval interruption diagnostics, tracing, and runner/result normalization.
 - `agentbridge-strands`: Strands Agent/tool mapping, MCP clients, hooks, structured output, tracing, and structured AWS/AgentCore deployment metadata.

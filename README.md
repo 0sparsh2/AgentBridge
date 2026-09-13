@@ -309,6 +309,7 @@ agentbridge/adapters/        Built-in adapter interface and implementations
 docs/                        Requirements, architecture, research, and design docs
 examples/                    Runnable examples and manifests
 plugins/agentbridge-crewai/  External CrewAI adapter scaffold
+plugins/agentbridge-*/       External adapter plugins for heavier framework integrations
 tests/                       Unit and adapter contract tests
 .github/                     CI, issue templates, and PR template
 ```
@@ -335,11 +336,10 @@ Please keep adapter version changes paired with updates to [docs/version_policy.
 
 Near-term work is tracked in GitHub Issues. Current priorities include:
 
-- Deepen LangGraph state, routing, and streaming support.
-- Add structured output support across `AgentSpec` and Pydantic AI.
-- Turn the CrewAI scaffold into a separately verified plugin package.
-- Add an adapter plugin template.
-- Research additional adapter targets such as OpenAI Agents SDK, Google ADK, Strands, AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.
+- Add deeper native fixtures for OpenAI Agents approvals/resume, Strands MCP/hooks/guardrails, LangChain memory/retrievers/LangSmith, and Google ADK services/evals/deployment.
+- Turn the CrewAI scaffold into a separately verified plugin package in a dependency-compatible environment.
+- Keep conformance, version policy, and capability coverage synchronized as each framework-specific nuance graduates from extension metadata to tested behavior.
+- Continue researching additional adapter targets such as AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.
 
 See [docs/roadmap.md](docs/roadmap.md) for milestone-level planning.
 
