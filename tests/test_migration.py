@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import TypedDict
 
 import pytest
 
@@ -172,3 +173,46 @@ def test_import_langgraph_graph_returns_graph_extension_hints() -> None:
     assert report.required_capabilities == ["agent.instructions", "workflow.graph"]
     assert report.extension_hints["langgraph"]["nodes"] == ["agent", "refund_tool"]
     assert "graph_topology" in report.native_only
+
+
+def test_import_real_langgraph_compiled_state_graph_reports_edges_and_checkpointing() -> None:
+    langgraph_graph = pytest.importorskip("langgraph.graph")
+    checkpoint_memory = pytest.importorskip("langgraph.checkpoint.memory")
+
+    class RefundState(TypedDict):
+        input: str
+
+    def decide(state: RefundState) -> RefundState:
+        return state
+
+    graph = langgraph_graph.StateGraph(RefundState)
+    graph.add_node("decide", decide)
+    graph.add_edge(langgraph_graph.START, "decide")
+    graph.add_edge("decide", langgraph_graph.END)
+    compiled = graph.compile(
+        checkpointer=checkpoint_memory.InMemorySaver(),
+        interrupt_before=["decide"],
+    )
+
+    report = import_langgraph_graph(compiled, name="refund_state_graph")
+
+    assert report.convertible
+    assert report.agent_spec is not None
+    assert report.agent_spec.name == "refund_state_graph"
+    assert report.extension_hints["langgraph"]["nodes"] == [
+        "__end__",
+        "__start__",
+        "decide",
+    ]
+    assert report.extension_hints["langgraph"]["edges"] == [
+        {"source": "__start__", "target": "decide"},
+        {"source": "decide", "target": "__end__"},
+    ]
+    assert report.extension_hints["langgraph"]["interrupts"] == {
+        "interrupt_before_nodes": ["decide"]
+    }
+    assert report.extension_hints["langgraph"]["checkpointer"] == "InMemorySaver"
+    assert "graph_topology" in report.native_only
+    assert "interrupt_policy" in report.native_only
+    assert "checkpointing" in report.native_only
+    assert any(finding.category == "state.checkpointing" for finding in report.findings)

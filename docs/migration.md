@@ -15,7 +15,7 @@ if report.convertible:
 Available helpers:
 
 - `import_langchain_agent(obj)`: extracts obvious agent name, model, system prompt, tools, runnable methods, LCEL sequence steps, graph summaries, schema hints, interrupts, and extension hints from LangChain-like agents or compiled graph objects.
-- `import_langgraph_graph(obj)`: extracts graph name and visible node names into LangGraph extension hints.
+- `import_langgraph_graph(obj)`: extracts graph name, visible node names, compiled graph edges, interrupt hints, and checkpointer summaries into LangGraph extension hints.
 
 ## Report Shape
 
@@ -37,7 +37,8 @@ Examples:
 - LangChain runnable methods, LCEL sequence steps, visible graph nodes/edges, input/output/config schema names, interrupt policies, native checkpointers, and native stores are surfaced as hints for review.
 - LangChain compiled graph topology and LCEL sequences are marked `native_only` unless they can be safely represented by an adapter-specific extension or by LangGraph helpers.
 - Real LangChain `RunnableSequence` objects are covered by migration tests for steps, schemas, graph node names, and edge summaries.
-- LangGraph nodes are surfaced as extension hints, but node behavior and edge conditions still require manual review.
+- Real compiled LangGraph `StateGraph` objects are covered by migration tests for display nodes, edges, interrupt policies, and checkpointer summaries.
+- LangGraph nodes and edges are surfaced as extension hints, but node behavior and edge conditions still require manual review.
 
 ## Non-Goals
 

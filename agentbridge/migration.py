@@ -140,6 +140,9 @@ def import_langgraph_graph(graph: Any, *, name: str | None = None) -> MigrationR
     source_type = type(graph).__name__
     graph_name = name or _string_attr(graph, "name") or _nested_string_attr(graph, "kwargs", "name")
     nodes = _graph_nodes(graph)
+    graph_summary = _graph_summary(graph)
+    interrupt_summary = _interrupt_hints(graph)
+    checkpointer = getattr(graph, "checkpointer", None) or _nested_attr(graph, "kwargs", "checkpointer")
     findings = [
         MigrationFinding(
             category="workflow.graph",
@@ -147,12 +150,34 @@ def import_langgraph_graph(graph: Any, *, name: str | None = None) -> MigrationR
         )
     ]
     native_only = ["graph_topology"] if nodes else ["unknown_graph_topology"]
+    if interrupt_summary:
+        native_only.append("interrupt_policy")
+        findings.append(
+            MigrationFinding(
+                category="workflow.interrupts",
+                message="LangGraph interrupt policy was detected and should remain native until explicitly remapped.",
+            )
+        )
+    if checkpointer:
+        native_only.append("checkpointing")
+        findings.append(
+            MigrationFinding(
+                category="state.checkpointing",
+                message="LangGraph checkpointing was detected; preserve checkpointer behavior for resume semantics.",
+            )
+        )
     extension_hints = {
         "langgraph": {
             "graph_name": graph_name or "migrated_langgraph_graph",
             "nodes": nodes,
         }
     }
+    if graph_summary.get("edges"):
+        extension_hints["langgraph"]["edges"] = graph_summary["edges"]
+    if interrupt_summary:
+        extension_hints["langgraph"]["interrupts"] = interrupt_summary
+    if checkpointer:
+        extension_hints["langgraph"]["checkpointer"] = _safe_summary(checkpointer)
     agent_spec = AgentSpec(
         name=graph_name or "migrated_langgraph_graph",
         instructions=(
@@ -202,11 +227,6 @@ def _required_capabilities(spec: AgentSpec) -> list[str]:
 
 
 def _graph_nodes(graph: Any) -> list[str]:
-    nodes = getattr(graph, "nodes", None)
-    if isinstance(nodes, dict):
-        return sorted(str(getattr(node, "name", key)) for key, node in nodes.items())
-    if isinstance(nodes, list | tuple | set):
-        return sorted(str(item) for item in nodes)
     get_graph = getattr(graph, "get_graph", None)
     if callable(get_graph):
         try:
@@ -219,6 +239,11 @@ def _graph_nodes(graph: Any) -> list[str]:
                 )
         except Exception:  # pragma: no cover - defensive introspection
             return []
+    nodes = getattr(graph, "nodes", None)
+    if isinstance(nodes, dict):
+        return sorted(str(getattr(node, "name", key)) for key, node in nodes.items())
+    if isinstance(nodes, list | tuple | set):
+        return sorted(str(item) for item in nodes)
     return []
 
 
@@ -348,7 +373,12 @@ def _schema_hints(agent: Any) -> dict[str, str]:
 
 def _interrupt_hints(agent: Any) -> dict[str, Any]:
     hints: dict[str, Any] = {}
-    for attr in ("interrupt_before", "interrupt_after"):
+    for attr in (
+        "interrupt_before",
+        "interrupt_after",
+        "interrupt_before_nodes",
+        "interrupt_after_nodes",
+    ):
         value = getattr(agent, attr, None) or _nested_attr(agent, "kwargs", attr)
         if value:
             hints[attr] = _safe_summary(value)
