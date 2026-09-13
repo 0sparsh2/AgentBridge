@@ -119,11 +119,17 @@ def main(argv: list[str] | None = None) -> int:
         "conformance",
         help="Run lightweight adapter conformance checks.",
     )
-    conformance_parser.add_argument(
+    conformance_selection = conformance_parser.add_mutually_exclusive_group()
+    conformance_selection.add_argument(
         "--backend",
         action="append",
         dest="backends",
         help="Backend to include. Repeat to test a subset.",
+    )
+    conformance_selection.add_argument(
+        "--all",
+        action="store_true",
+        help="Run conformance against every discovered backend.",
     )
     conformance_parser.add_argument("--json", action="store_true", help="Emit JSON.")
 
@@ -266,7 +272,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "conformance":
-            reports = run_conformance(backends=args.backends)
+            reports = run_conformance(backends=None if args.all else args.backends)
             payload = [report.as_dict() for report in reports]
             if args.json:
                 print(json.dumps(payload, indent=2, sort_keys=True))

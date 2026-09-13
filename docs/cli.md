@@ -115,6 +115,7 @@ Run lightweight adapter conformance checks.
 ```bash
 agentbridge conformance --backend mock
 agentbridge conformance --backend pydantic_ai --json
+agentbridge conformance --all
 ```
 
 The conformance runner checks capability metadata, basic execution, streaming, sync tools when advertised as `full`, and structured output when advertised as `full`. This is not a replacement for backend-specific tests, but it is the baseline every adapter should pass before claiming compatibility.
