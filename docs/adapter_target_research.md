@@ -152,6 +152,7 @@ GoogleADKExtension.config(
     memory_service="memory",
     artifact_service="local",
     sub_agents=[...],
+    capture_service_snapshots=True,
 )
 ```
 
@@ -160,6 +161,7 @@ Acceptance path:
 - Compile simple `AgentSpec` into an ADK agent.
 - Map sync `ToolSpec` callables into ADK tool functions.
 - Support session id propagation from `RunInput.session_id`.
+- Capture opt-in session/memory/artifact service snapshots through native ADK-shaped service methods.
 - Preserve native session/run output as raw.
 - Add capability metadata for sessions and memory.
 
@@ -314,7 +316,7 @@ Risks:
 1. Add OpenAI Agents native SDK resume execution fixtures around stored approval queue payloads and SDK run state.
 2. Add Strands live AgentCore/AWS deployment smoke coverage beyond metadata preservation.
 3. Add additional real-world LangChain Runnable/compiled-graph import fixtures as new project shapes appear.
-4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment publishing examples beyond metadata preservation.
+4. Add Google ADK eval execution hooks and deployment publishing examples beyond metadata preservation.
 5. Keep import/migration helpers for existing LangChain and LangGraph apps conservative, expanding only when object shapes can be inspected safely.
 6. Use `agentbridge conformance --all`, coverage reports, extension schemas, and issue checklists as the release gate before claiming broader framework parity.
 

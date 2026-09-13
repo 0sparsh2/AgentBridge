@@ -52,6 +52,7 @@ class GoogleADKConfig(BaseModel):
     sub_agents: list[Any] = Field(default_factory=list)
     evals: list[Any] = Field(default_factory=list)
     eval_runner: Any | None = None
+    capture_service_snapshots: bool | None = None
     deployment_target: str | None = None
     deployment: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -102,6 +103,7 @@ class GoogleADKExtension(FrameworkExtension):
         sub_agents: list[Any] | None = None,
         evals: list[Any] | None = None,
         eval_runner: Any | None = None,
+        capture_service_snapshots: bool | None = None,
         deployment_target: str | None = None,
         deployment: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
@@ -146,6 +148,7 @@ class GoogleADKExtension(FrameworkExtension):
             sub_agents=sub_agents or [],
             evals=evals or [],
             eval_runner=eval_runner,
+            capture_service_snapshots=capture_service_snapshots,
             deployment_target=deployment_target,
             deployment=deployment or {},
             metadata=metadata or {},

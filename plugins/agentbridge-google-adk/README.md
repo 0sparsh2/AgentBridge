@@ -23,6 +23,9 @@ AgentBridge adapter plugin for `google_adk`.
   artifact service, credential service, plugins, plugin close timeout, and auto-session behavior.
 - Run diagnostics for ADK event counts/types, function call/response counts, transfer-to-agent
   events, session/service bindings, sub-agent counts, eval labels, and deployment target labels.
+- Opt-in service behavior snapshots through `capture_service_snapshots=True`, covering session
+  lookup/listing/user state, memory search, artifact keys, and artifact versions when those native
+  service methods are available.
 - Eval labels, eval runner bindings, and structured deployment metadata as extension-level summaries.
 
 ## Dependency Note
@@ -53,9 +56,28 @@ serializable `run_kwargs`, `extension_config`, `extension_summary`, and `run_dia
 on `RunResult`.
 
 `run_diagnostics` includes event history counts, text/function-call/function-response counts,
-transfer-to-agent targets, session identity, service type summaries, extension-level eval labels,
-eval runner bindings, and structured deployment metadata. Eval execution and deployment publishing
-are still metadata-only until AgentBridge has native no-network tests for those flows.
+transfer-to-agent targets, session identity, service type summaries, optional service snapshots,
+extension-level eval labels, eval runner bindings, and structured deployment metadata. Eval
+execution and deployment publishing are still metadata-only until AgentBridge has native no-network
+tests for those flows.
+
+Service snapshots are disabled by default so AgentBridge does not accidentally call remote ADK
+services. Enable them when you own the service objects and want post-run diagnostics:
+
+```python
+agent = GoogleADKExtension.with_config(
+    agent,
+    session_service=my_session_service,
+    memory_service=my_memory_service,
+    artifact_service=my_artifact_service,
+    capture_service_snapshots=True,
+)
+```
+
+When enabled, the adapter uses native ADK-shaped methods such as `get_session_sync`,
+`list_sessions_sync`, `get_user_state`, `search_memory`, `list_artifact_keys`, and `list_versions`
+when those methods exist. Missing methods and service errors are reported as safe diagnostic
+records instead of failing the agent run.
 
 Deployment metadata can be recorded without publishing to Google infrastructure:
 

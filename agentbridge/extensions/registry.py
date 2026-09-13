@@ -120,8 +120,8 @@ def extension_profiles() -> list[ExtensionProfile]:
             status="partial",
             notes=[
                 "External plugin maps AgentSpec to ADK Agent, ToolSpec to FunctionTool, and runs through Runner with in-memory sessions.",
-                "Structured output is validated through ADK output_schema plus AgentBridge typed validation; run diagnostics summarize sessions, services, event history, transfer-to-agent events, eval labels/runner bindings, and structured deployment metadata.",
-                "Native memory/artifact service behavior, eval execution, and deployment publishing remain extension-level.",
+                "Structured output is validated through ADK output_schema plus AgentBridge typed validation; run diagnostics summarize sessions, services, opt-in service snapshots, event history, transfer-to-agent events, eval labels/runner bindings, and structured deployment metadata.",
+                "Eval execution and deployment publishing remain extension-level.",
             ],
         ),
         ExtensionProfile(
