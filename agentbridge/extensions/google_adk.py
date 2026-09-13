@@ -51,7 +51,9 @@ class GoogleADKConfig(BaseModel):
     auto_create_session: bool | None = None
     sub_agents: list[Any] = Field(default_factory=list)
     evals: list[Any] = Field(default_factory=list)
+    eval_runner: Any | None = None
     deployment_target: str | None = None
+    deployment: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -99,7 +101,9 @@ class GoogleADKExtension(FrameworkExtension):
         auto_create_session: bool | None = None,
         sub_agents: list[Any] | None = None,
         evals: list[Any] | None = None,
+        eval_runner: Any | None = None,
         deployment_target: str | None = None,
+        deployment: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable Google ADK adapter configuration."""
@@ -141,7 +145,9 @@ class GoogleADKExtension(FrameworkExtension):
             auto_create_session=auto_create_session,
             sub_agents=sub_agents or [],
             evals=evals or [],
+            eval_runner=eval_runner,
             deployment_target=deployment_target,
+            deployment=deployment or {},
             metadata=metadata or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 

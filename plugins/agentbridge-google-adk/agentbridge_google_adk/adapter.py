@@ -55,8 +55,8 @@ class Adapter(BackendAdapter):
                 "state.session": "Forwards native session_service/session ids and records run session metadata.",
                 "state.memory": "Forwards native memory_service and records memory metadata.",
                 "workflow.delegation": "Forwards native sub_agents and transfer controls when supplied.",
-                "deployment.serverless": "Records deployment_target metadata for ADK deployment paths.",
-                "evals": "Records eval metadata; native eval execution remains extension-level.",
+                "deployment.serverless": "Records structured deployment metadata for ADK deployment paths.",
+                "evals": "Records eval metadata and eval runner bindings; native eval execution remains extension-level.",
                 "observability.diagnostics": "Normalizes event history, session/service bindings, and transfer-to-agent targets into run_diagnostics metadata.",
                 "streaming.events": "Normalizes Runner.run events best-effort.",
             },
@@ -374,7 +374,8 @@ def _extension_summary(config: dict[str, Any], run_kwargs: dict[str, Any]) -> di
         "sub_agents_count": len(config.get("sub_agents") or []),
         "runner_plugins_count": len(config.get("runner_plugins") or []),
         "evals": _safe_summary(config.get("evals") or []),
-        "deployment_target": config.get("deployment_target"),
+        "eval_runner": config.get("eval_runner") is not None,
+        "deployment": _deployment_summary(config),
         "metadata": _safe_summary(config.get("metadata") or {}),
         "user_id": run_kwargs.get("user_id"),
         "session_id": run_kwargs.get("session_id"),
@@ -576,7 +577,8 @@ def _run_diagnostics(
         "extension": {
             "sub_agents_count": len(compiled.config.get("sub_agents") or []),
             "evals": _safe_summary(compiled.config.get("evals") or []),
-            "deployment_target": compiled.config.get("deployment_target"),
+            "eval_runner": _safe_summary(compiled.config.get("eval_runner")),
+            "deployment": _deployment_summary(compiled.config),
         },
     }
 
@@ -586,6 +588,14 @@ def _runner_value(runner: Any, key: str) -> Any:
     if isinstance(kwargs, dict) and key in kwargs:
         return kwargs[key]
     return getattr(runner, key, None)
+
+
+def _deployment_summary(config: dict[str, Any]) -> dict[str, Any]:
+    deployment = dict(config.get("deployment") or {})
+    target = config.get("deployment_target") or deployment.get("target")
+    if target is not None:
+        deployment["target"] = target
+    return _safe_summary(deployment)
 
 
 def _event_function_call(event: Any) -> dict[str, Any] | None:

@@ -161,6 +161,7 @@ def test_adapter_forwards_google_adk_extension_surface(monkeypatch) -> None:
     generate_content_config = object()
     input_schema = object()
     state_schema = object()
+    eval_runner = object()
     agent = GoogleADKExtension.with_config(
         AgentSpec(
             name="support_agent",
@@ -203,7 +204,13 @@ def test_adapter_forwards_google_adk_extension_surface(monkeypatch) -> None:
         auto_create_session=False,
         sub_agents=[sub_agent],
         evals=["golden_refund_eval"],
+        eval_runner=eval_runner,
         deployment_target="vertex_ai",
+        deployment={
+            "runtime": "adk",
+            "entrypoint": "app:agent",
+            "region": "us-central1",
+        },
         metadata={"owner": "support"},
     )
 
@@ -265,7 +272,13 @@ def test_adapter_forwards_google_adk_extension_surface(monkeypatch) -> None:
         "sub_agents_count": 1,
         "runner_plugins_count": 1,
         "evals": ["golden_refund_eval"],
-        "deployment_target": "vertex_ai",
+        "eval_runner": True,
+        "deployment": {
+            "runtime": "adk",
+            "entrypoint": "app:agent",
+            "region": "us-central1",
+            "target": "vertex_ai",
+        },
         "metadata": {"owner": "support"},
         "user_id": "user-1",
         "session_id": "session-1",
@@ -428,7 +441,8 @@ def test_adapter_preserves_google_adk_run_diagnostics(monkeypatch) -> None:
         "extension": {
             "sub_agents_count": 1,
             "evals": ["billing_delegation_eval"],
-            "deployment_target": "vertex_ai",
+            "eval_runner": None,
+            "deployment": {"target": "vertex_ai"},
         },
     }
 
