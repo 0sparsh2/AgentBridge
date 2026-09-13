@@ -106,6 +106,9 @@ def test_langgraph_adapter_routes_with_extension_config_when_available() -> None
 
     assert result.output["route"] == "refund_node"
     assert result.metadata["route"] == "refund_node"
+    assert result.metadata["run_diagnostics"]["route"] == "refund_node"
+    assert result.metadata["run_diagnostics"]["route_targets_count"] == 3
+    assert result.metadata["run_diagnostics"]["event_counts"]["complete"] == 1
     assert events[0].type == "workflow"
     assert events[1].data == {
         "phase": "route",
@@ -144,6 +147,8 @@ def test_langgraph_adapter_reports_interrupt_state_when_available() -> None:
     assert result.metadata["interrupted"] is True
     assert result.metadata["next"] == ["agent"]
     assert result.metadata["checkpoint"]["thread_id"] == "approval-session"
+    assert result.metadata["run_diagnostics"]["interrupted"] is True
+    assert result.metadata["run_diagnostics"]["checkpoint"]["thread_id"] == "approval-session"
     assert any(event.data["phase"] == "interrupted" for event in workflow_events)
 
 
