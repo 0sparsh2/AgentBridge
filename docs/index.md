@@ -11,6 +11,7 @@ Use this page as the navigation map for the repository.
 
 ## Product And Research
 
+- [Articles](../articles/README.md): Shareable GitHub posts about why AgentBridge exists and how the compatibility layer works.
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
 - [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Strands, direct LangChain, and Google ADK.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
