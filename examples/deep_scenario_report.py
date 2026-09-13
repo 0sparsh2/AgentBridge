@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from agentbridge import AgentSpec, ApprovalQueue
+from agentbridge import AgentSpec, ApprovalQueue, get_adapter, run_agent
 from agentbridge.extensions.google_adk import GoogleADKExtension
 from agentbridge.extensions.langchain import LangChainExtension
 from agentbridge.extensions.langgraph import LangGraphExtension
@@ -99,8 +99,41 @@ def build_report() -> dict[str, object]:
                 "RAG, MCP, ADK services, and deployment metadata remain extension-specific.",
             ],
         },
+        "offline_run_comparison": _offline_run_comparison(
+            base_agent,
+            ["mock", "langgraph", "langchain", "openai_agents", "google_adk", "strands"],
+        ),
         "default_mode": "No-key metadata/report example. Use credentialed runs only in separate smoke tests.",
     }
+
+
+def _offline_run_comparison(agent: AgentSpec, backends: list[str]) -> dict[str, object]:
+    comparison: dict[str, object] = {}
+    for backend in backends:
+        try:
+            get_adapter(backend)
+            result = run_agent(
+                agent,
+                backend=backend,
+                input="Customer says order A123 was double charged.",
+                session_id="scenario-report",
+                context={"intent": "refund"},
+            )
+        except Exception as exc:  # pragma: no cover - depends on optional local plugins.
+            comparison[backend] = {
+                "available": False,
+                "error": type(exc).__name__,
+                "message": str(exc),
+            }
+            continue
+        comparison[backend] = {
+            "available": True,
+            "backend": result.backend,
+            "output": _json_safe(result.output),
+            "events": [event.type for event in result.events],
+            "metadata_keys": sorted(result.metadata),
+        }
+    return comparison
 
 def _json_safe(value: object) -> object:
     if isinstance(value, str | int | float | bool) or value is None:
