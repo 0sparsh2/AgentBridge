@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 from pydantic import BaseModel
 
-from agentbridge import AgentSpec, RunInput, ToolSpec
+from agentbridge import AgentSpec, ApprovalQueue, RunInput, ToolSpec
 from agentbridge.extensions.openai_agents import OpenAIAgentsExtension
 from agentbridge_openai_agents.adapter import Adapter, CompiledOpenAIAgentsAgent
 
@@ -381,13 +381,62 @@ def test_adapter_persists_openai_agents_approval_requests(monkeypatch) -> None:
     assert approval_store.records == [
         {
             "id": "approval-1",
+            "backend": "openai_agents",
+            "status": "pending",
             "interruption": {"id": "approval-1", "tool_name": "issue_refund"},
             "state": {"id": "state-1"},
             "state_type": "SimpleNamespace",
             "last_response_id": "resp-2",
             "last_agent": {"name": "billing_agent"},
+            "metadata": {"source": "OpenAI Agents SDK interruption"},
         }
     ]
+
+
+def test_adapter_writes_openai_agents_approval_requests_to_queue(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "agents",
+        SimpleNamespace(
+            Agent=FakeAgent,
+            Runner=FakeDiagnosticRunner,
+            function_tool=fake_function_tool,
+        ),
+    )
+    adapter = Adapter()
+    approval_queue = ApprovalQueue()
+    spec = OpenAIAgentsExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Use approvals.",
+            model="mock/model",
+        ),
+        approval_policy={"issue_refund": "required"},
+        approval_store=approval_queue,
+    )
+
+    compiled = adapter.compile(spec)
+    result = adapter.run(compiled, RunInput(input="refund order A123"))
+    pending = approval_queue.pending(backend="openai_agents")
+    resume_payload = approval_queue.approve(
+        "approval-1",
+        response={"approved": True},
+        reviewer="support-lead",
+    )
+
+    assert result.metadata["approval_store"] == {
+        "enabled": True,
+        "requests_count": 1,
+        "stored_count": 1,
+        "store_type": "ApprovalQueue",
+    }
+    assert len(pending) == 1
+    assert pending[0]["backend"] == "openai_agents"
+    assert pending[0]["status"] == "pending"
+    assert pending[0]["state"] == {"id": "state-1"}
+    assert resume_payload["status"] == "approved"
+    assert resume_payload["decision"]["reviewer"] == "support-lead"
+    assert resume_payload["last_response_id"] == "resp-2"
 
 
 def test_adapter_runs_offline_structured_output_through_native_runner() -> None:

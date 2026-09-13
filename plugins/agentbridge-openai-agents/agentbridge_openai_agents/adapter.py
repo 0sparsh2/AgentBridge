@@ -51,7 +51,7 @@ class Adapter(BackendAdapter):
                 "structured_output": "Passes AgentSpec.output_type to SDK Agent output_type and validates typed final_output.",
                 "workflow.handoffs": "Forwards native handoffs and handoff metadata through OpenAIAgentsExtension.",
                 "guardrails": "Forwards native input/output guardrails and records approval policy hints.",
-                "human_approval": "Records approval_policy metadata; native approval/resume flow tests are not implemented yet.",
+                "human_approval": "Records approval_policy metadata and writes approval interruptions into app-owned stores or ApprovalQueue helpers; native SDK resume remains extension-level.",
                 "observability.tracing": "Preserves trace/run config summaries; SDK/provider tracing remains extension-level.",
                 "observability.diagnostics": "Normalizes approval interruptions, guardrail results, response IDs, and resumability hints into run_diagnostics metadata.",
                 "streaming.events": "Uses SDK run_streamed when available and normalizes streamed event objects best-effort.",
@@ -619,11 +619,14 @@ def _persist_approval_interruptions(result: Any, config: dict[str, Any]) -> dict
     for index, interruption in enumerate(interruptions):
         record = {
             "id": str(getattr(interruption, "id", None) or index),
+            "backend": "openai_agents",
+            "status": "pending",
             "interruption": _safe_summary(interruption),
             "state": _safe_summary(state),
             "state_type": type(state).__name__ if state is not None else None,
             "last_response_id": getattr(result, "last_response_id", None),
             "last_agent": _safe_summary(getattr(result, "last_agent", None)),
+            "metadata": {"source": "OpenAI Agents SDK interruption"},
         }
         if _write_approval_record(store, record):
             summary["stored_count"] += 1

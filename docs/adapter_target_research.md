@@ -84,6 +84,7 @@ OpenAIAgentsExtension.config(
     guardrails=[...],
     tracing=True,
     approval_policy={...},
+    approval_store=ApprovalQueue(),
 )
 ```
 
@@ -93,6 +94,7 @@ Acceptance path:
 - Map `ToolSpec` callables to SDK tools.
 - Run with the SDK runner and normalize final result.
 - Normalize tool-call and completion events.
+- Persist approval interruptions into app-owned stores or `ApprovalQueue` resume payload helpers.
 - Preserve raw run/result objects.
 - Add conformance tests with mocked/offline model paths if available.
 
@@ -309,7 +311,7 @@ Risks:
 
 ## Recommended Next Work
 
-1. Add OpenAI Agents backend-neutral approval resume queues and deeper real-SDK approval fixtures around SDK run state.
+1. Add OpenAI Agents native SDK resume execution fixtures around stored approval queue payloads and SDK run state.
 2. Add Strands live AgentCore/AWS deployment smoke coverage beyond metadata preservation.
 3. Add additional real-world LangChain Runnable/compiled-graph import fixtures as new project shapes appear.
 4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment publishing examples beyond metadata preservation.

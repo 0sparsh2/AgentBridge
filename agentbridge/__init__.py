@@ -1,6 +1,7 @@
 """AgentBridge public API."""
 
 from agentbridge.agui import event_to_agui
+from agentbridge.approvals import ApprovalDecision, ApprovalQueue
 from agentbridge.capabilities import (
     CANONICAL_CAPABILITIES,
     BackendCoverageReport,
@@ -48,6 +49,8 @@ __all__ = [
     "AgentEvent",
     "AgentManifest",
     "AgentSpec",
+    "ApprovalDecision",
+    "ApprovalQueue",
     "BackendComparison",
     "BackendCapabilities",
     "BackendCoverageReport",
