@@ -79,8 +79,8 @@ ADOPTED_DEPENDENCIES = {
         "notes": (
             "Verified install with strands-agents 1.55.1. External plugin maps AgentSpec "
             "to Strands Agent, ToolSpec to @tool wrappers, structured output model pass-through, "
-            "native Agent option forwarding, trace metadata summaries, and best-effort stream "
-            "event normalization. MCP execution, guardrail labels, and deployment remain "
+            "native Agent option forwarding, MCP client/tool-provider pass-through, trace metadata "
+            "summaries, and best-effort stream event normalization. Guardrail labels and deployment remain "
             "extension-level."
         ),
     },
