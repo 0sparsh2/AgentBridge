@@ -34,6 +34,7 @@ Use this page as the navigation map for the repository.
 - [examples/research_agent.py](../examples/research_agent.py): Tool use and streaming event demo.
 - [examples/agui_events.py](../examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
 - [examples/framework_extensions.py](../examples/framework_extensions.py): Framework-specific extension config examples for LangChain, OpenAI Agents, Strands, and Google ADK.
+- [examples/langchain_native_memory_retriever.py](../examples/langchain_native_memory_retriever.py): Offline LangChain example with native retriever, checkpointer, and store objects.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.
 
 ## Maintainer Checklist
