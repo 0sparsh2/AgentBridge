@@ -366,6 +366,65 @@ def test_adapter_streams_strands_lifecycle_events(monkeypatch) -> None:
     assert events[2].data["phase"] == "intervention"
 
 
+def test_adapter_preserves_native_strands_guardrail_and_intervention_objects(monkeypatch) -> None:
+    actions_module = pytest.importorskip("strands.interventions.actions")
+    guardrails_module = pytest.importorskip("strands.types.guardrails")
+    deny = actions_module.Deny(reason="refund amount requires approval")
+    guardrail_trace = guardrails_module.GuardrailTrace(
+        guardrailId="refund-policy",
+        guardrailVersion="1",
+        inputAssessment={"topicPolicy": {"status": "passed"}},
+        outputAssessments=[],
+    )
+
+    class GuardrailStreamAgent(FakeStrandsAgent):
+        async def stream_async(self, prompt, **kwargs):
+            del prompt, kwargs
+            yield {"guardrailTrace": guardrail_trace}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "strands",
+        SimpleNamespace(Agent=GuardrailStreamAgent, tool=fake_tool),
+    )
+    adapter = Adapter()
+    agent = StrandsExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Apply refund guardrails.",
+            model="mock/model",
+        ),
+        guardrails=[guardrail_trace],
+        interventions=[deny],
+    )
+
+    compiled = adapter.compile(agent)
+    result = adapter.run(compiled, RunInput(input="hello"))
+    events = list(adapter.stream(compiled, RunInput(input="hello")))
+
+    assert compiled.native_agent.kwargs["interventions"] == [deny]
+    assert result.metadata["extension_summary"]["interventions_count"] == 1
+    assert result.metadata["extension_summary"]["guardrails"] == [
+        {
+            "guardrailId": "refund-policy",
+            "guardrailVersion": "1",
+            "inputAssessment": {"topicPolicy": {"status": "passed"}},
+            "outputAssessments": [],
+        }
+    ]
+    assert [event.type for event in events] == ["workflow"]
+    assert events[0].data == {
+        "guardrailTrace": {
+            "guardrailId": "refund-policy",
+            "guardrailVersion": "1",
+            "inputAssessment": {"topicPolicy": {"status": "passed"}},
+            "outputAssessments": [],
+        },
+        "phase": "guardrail",
+        "native_type": "dict",
+    }
+
+
 def test_strands_extension_records_deployment_metadata() -> None:
     config = StrandsExtension.config(
         deployment_target="agentcore",

@@ -74,9 +74,13 @@ class StrandsExtension(FrameworkExtension):
         deployment: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Build serializable Strands adapter configuration."""
+        """Build Strands adapter configuration.
 
-        return StrandsConfig(
+        Native Strands objects must remain intact so adapters can pass them through
+        to the SDK; result metadata is summarized separately by the adapter.
+        """
+
+        model = StrandsConfig(
             conversation_manager=conversation_manager,
             context_manager=context_manager,
             hooks=hooks or [],
@@ -101,7 +105,27 @@ class StrandsExtension(FrameworkExtension):
             deployment_target=deployment_target,
             deployment=deployment or {},
             metadata=metadata or {},
-        ).model_dump(exclude_none=True, exclude_defaults=True)
+        )
+        config = model.model_dump(exclude_none=True, exclude_defaults=True)
+        for native_field in (
+            "conversation_manager",
+            "context_manager",
+            "hooks",
+            "plugins",
+            "interventions",
+            "mcp_clients",
+            "guardrails",
+            "session_manager",
+            "memory_manager",
+            "tool_executor",
+            "retry_strategy",
+            "sandbox",
+            "storage",
+            "background_tasks",
+        ):
+            if native_field in config:
+                config[native_field] = getattr(model, native_field)
+        return config
 
     @staticmethod
     def with_config(spec: AgentSpec, **kwargs: Any) -> AgentSpec:

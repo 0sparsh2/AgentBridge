@@ -17,9 +17,11 @@ AgentBridge adapter plugin for `strands`.
   metadata hints.
 - Native hooks, plugins, interventions, session managers, memory managers, context managers, retry
   strategies, checkpointing, sandbox, storage, and background-task options through
-  `StrandsExtension`.
+  `StrandsExtension`. Native intervention objects such as Strands `Deny` are preserved through
+  compile-time Agent construction.
 - Structured output model pass-through with native contract tests.
-- Best-effort hook, intervention, and guardrail lifecycle event normalization.
+- Best-effort hook, intervention, and guardrail lifecycle event normalization. Native guardrail
+  traces are covered by fixture tests and summarized into JSON-safe metadata/events.
 - Run diagnostics for events, guardrails, hooks, interventions, MCP clients, usage, interrupts, and
   checkpoints.
 - Trace attributes and AWS/serverless deployment metadata summaries.
@@ -46,9 +48,10 @@ compiles a Strands `Agent` and runs through the native event loop, but uses a ti
 `StrandsExtension` forwards native Strands `Agent` constructor options when supplied and reports a
 serializable `extension_summary` in `RunResult.metadata`. Native MCP client/tool-provider objects in
 `mcp_clients` are appended to the Strands `tools` list; hook, intervention, and guardrail-shaped
-stream events are normalized as workflow events with lifecycle phases. Plain string labels,
-guardrail labels, and deployment targets are recorded as extension metadata until AgentBridge has
-deeper native no-network tests for those execution paths.
+stream events are normalized as workflow events with lifecycle phases. Native Strands intervention
+and guardrail trace objects are preserved for SDK calls while result metadata remains JSON-safe.
+Plain string labels and deployment targets are recorded as extension metadata until AgentBridge has
+live AgentCore/AWS deployment smoke coverage for those execution paths.
 
 The plugin test suite includes a local MCP stdio fixture at
 `tests/fixtures/mcp_refund_server.py`. It starts an MCP 2.x `MCPServer`, lists the `check_order`
