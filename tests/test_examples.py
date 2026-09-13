@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from examples.deep_scenario_report import build_report
 from examples.model_routes import build_model_route_catalog
+from examples.rag_migration_report import build_report as build_rag_report
 
 
 def test_deep_scenario_report_documents_frameworks_and_model_routes() -> None:
@@ -59,3 +60,20 @@ def test_model_route_catalog_documents_optional_provider_shapes() -> None:
     assert routes["openrouter"]["api_key_env"] == "OPENROUTER_API_KEY"
     assert routes["nvidia_nim_openai_compatible"]["base_url_env"] == "NVIDIA_NIM_BASE_URL"
     assert routes["custom_openai_compatible_gateway"]["model"] == "openai/internal-agent-model"
+
+
+def test_rag_migration_report_documents_langchain_to_langgraph_shape() -> None:
+    report = build_rag_report()
+
+    assert report["source_framework"] == "langchain"
+    assert report["target_framework"] == "langgraph"
+    assert report["framework_extensions"]["langchain_source"]["retrievers"] == [
+        "refund_policy_docs"
+    ]
+    assert report["framework_extensions"]["langchain_source"]["store"] == "native_vector_store"
+    assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
+    assert report["model_routes"]["local_ollama"] == "ollama/llama3.1"
+    assert report["offline_run_comparison"]["mock"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert "workflow" in report["offline_run_comparison"]["langgraph"]["events"]
+    assert "retriever" in " ".join(report["migration_notes"]).lower()
