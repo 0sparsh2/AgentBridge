@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from examples.deep_scenario_report import build_report
+from examples.model_routes import build_model_route_catalog
 
 
 def test_deep_scenario_report_documents_frameworks_and_model_routes() -> None:
@@ -46,3 +47,15 @@ def test_deep_scenario_report_documents_frameworks_and_model_routes() -> None:
         assert "complete" in report["offline_run_comparison"]["openai_agents"]["events"]
     else:
         assert "error" in report["offline_run_comparison"]["openai_agents"]
+
+
+def test_model_route_catalog_documents_optional_provider_shapes() -> None:
+    catalog = build_model_route_catalog()
+    routes = catalog["routes"]
+
+    assert routes["offline_ci"]["default_ci"] is True
+    assert routes["offline_ci"]["credentialed"] is False
+    assert routes["local_ollama"]["model"] == "ollama/llama3.1"
+    assert routes["openrouter"]["api_key_env"] == "OPENROUTER_API_KEY"
+    assert routes["nvidia_nim_openai_compatible"]["base_url_env"] == "NVIDIA_NIM_BASE_URL"
+    assert routes["custom_openai_compatible_gateway"]["model"] == "openai/internal-agent-model"
