@@ -23,6 +23,7 @@ agentbridge conformance --backend google_adk --json
 - Streaming returns normalized events and ends with `complete`.
 - Sync tools work when the adapter advertises `tools.sync: full`.
 - Structured output works when the adapter advertises `structured_output: full`.
+- Run diagnostics metadata exists when the adapter advertises `observability.diagnostics: full`.
 
 Passing conformance means the adapter satisfies the portable AgentBridge contract. It does not mean
 every native framework feature is fully abstracted.
@@ -46,15 +47,15 @@ Current offline conformance paths:
 
 As of the latest local sweep, `agentbridge conformance` passes for every discovered backend.
 
-| Backend | Baseline | Tools | Streaming | Structured Output |
-| --- | --- | --- | --- | --- |
-| `google_adk` | pass | pass | pass | pass |
-| `langchain` | pass | pass | pass | pass |
-| `langgraph` | pass | pass | pass | skipped, not advertised as `full` |
-| `mock` | pass | pass | pass | skipped, not advertised as `full` |
-| `openai_agents` | pass | pass | pass | pass |
-| `pydantic_ai` | pass | pass | pass | pass |
-| `strands` | pass | pass | pass | pass |
+| Backend | Baseline | Tools | Streaming | Structured Output | Diagnostics |
+| --- | --- | --- | --- | --- | --- |
+| `google_adk` | pass | pass | pass | pass | pass |
+| `langchain` | pass | pass | pass | pass | pass |
+| `langgraph` | pass | pass | pass | skipped, not advertised as `full` | pass |
+| `mock` | pass | pass | pass | skipped, not advertised as `full` | skipped, not advertised as `full` |
+| `openai_agents` | pass | pass | pass | pass | pass |
+| `pydantic_ai` | pass | pass | pass | pass | skipped, not advertised as `full` |
+| `strands` | pass | pass | pass | pass | pass |
 
 Production users should keep using normal framework model identifiers, such as `openai/gpt-5`,
 `anthropic/claude-sonnet`, or framework-native model objects. Adapter-specific offline models are not

@@ -251,7 +251,7 @@ This avoids two traps:
 The current external adapter wave expands framework coverage through plugins, keeping the core install path light:
 
 - `agentbridge-openai-agents`: OpenAI Agents SDK handoffs, guardrails, approval interruption diagnostics, tracing, and runner/result normalization.
-- `agentbridge-strands`: Strands Agent/tool mapping, MCP clients, hooks, structured output, tracing, and structured AWS/AgentCore deployment metadata.
+- `agentbridge-strands`: Strands Agent/tool mapping, MCP clients, hook/intervention/guardrail lifecycle events, structured output, run diagnostics, tracing, and structured AWS/AgentCore deployment metadata.
 - `agentbridge-langchain`: direct LangChain agent compatibility for tools, middleware, callbacks, memory, retrievers, and tracing, complementing the built-in LangGraph adapter.
 - `agentbridge-google-adk`: ADK sessions, memory/artifact services, sub-agent transfer diagnostics, eval labels, run diagnostics, and deployment metadata.
 

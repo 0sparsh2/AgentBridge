@@ -18,6 +18,9 @@ AgentBridge adapter plugin for `strands`.
   strategies, checkpointing, sandbox, storage, and background-task options through
   `StrandsExtension`.
 - Structured output model pass-through with native contract tests.
+- Best-effort hook, intervention, and guardrail lifecycle event normalization.
+- Run diagnostics for events, guardrails, hooks, interventions, MCP clients, usage, interrupts, and
+  checkpoints.
 - Trace attributes and AWS/serverless deployment metadata summaries.
 
 ## Install
@@ -41,9 +44,10 @@ compiles a Strands `Agent` and runs through the native event loop, but uses a ti
 
 `StrandsExtension` forwards native Strands `Agent` constructor options when supplied and reports a
 serializable `extension_summary` in `RunResult.metadata`. Native MCP client/tool-provider objects in
-`mcp_clients` are appended to the Strands `tools` list; plain string labels, guardrail labels, and
-deployment targets are recorded as extension metadata until AgentBridge has native no-network tests
-for those execution paths.
+`mcp_clients` are appended to the Strands `tools` list; hook, intervention, and guardrail-shaped
+stream events are normalized as workflow events with lifecycle phases. Plain string labels,
+guardrail labels, and deployment targets are recorded as extension metadata until AgentBridge has
+deeper native no-network tests for those execution paths.
 
 Deployment metadata can be recorded without installing AWS deployment tooling:
 

@@ -157,6 +157,11 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
         "metadata": {"request_id": "req-1"},
         "session_id": "session-1",
     }
+    assert result.metadata["run_diagnostics"]["guardrails_count"] == 1
+    assert result.metadata["run_diagnostics"]["hooks_count"] == 1
+    assert result.metadata["run_diagnostics"]["interventions_count"] == 1
+    assert result.metadata["run_diagnostics"]["native_mcp_clients_count"] == 1
+    assert result.metadata["run_diagnostics"]["usage"] == {"requests": 1}
     assert result.metadata["extension_summary"] == {
         "conversation_manager": True,
         "context_manager": True,
@@ -270,6 +275,44 @@ def test_adapter_capabilities_mark_structured_output_full() -> None:
     capabilities = Adapter().capabilities()
 
     assert capabilities.status("structured_output") == "full"
+    assert capabilities.status("observability.diagnostics") == "full"
+
+
+def test_adapter_streams_strands_lifecycle_events(monkeypatch) -> None:
+    class FakeStreamAgent(FakeStrandsAgent):
+        async def stream_async(self, prompt, **kwargs):
+            del prompt, kwargs
+            yield {"hookEvent": {"name": "before_model"}}
+            yield {"guardrailEvent": {"name": "refund_policy", "status": "passed"}}
+            yield {"interventionEvent": {"name": "approval", "status": "requested"}}
+            yield {"toolUse": {"name": "lookup_order"}}
+            yield {"toolResult": {"content": "found"}}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "strands",
+        SimpleNamespace(Agent=FakeStreamAgent, tool=fake_tool),
+    )
+    adapter = Adapter()
+    spec = AgentSpec(
+        name="support_agent",
+        instructions="Use lifecycle events.",
+        model="mock/model",
+    )
+
+    compiled = adapter.compile(spec)
+    events = list(adapter.stream(compiled, RunInput(input="hello")))
+
+    assert [event.type for event in events] == [
+        "workflow",
+        "workflow",
+        "workflow",
+        "tool_call",
+        "tool_result",
+    ]
+    assert events[0].data["phase"] == "hook"
+    assert events[1].data["phase"] == "guardrail"
+    assert events[2].data["phase"] == "intervention"
 
 
 def test_strands_extension_records_deployment_metadata() -> None:
