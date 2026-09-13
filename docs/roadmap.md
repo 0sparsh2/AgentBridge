@@ -13,16 +13,16 @@
 
 ## v0.1: Real Backend Execution
 
-- Complete Pydantic AI adapter execution with tool calling.
-- Resolve CrewAI dependency strategy before completing role/task/crew execution.
-- Complete LangGraph adapter execution for a minimal state graph.
-- Add contract tests gated behind optional dependency markers.
-- Add CLI command for running an example agent against a selected backend.
-- Add backend capability metadata for supported features and known gaps.
-- Keep `docs/version_policy.md` updated as adapter dependency ranges change.
-- Add static JSON/YAML manifests for CLI runs.
-- Add a scaffold command for lightweight external adapter plugins.
-- Scaffold external plugins for OpenAI Agents SDK, Strands Agents, direct LangChain, and Google ADK with adopted version ranges.
+- Pydantic AI adapter execution with tool calling.
+- LangGraph minimal graph execution, conditional routing, checkpoint interrupt reporting, and compiled-runtime resume.
+- Contract tests gated behind optional dependency markers.
+- CLI commands for running, validating, comparing, inspecting, and conformance-checking backends.
+- Backend capability metadata for supported features and known gaps.
+- `docs/version_policy.md` kept current as adapter dependency ranges change.
+- Static JSON/YAML manifests for CLI runs.
+- Scaffold command for lightweight external adapter plugins.
+- External plugins for OpenAI Agents SDK, Strands Agents, direct LangChain, and Google ADK with adopted version ranges, offline contract tests, and capability-specific diagnostics.
+- CrewAI dependency strategy remains unresolved in this Python 3.14 environment and should be verified separately before claiming native execution.
 
 ## v1: Migration and Comparison
 
@@ -32,7 +32,7 @@
 - Existing-project import helpers for common CrewAI and LangGraph structures.
 - Existing-project import helpers for common LangChain agent apps.
 - Conservative `MigrationReport` helpers for LangChain and LangGraph object shapes.
-- Tracing integrations.
+- Tracing and diagnostics surfaces for plugin backends, with provider-specific smoke tests where credentials/config are available.
 - Full AG-UI server example.
 
 ## v2: Full Framework Coverage

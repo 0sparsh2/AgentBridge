@@ -306,12 +306,12 @@ Risks:
 
 ## Recommended Next Work
 
-1. Complete native OpenAI Agents plugin execution and mocked/offline contract tests.
-2. Complete native Strands plugin execution for Agent/Tool/MCP/structured output basics.
-3. Complete direct LangChain plugin execution and clarify overlap with LangGraph.
-4. Complete Google ADK plugin execution for sessions, memory, sub-agents, and eval/deploy metadata.
-5. Add import/migration helpers for existing LangChain and LangGraph apps.
-6. Add coverage reports that combine canonical capabilities, extension schemas, and native-only features.
+1. Add OpenAI Agents approval/resume fixtures around SDK run state and application-owned approval stores.
+2. Add Strands end-to-end MCP server/client fixtures, hook/intervention lifecycle events, and guardrail behavior tests.
+3. Add LangChain real retriever/memory examples with native objects, LangSmith smoke tests when configured, and deeper Runnable/compiled-graph import coverage.
+4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment examples.
+5. Keep import/migration helpers for existing LangChain and LangGraph apps conservative, expanding only when object shapes can be inspected safely.
+6. Use `agentbridge conformance --all`, coverage reports, extension schemas, and issue checklists as the release gate before claiming broader framework parity.
 
 Current migration helper status:
 
