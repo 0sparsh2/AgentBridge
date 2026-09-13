@@ -14,6 +14,7 @@ from agentbridge.extensions.langchain import LangChainExtension
 from agentbridge.extensions.langgraph import LangGraphExtension
 from agentbridge.extensions.openai_agents import OpenAIAgentsExtension
 from agentbridge.extensions.strands import StrandsExtension
+from examples.model_routes import MODEL_ROUTES
 
 
 base_agent = AgentSpec(
@@ -81,14 +82,8 @@ def build_report() -> dict[str, object]:
             for name, agent in variants.items()
         },
         "model_routes": {
-            "offline_ci": "agentbridge/offline",
-            "openai_api": "openai/gpt-5",
-            "anthropic_api": "anthropic/claude-sonnet",
-            "google_api": "google/gemini",
-            "local_ollama": "ollama/llama3.1",
-            "openrouter": "openrouter/openai/gpt-4o-mini",
-            "nvidia_nim_openai_compatible": "openai/nvidia-model-name",
-            "custom_openai_compatible_gateway": "openai/internal-agent-model",
+            name: route["model"]
+            for name, route in MODEL_ROUTES.items()
         },
         "expected_normalized_output": {
             "run_result": ["output", "backend", "events", "usage", "metadata", "raw"],
