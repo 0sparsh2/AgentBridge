@@ -309,7 +309,7 @@ Risks:
 
 1. Add OpenAI Agents backend-neutral approval resume queues and deeper real-SDK approval fixtures around SDK run state.
 2. Add Strands end-to-end MCP server/client fixtures and deeper guardrail behavior tests beyond normalized hook/intervention/guardrail lifecycle event shapes.
-3. Add LangChain LangSmith smoke tests when configured and more real-world Runnable/compiled-graph import fixtures beyond the native retriever/checkpointer/store example.
+3. Add more real-world LangChain Runnable/compiled-graph import fixtures beyond the native retriever/checkpointer/store example and gated LangSmith smoke hook.
 4. Add Google ADK native session/memory/artifact service behavior fixtures, eval execution hooks, and deployment publishing examples beyond metadata preservation.
 5. Keep import/migration helpers for existing LangChain and LangGraph apps conservative, expanding only when object shapes can be inspected safely.
 6. Use `agentbridge conformance --all`, coverage reports, extension schemas, and issue checklists as the release gate before claiming broader framework parity.
