@@ -12,7 +12,8 @@ AgentBridge adapter plugin for `strands`.
 ## Target Capabilities
 
 - Agent and tool mapping.
-- MCP client hints through `StrandsExtension`.
+- MCP client/tool-provider pass-through through `StrandsExtension`; plain string labels are kept as
+  metadata hints.
 - Native hooks, plugins, interventions, session managers, memory managers, context managers, retry
   strategies, checkpointing, sandbox, storage, and background-task options through
   `StrandsExtension`.
@@ -39,7 +40,8 @@ compiles a Strands `Agent` and runs through the native event loop, but uses a ti
 `Model` implementation so contract checks do not require cloud credentials.
 
 `StrandsExtension` forwards native Strands `Agent` constructor options when supplied and reports a
-serializable `extension_summary` in `RunResult.metadata`. MCP clients, guardrail labels, and
+serializable `extension_summary` in `RunResult.metadata`. Native MCP client/tool-provider objects in
+`mcp_clients` are appended to the Strands `tools` list; plain string labels, guardrail labels, and
 deployment targets are recorded as extension metadata until AgentBridge has native no-network tests
 for those execution paths.
 

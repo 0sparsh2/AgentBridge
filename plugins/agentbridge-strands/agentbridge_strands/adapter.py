@@ -48,7 +48,7 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "Maps AgentSpec instructions to Strands system_prompt.",
                 "agent.model": "Passes model strings through to Strands; provider compatibility is Strands/model dependent.",
                 "tools.sync": "Maps ToolSpec callables to Strands @tool wrappers.",
-                "tools.mcp": "Records MCP client hints through StrandsExtension; native MCP client execution remains extension-level.",
+                "tools.mcp": "Appends native MCP client/tool-provider objects from StrandsExtension.mcp_clients; string labels remain metadata-only hints.",
                 "structured_output": "Maps AgentSpec.output_type to Strands structured_output_model and validates native structured output.",
                 "guardrails": "Records guardrail/intervention hints and forwards native interventions when supplied.",
                 "observability.tracing": "Passes trace_attributes and preserves extension/runtime summaries.",
@@ -62,7 +62,10 @@ class Adapter(BackendAdapter):
 
         sdk = _load_strands_sdk()
         config = dict(spec.backend_config.get(self.backend_name, {}))
-        native_tools = [_to_strands_tool(sdk, tool) for tool in spec.tools]
+        native_tools = [
+            *_to_strands_tools(sdk, spec.tools),
+            *_native_mcp_clients(config),
+        ]
         agent_kwargs: dict[str, Any] = {
             "name": spec.name,
             "model": _model_for_spec(spec),
@@ -192,6 +195,19 @@ def _to_strands_tool(sdk: Any, tool_spec: Any) -> Any:
         description=tool_spec.description,
         inputSchema=tool_spec.input_schema,
     )
+
+
+def _to_strands_tools(sdk: Any, tool_specs: list[Any]) -> list[Any]:
+    return [_to_strands_tool(sdk, tool) for tool in tool_specs]
+
+
+def _native_mcp_clients(config: dict[str, Any]) -> list[Any]:
+    clients: list[Any] = []
+    for client in config.get("mcp_clients") or []:
+        if isinstance(client, str):
+            continue
+        clients.append(client)
+    return clients
 
 
 def _copy_native_agent_options(
@@ -449,6 +465,7 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         "plugins_count": len(config.get("plugins") or []),
         "interventions_count": len(config.get("interventions") or []),
         "mcp_clients": _safe_summary(config.get("mcp_clients") or []),
+        "native_mcp_clients_count": len(_native_mcp_clients(config)),
         "trace_attributes": _safe_summary(config.get("trace_attributes") or {}),
         "guardrails": _safe_summary(config.get("guardrails") or []),
         "deployment_target": config.get("deployment_target"),

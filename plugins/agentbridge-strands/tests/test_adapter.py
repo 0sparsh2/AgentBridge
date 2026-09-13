@@ -72,6 +72,7 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
     hook = object()
     plugin = object()
     intervention = object()
+    mcp_client = object()
     session_manager = object()
     memory_manager = object()
     tool_executor = object()
@@ -90,7 +91,7 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
         hooks=[hook],
         plugins=[plugin],
         interventions=[intervention],
-        mcp_clients=["orders_mcp"],
+        mcp_clients=["orders_mcp", mcp_client],
         trace_attributes={"service": "support"},
         guardrails=["refund_policy"],
         session_manager=session_manager,
@@ -126,6 +127,8 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
     assert compiled.native_agent.kwargs["hooks"] == [hook]
     assert compiled.native_agent.kwargs["plugins"] == [plugin]
     assert compiled.native_agent.kwargs["interventions"] == [intervention]
+    assert compiled.native_agent.kwargs["tools"] == [mcp_client]
+    assert compiled.native_tools == [mcp_client]
     assert compiled.native_agent.kwargs["trace_attributes"] == {"service": "support"}
     assert compiled.native_agent.kwargs["session_manager"] is session_manager
     assert compiled.native_agent.kwargs["memory_manager"] is memory_manager
@@ -152,7 +155,8 @@ def test_adapter_forwards_strands_extension_surface(monkeypatch) -> None:
         "hooks_count": 1,
         "plugins_count": 1,
         "interventions_count": 1,
-        "mcp_clients": ["orders_mcp"],
+        "mcp_clients": ["orders_mcp", "object"],
+        "native_mcp_clients_count": 1,
         "trace_attributes": {"service": "support"},
         "guardrails": ["refund_policy"],
         "deployment_target": "agentcore",

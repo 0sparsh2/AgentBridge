@@ -36,7 +36,7 @@ Current backend status:
 | `pydantic_ai` | Core optional extra | Verified locally | Uses `pydantic-ai-slim`; offline tests use Pydantic AI test utilities. |
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
 | `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output plus native handoff, guardrail, MCP, and Runner option pass-through; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
-| `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, tracing summaries, MCP hints, guardrails, and deployment metadata remain extension-level. |
+| `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through, tracing summaries, guardrails, and deployment metadata remain extension-level. |
 | `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output is contract-tested, while native runtime config, callbacks, checkpointers, stores, and other `create_agent` options are extension-level. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output is contract-tested, while native Agent/Runner options, session/memory/artifact services, evals, and deployment metadata remain extension-level. |
 
