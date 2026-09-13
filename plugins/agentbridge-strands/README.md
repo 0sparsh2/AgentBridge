@@ -45,6 +45,34 @@ serializable `extension_summary` in `RunResult.metadata`. Native MCP client/tool
 deployment targets are recorded as extension metadata until AgentBridge has native no-network tests
 for those execution paths.
 
+Deployment metadata can be recorded without installing AWS deployment tooling:
+
+```python
+from agentbridge import AgentSpec
+from agentbridge.extensions.strands import StrandsExtension
+
+agent = StrandsExtension.with_config(
+    AgentSpec(
+        name="support_agent",
+        instructions="Help customers with refunds.",
+        model="bedrock/us.anthropic.claude-sonnet-4-5",
+    ),
+    deployment_target="agentcore",
+    deployment={
+        "runtime": "bedrock-agentcore",
+        "entrypoint": "app:agent",
+        "region": "us-east-1",
+        "session_header": "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id",
+        "trace_headers": ["X-Amzn-Trace-Id", "traceparent", "baggage"],
+        "observability": {"cloudwatch": True, "xray": True},
+    },
+)
+```
+
+This metadata is preserved in `RunResult.metadata["extension_summary"]["deployment"]` for review,
+comparison, and future deploy tooling. It does not call AgentCore, build containers, provision IAM,
+or publish runtime endpoints.
+
 ## Local Development Without Installing
 
 ```bash

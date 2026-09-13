@@ -175,6 +175,7 @@ def test_extension_registry_lists_framework_profiles() -> None:
     assert "handoffs" in profiles["openai_agents"].config_schema["properties"]
     assert "session_service" in profiles["google_adk"].config_schema["properties"]
     assert "mcp_clients" in profiles["strands"].config_schema["properties"]
+    assert "deployment" in profiles["strands"].config_schema["properties"]
     assert "middleware" in profiles["langchain"].config_schema["properties"]
     assert "workflow.routing" in profiles["langgraph"].capabilities
     assert "tools.mcp" in profiles["openai_agents"].capabilities

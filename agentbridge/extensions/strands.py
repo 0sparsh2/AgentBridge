@@ -37,6 +37,7 @@ class StrandsConfig(BaseModel):
     load_tools_from_directory: bool | None = None
     record_direct_tool_call: bool | None = None
     deployment_target: str | None = None
+    deployment: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -70,6 +71,7 @@ class StrandsExtension(FrameworkExtension):
         load_tools_from_directory: bool | None = None,
         record_direct_tool_call: bool | None = None,
         deployment_target: str | None = None,
+        deployment: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable Strands adapter configuration."""
@@ -97,6 +99,7 @@ class StrandsExtension(FrameworkExtension):
             load_tools_from_directory=load_tools_from_directory,
             record_direct_tool_call=record_direct_tool_call,
             deployment_target=deployment_target,
+            deployment=deployment or {},
             metadata=metadata or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 

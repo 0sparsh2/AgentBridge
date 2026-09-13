@@ -468,11 +468,19 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         "native_mcp_clients_count": len(_native_mcp_clients(config)),
         "trace_attributes": _safe_summary(config.get("trace_attributes") or {}),
         "guardrails": _safe_summary(config.get("guardrails") or []),
-        "deployment_target": config.get("deployment_target"),
+        "deployment": _deployment_summary(config),
         "session_manager": "session_manager" in applied_native_options,
         "memory_manager": "memory_manager" in applied_native_options,
         "applied_native_options": applied_native_options,
     }
+
+
+def _deployment_summary(config: dict[str, Any]) -> dict[str, Any]:
+    deployment = dict(config.get("deployment") or {})
+    target = config.get("deployment_target") or deployment.get("target")
+    if target is not None:
+        deployment["target"] = target
+    return _safe_summary(deployment)
 
 
 def _final_output(result: Any) -> Any:

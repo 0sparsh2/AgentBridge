@@ -137,8 +137,8 @@ def extension_profiles() -> list[ExtensionProfile]:
             status="partial",
             notes=[
                 "External plugin maps AgentSpec and ToolSpec to Strands Agent and @tool wrappers.",
-                "Structured output, native Agent option forwarding, trace summaries, and MCP client/tool-provider object pass-through are covered by the plugin.",
-                "Plain string MCP labels, guardrail labels, hook/intervention event semantics, and AWS deployment paths remain extension-level.",
+                "Structured output, native Agent option forwarding, trace summaries, MCP client/tool-provider object pass-through, and deployment metadata summaries are covered by the plugin.",
+                "Plain string MCP labels, guardrail labels, hook/intervention event semantics, and live AWS deployment execution remain extension-level.",
             ],
         ),
         ExtensionProfile(
