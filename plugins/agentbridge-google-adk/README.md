@@ -21,6 +21,8 @@ AgentBridge adapter plugin for `google_adk`.
   retry/timeout settings, lifecycle callbacks, and sub-agents.
 - Native Runner options through `GoogleADKExtension`, including session service, memory service,
   artifact service, credential service, plugins, plugin close timeout, and auto-session behavior.
+- Run diagnostics for ADK event counts/types, function call/response counts, transfer-to-agent
+  events, session/service bindings, sub-agent counts, eval labels, and deployment target labels.
 - Evals and deployment metadata as extension-level summaries.
 
 ## Dependency Note
@@ -47,9 +49,13 @@ compiles a Google ADK `Agent` and executes through the native `Runner`, but uses
 `BaseLlm` implementation so contract checks do not require cloud credentials.
 
 `GoogleADKExtension` forwards native ADK Agent/Runner options when supplied and reports
-serializable `run_kwargs`, `extension_config`, and `extension_summary` metadata on `RunResult`.
-Eval execution and deployment publishing are still metadata-only until AgentBridge has native
-no-network tests for those flows.
+serializable `run_kwargs`, `extension_config`, `extension_summary`, and `run_diagnostics` metadata
+on `RunResult`.
+
+`run_diagnostics` includes event history counts, text/function-call/function-response counts,
+transfer-to-agent targets, session identity, service type summaries, and extension-level eval and
+deployment labels. Eval execution and deployment publishing are still metadata-only until
+AgentBridge has native no-network tests for those flows.
 
 ## Local Development Without Installing
 

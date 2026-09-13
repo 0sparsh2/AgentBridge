@@ -252,6 +252,6 @@ The next wave expands framework coverage through external plugins, keeping the c
 - `agentbridge-openai-agents`: OpenAI Agents SDK handoffs, guardrails, approval interruption diagnostics, tracing, and runner/result normalization.
 - `agentbridge-strands`: Strands Agent/tool mapping, MCP clients, hooks, structured output, tracing, and structured AWS/AgentCore deployment metadata.
 - `agentbridge-langchain`: direct LangChain agent compatibility for tools, middleware, callbacks, memory, retrievers, and tracing, complementing the built-in LangGraph adapter.
-- `agentbridge-google-adk`: ADK sessions, memory services, sub-agents, eval hooks, and deployment metadata.
+- `agentbridge-google-adk`: ADK sessions, memory/artifact services, sub-agent transfer diagnostics, eval labels, run diagnostics, and deployment metadata.
 
 Each plugin should start scaffolded, advertise only honest capability statuses, then graduate individual capabilities to `full` only when contract tests exercise the native framework version documented in `docs/version_policy.md`.
