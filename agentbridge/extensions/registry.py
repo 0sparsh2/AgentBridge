@@ -38,13 +38,15 @@ def extension_profiles() -> list[ExtensionProfile]:
             config_schema=LangGraphConfig.model_json_schema(),
             capabilities=[
                 "workflow.graph",
+                "workflow.routing",
                 "state.checkpointing",
                 "human_approval",
             ],
             status="partial",
             notes=[
-                "Supports node naming, graph naming, context echoing, and in-memory checkpointing.",
-                "Conditional routing and human interrupt helpers are planned.",
+                "Supports node naming, graph naming, context echoing, conditional routing, and in-memory checkpointing.",
+                "Checkpointed interrupts can be resumed with resume_agent() when the same compiled runtime owns the checkpoint state.",
+                "Backend-neutral review queues and approval policy models remain extension-level.",
             ],
         ),
         ExtensionProfile(
@@ -85,7 +87,9 @@ def extension_profiles() -> list[ExtensionProfile]:
             config_model="OpenAIAgentsConfig",
             config_schema=OpenAIAgentsConfig.model_json_schema(),
             capabilities=[
+                "structured_output",
                 "workflow.handoffs",
+                "tools.mcp",
                 "guardrails",
                 "human_approval",
                 "observability.tracing",
@@ -93,7 +97,8 @@ def extension_profiles() -> list[ExtensionProfile]:
             status="partial",
             notes=[
                 "External plugin maps AgentSpec and ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible 0.20.x line.",
-                "Handoffs, guardrails, tracing, approvals, and latest 0.22.x verification remain blocked or extension-level until dependency conflicts are resolved.",
+                "Structured output, native handoff/guardrail/MCP/run options, tracing summaries, and best-effort events are covered by the plugin.",
+                "Approval/resume flows and latest 0.22.x verification remain blocked or extension-level until dependency conflicts are resolved.",
             ],
         ),
         ExtensionProfile(
@@ -102,6 +107,7 @@ def extension_profiles() -> list[ExtensionProfile]:
             config_model="GoogleADKConfig",
             config_schema=GoogleADKConfig.model_json_schema(),
             capabilities=[
+                "structured_output",
                 "state.session",
                 "state.memory",
                 "workflow.delegation",
@@ -111,7 +117,8 @@ def extension_profiles() -> list[ExtensionProfile]:
             status="partial",
             notes=[
                 "External plugin maps AgentSpec to ADK Agent, ToolSpec to FunctionTool, and runs through Runner with in-memory sessions.",
-                "Native memory services, sub-agents, evals, deployment, and dependency-sensitive service wiring remain extension-level.",
+                "Structured output is validated through ADK output_schema plus AgentBridge typed validation.",
+                "Native memory/artifact services, sub-agent delegation fixtures, eval execution, and deployment remain extension-level.",
             ],
         ),
         ExtensionProfile(
@@ -130,7 +137,8 @@ def extension_profiles() -> list[ExtensionProfile]:
             status="partial",
             notes=[
                 "External plugin maps AgentSpec and ToolSpec to Strands Agent and @tool wrappers.",
-                "MCP clients, hooks, guardrails, tracing, and AWS deployment paths remain extension-level.",
+                "Structured output, native Agent option forwarding, trace summaries, and MCP client/tool-provider object pass-through are covered by the plugin.",
+                "Plain string MCP labels, guardrail labels, hook/intervention event semantics, and AWS deployment paths remain extension-level.",
             ],
         ),
         ExtensionProfile(
@@ -141,13 +149,15 @@ def extension_profiles() -> list[ExtensionProfile]:
             capabilities=[
                 "tools.sync",
                 "tools.async",
+                "structured_output",
                 "state.memory",
                 "observability.tracing",
             ],
             status="partial",
             notes=[
                 "External plugin maps AgentSpec to LangChain create_agent and ToolSpec to StructuredTool.",
-                "LangGraph remains the preferred stateful orchestration backend; middleware, callbacks, memory, retrievers, and tracing remain extension-level.",
+                "Structured output is validated through native response_format and structured_response.",
+                "LangGraph remains the preferred stateful orchestration backend; callbacks, memory, retrievers, and LangSmith provider behavior remain extension-level.",
             ],
         ),
     ]
