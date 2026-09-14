@@ -17,7 +17,7 @@ model gateway. In v0, model selection should stay in:
 | Google API | `google/gemini` | Google credentials or ADK-native model settings. |
 | Local Ollama-style model | `ollama/llama3.1` | Local model server running; backend must support that route. |
 | OpenRouter | `openrouter/openai/gpt-4o-mini` | `OPENROUTER_API_KEY`, or OpenAI-compatible `base_url` in backend-native settings. |
-| NVIDIA NIM | `openai/deepseek-ai/deepseek-v4-flash` | `NVIDIA_NIM_API_KEY`, `NVIDIA_NIM_API_BASE` or `NVIDIA_NIM_BASE_URL`, optional `NVIDIA_MODEL`. |
+| NVIDIA NIM | `openai/deepseek-ai/deepseek-v4-flash-0731` | `NVIDIA_NIM_API_KEY`, `NVIDIA_NIM_API_BASE` or `NVIDIA_NIM_BASE_URL`, optional `NVIDIA_MODEL`. |
 | Custom gateway | `openai/internal-agent-model` | Internal OpenAI-compatible base URL and API key. |
 
 ## Backend Responsibilities
@@ -45,7 +45,7 @@ Example report shape:
 
 ```json
 {
-  "model": "openai/deepseek-ai/deepseek-v4-flash",
+  "model": "openai/deepseek-ai/deepseek-v4-flash-0731",
   "provider": "nvidia_nim",
   "base_url_env": "NVIDIA_NIM_API_BASE",
   "alternate_base_url_env": "NVIDIA_NIM_BASE_URL",

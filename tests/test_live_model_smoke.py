@@ -16,7 +16,7 @@ def test_nvidia_nim_live_smoke_accepts_user_env_aliases(monkeypatch) -> None:
     monkeypatch.setenv("AGENTBRIDGE_RUN_CREDENTIAL_SMOKE", "1")
     monkeypatch.setenv("NVIDIA_NIM_API_KEY", "test-key")
     monkeypatch.setenv("NVIDIA_NIM_API_BASE", "https://integrate.api.nvidia.com/v1")
-    monkeypatch.setenv("NVIDIA_MODEL", "deepseek-ai/deepseek-v4-flash")
+    monkeypatch.setenv("NVIDIA_MODEL", "deepseek-ai/deepseek-v4-flash-0731")
 
     calls = {}
 
@@ -30,4 +30,4 @@ def test_nvidia_nim_live_smoke_accepts_user_env_aliases(monkeypatch) -> None:
 
     assert result["ok"] is True
     assert calls["base_url"] == "https://integrate.api.nvidia.com/v1"
-    assert calls["model"] == "deepseek-ai/deepseek-v4-flash"
+    assert calls["model"] == "deepseek-ai/deepseek-v4-flash-0731"

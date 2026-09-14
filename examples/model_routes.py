@@ -44,7 +44,7 @@ MODEL_ROUTES = {
         "default_ci": False,
     },
     "nvidia_nim_openai_compatible": {
-        "model": "openai/deepseek-ai/deepseek-v4-flash",
+        "model": "openai/deepseek-ai/deepseek-v4-flash-0731",
         "credentialed": True,
         "api_key_env": "NVIDIA_NIM_API_KEY",
         "base_url_env": "NVIDIA_NIM_API_BASE",

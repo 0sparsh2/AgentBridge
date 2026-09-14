@@ -57,7 +57,7 @@ def test_credentialed_smoke_matrix_accepts_nvidia_base_url_alias() -> None:
             "AGENTBRIDGE_RUN_CREDENTIAL_SMOKE": "1",
             "NVIDIA_NIM_API_KEY": "test-key",
             "NVIDIA_NIM_API_BASE": "https://integrate.api.nvidia.com/v1",
-            "NVIDIA_MODEL": "deepseek-ai/deepseek-v4-flash",
+            "NVIDIA_MODEL": "deepseek-ai/deepseek-v4-flash-0731",
         }
     )
 

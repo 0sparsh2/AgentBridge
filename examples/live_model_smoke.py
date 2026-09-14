@@ -83,7 +83,7 @@ def run_nvidia_nim_smoke_from_env() -> dict[str, Any]:
         }
     api_key = os.getenv("NVIDIA_NIM_API_KEY")
     base_url = os.getenv("NVIDIA_NIM_API_BASE") or os.getenv("NVIDIA_NIM_BASE_URL")
-    model = os.getenv("NVIDIA_MODEL") or os.getenv("NVIDIA_NIM_MODEL") or "deepseek-ai/deepseek-v4-flash"
+    model = os.getenv("NVIDIA_MODEL") or os.getenv("NVIDIA_NIM_MODEL") or "deepseek-ai/deepseek-v4-flash-0731"
     missing = [
         name
         for name, value in {

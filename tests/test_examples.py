@@ -30,7 +30,7 @@ def test_deep_scenario_report_documents_frameworks_and_model_routes() -> None:
         "google_api": "google/gemini",
         "local_ollama": "ollama/llama3.1",
         "openrouter": "openrouter/openai/gpt-4o-mini",
-        "nvidia_nim_openai_compatible": "openai/deepseek-ai/deepseek-v4-flash",
+        "nvidia_nim_openai_compatible": "openai/deepseek-ai/deepseek-v4-flash-0731",
         "custom_openai_compatible_gateway": "openai/internal-agent-model",
     }
     assert report["framework_extensions"]["openai_agents_source"]["approval_store"] == "ApprovalQueue"
@@ -100,7 +100,7 @@ def test_strands_agentcore_report_documents_production_path_shape() -> None:
     assert "human_review_for_high_value_refunds" in strands_config["interventions"]
     assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
     assert report["model_routes"]["local_ollama"] == "ollama/llama3.1"
-    assert report["model_routes"]["nvidia_nim_openai_compatible"] == "openai/deepseek-ai/deepseek-v4-flash"
+    assert report["model_routes"]["nvidia_nim_openai_compatible"] == "openai/deepseek-ai/deepseek-v4-flash-0731"
     assert report["offline_run_comparison"]["mock"]["available"] is True
     assert report["offline_run_comparison"]["langgraph"]["available"] is True
     assert "strands" in report["offline_run_comparison"]

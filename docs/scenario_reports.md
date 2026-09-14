@@ -53,7 +53,7 @@ Reports should still document the tested shapes:
 | Google API | `google/gemini` | Especially relevant for Google ADK. |
 | Local model | `ollama/llama3.1` or backend-native local model object | Should be marked credential-free only when actually tested. |
 | OpenRouter | `openrouter/openai/gpt-4o-mini` plus endpoint/API-key config | OpenAI-compatible endpoint behavior should be documented per backend. |
-| NVIDIA NIM | `openai/deepseek-ai/deepseek-v4-flash` plus NIM base URL/API-key config | Treat as OpenAI-compatible unless a backend has native NIM support. |
+| NVIDIA NIM | `openai/deepseek-ai/deepseek-v4-flash-0731` plus NIM base URL/API-key config | Treat as OpenAI-compatible unless a backend has native NIM support. |
 | Custom gateway | `openai/custom-model` plus backend-native base URL | Useful for internal gateways and local OpenAI-compatible servers. |
 
 ## Example Report Matrix
