@@ -101,5 +101,8 @@ AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1 python examples/credentialed_smoke_matrix.py
 Then provide the route-specific credentials shown by the matrix, such as `OPENAI_API_KEY`,
 `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_BASE_URL`, `OPENROUTER_API_KEY`,
 `NVIDIA_NIM_API_KEY` plus `NVIDIA_NIM_BASE_URL`, or the custom gateway environment variables.
-The matrix is intentionally readiness-only today; live provider calls should be added per backend as
-small explicit smoke tests once the corresponding adapter path is stable enough for networked CI.
+The same matrix has a separate `native_runtime_smokes` section for framework-native flows such as
+OpenAI Agents approval/resume, Strands AgentCore deployment, and Google ADK eval/deployment.
+The matrix is intentionally readiness-only today; live provider/runtime calls should be added per
+backend as small explicit smoke tests once the corresponding adapter path is stable enough for
+networked CI.

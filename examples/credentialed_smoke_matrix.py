@@ -49,6 +49,33 @@ SMOKE_ROUTES = {
     },
 }
 
+NATIVE_RUNTIME_SMOKES = {
+    "openai_agents_native_resume": {
+        "backend": "openai_agents",
+        "required_env": ["OPENAI_API_KEY"],
+        "notes": "Live OpenAI Agents approval interruption and backend-specific resume execution.",
+    },
+    "strands_agentcore_deployment": {
+        "backend": "strands",
+        "required_env": [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_REGION",
+            "AGENTBRIDGE_STRANDS_AGENTCORE_ROLE_ARN",
+        ],
+        "notes": "Live Strands/AWS AgentCore deployment or runtime smoke path.",
+    },
+    "google_adk_eval_deployment": {
+        "backend": "google_adk",
+        "required_env": [
+            "GOOGLE_APPLICATION_CREDENTIALS",
+            "GOOGLE_CLOUD_PROJECT",
+            "GOOGLE_CLOUD_LOCATION",
+        ],
+        "notes": "Live Google ADK eval execution and Vertex/Agent Engine deployment smoke path.",
+    },
+}
+
 
 def build_smoke_matrix(*, environ: dict[str, str] | None = None) -> dict[str, object]:
     env = environ if environ is not None else os.environ
@@ -62,6 +89,10 @@ def build_smoke_matrix(*, environ: dict[str, str] | None = None) -> dict[str, ob
         "routes": {
             name: _route_status(name, config, env=env, enabled=enabled)
             for name, config in SMOKE_ROUTES.items()
+        },
+        "native_runtime_smokes": {
+            name: _native_runtime_status(name, config, env=env, enabled=enabled)
+            for name, config in NATIVE_RUNTIME_SMOKES.items()
         },
     }
 
@@ -79,6 +110,26 @@ def _route_status(
     return {
         "backend": config["backend"],
         "model": route["model"],
+        "required_env": required_env,
+        "missing_env": missing_env,
+        "ready": enabled and not missing_env,
+        "status": "ready" if enabled and not missing_env else "skipped",
+        "notes": config["notes"],
+    }
+
+
+def _native_runtime_status(
+    name: str,
+    config: dict[str, object],
+    *,
+    env: dict[str, str],
+    enabled: bool,
+) -> dict[str, object]:
+    del name
+    required_env = list(config["required_env"])
+    missing_env = [key for key in required_env if not env.get(key)]
+    return {
+        "backend": config["backend"],
         "required_env": required_env,
         "missing_env": missing_env,
         "ready": enabled and not missing_env,
