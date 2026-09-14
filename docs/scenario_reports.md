@@ -53,7 +53,7 @@ Reports should still document the tested shapes:
 | Google API | `google/gemini` | Especially relevant for Google ADK. |
 | Local model | `ollama/llama3.1` or backend-native local model object | Should be marked credential-free only when actually tested. |
 | OpenRouter | `openrouter/openai/gpt-4o-mini` plus endpoint/API-key config | OpenAI-compatible endpoint behavior should be documented per backend. |
-| NVIDIA NIM | `openai/nvidia-model-name` plus NIM base URL/API-key config | Treat as OpenAI-compatible unless a backend has native NIM support. |
+| NVIDIA NIM | `openai/deepseek-ai/deepseek-v4-flash` plus NIM base URL/API-key config | Treat as OpenAI-compatible unless a backend has native NIM support. |
 | Custom gateway | `openai/custom-model` plus backend-native base URL | Useful for internal gateways and local OpenAI-compatible servers. |
 
 ## Example Report Matrix
@@ -100,7 +100,8 @@ AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1 python examples/credentialed_smoke_matrix.py
 
 Then provide the route-specific credentials shown by the matrix, such as `OPENAI_API_KEY`,
 `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_BASE_URL`, `OPENROUTER_API_KEY`,
-`NVIDIA_NIM_API_KEY` plus `NVIDIA_NIM_BASE_URL`, or the custom gateway environment variables.
+`NVIDIA_NIM_API_KEY` plus `NVIDIA_NIM_API_BASE` or `NVIDIA_NIM_BASE_URL`, optional `NVIDIA_MODEL`,
+or the custom gateway environment variables.
 The same matrix has a separate `native_runtime_smokes` section for framework-native flows such as
 OpenAI Agents approval/resume, Strands AgentCore deployment, and Google ADK eval/deployment.
 The matrix is intentionally readiness-only today; live provider/runtime calls should be added per

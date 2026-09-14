@@ -36,7 +36,9 @@ SMOKE_ROUTES = {
     },
     "nvidia_nim_openai_compatible": {
         "backend": "pydantic_ai",
-        "required_env": ["NVIDIA_NIM_API_KEY", "NVIDIA_NIM_BASE_URL"],
+        "required_env": ["NVIDIA_NIM_API_KEY"],
+        "any_of_env": [["NVIDIA_NIM_API_BASE", "NVIDIA_NIM_BASE_URL"]],
+        "optional_env": ["NVIDIA_MODEL", "NVIDIA_NIM_MODEL"],
         "notes": "NVIDIA NIM via OpenAI-compatible base URL.",
     },
     "custom_openai_compatible_gateway": {
@@ -106,11 +108,16 @@ def _route_status(
 ) -> dict[str, object]:
     required_env = list(config["required_env"])
     missing_env = [key for key in required_env if not env.get(key)]
+    for aliases in config.get("any_of_env", []):
+        if not any(env.get(alias) for alias in aliases):
+            missing_env.append(" or ".join(aliases))
     route = MODEL_ROUTES[name]
     return {
         "backend": config["backend"],
         "model": route["model"],
         "required_env": required_env,
+        "any_of_env": config.get("any_of_env", []),
+        "optional_env": config.get("optional_env", []),
         "missing_env": missing_env,
         "ready": enabled and not missing_env,
         "status": "ready" if enabled and not missing_env else "skipped",
