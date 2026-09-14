@@ -62,6 +62,7 @@ Reports should still document the tested shapes:
 | --- | --- | --- | --- | --- | --- |
 | Refund approval migration | OpenAI Agents | LangGraph | approvals, queue payloads, handoffs, guardrails, MCP, interrupts, checkpoint resume | `agentbridge/offline`, `openai/gpt-5`, OpenRouter-compatible | Offline output comparison; native resume remains credentialed |
 | Typed refund validation | Pydantic AI | LangGraph | typed outputs, validation retries, tool timeouts, graph checkpointing | `test`, hosted/local/OpenAI-compatible | Offline output comparison |
+| Prototype crew migration | CrewAI | LangGraph | roles, goals, tasks, crews, delegation, memory, human input | hosted/local/OpenAI-compatible | Offline mock/LangGraph comparison; native CrewAI remains dependency-gated |
 | Support RAG migration | LangChain | LangGraph | retriever, store, callbacks, graph topology | `agentbridge/offline`, local Ollama-style model | Offline output comparison |
 | AWS production path | Strands | LangGraph | MCP, guardrails, hooks, interventions, session/memory managers, AgentCore metadata | Bedrock/NIM/OpenAI-compatible/local | Offline output comparison; live AgentCore remains credentialed |
 | Google enterprise path | Google ADK | LangGraph | session, memory, artifacts, credentials, callbacks, sub-agents, eval labels, deployment metadata | `google/gemini`, local/offline/OpenAI-compatible | Offline output comparison; live eval/deploy remains credentialed |
