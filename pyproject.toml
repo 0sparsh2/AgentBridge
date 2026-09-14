@@ -48,7 +48,7 @@ dev = [
 Homepage = "https://github.com/0sparsh2/agent-framework-connector"
 Repository = "https://github.com/0sparsh2/agent-framework-connector"
 Issues = "https://github.com/0sparsh2/agent-framework-connector/issues"
-Documentation = "https://0sparsh2.github.io/agent-framework-connector/"
+Documentation = "http://sparshnagpal.com/agent-framework-connector/"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
