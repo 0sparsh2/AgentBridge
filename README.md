@@ -104,6 +104,8 @@ Model routing follows LiteLLM-style model strings such as `openai/gpt-5`, `anthr
 
 Framework-specific knobs live in extension namespaces instead of the portable `AgentSpec` core. See [examples/framework_extensions.py](examples/framework_extensions.py) for cross-framework extension config, [examples/langchain_native_memory_retriever.py](examples/langchain_native_memory_retriever.py) for native LangChain retriever/checkpointer/store objects, [examples/deep_scenario_report.py](examples/deep_scenario_report.py) for a report-shaped migration/model-routing example, [examples/openai_agents_approval_report.py](examples/openai_agents_approval_report.py) for approval queue/resume shape, [examples/crewai_prototype_report.py](examples/crewai_prototype_report.py) for CrewAI role/task/crew migration shape, [examples/strands_agentcore_report.py](examples/strands_agentcore_report.py) for a Strands/AgentCore production-path report, [examples/google_adk_enterprise_report.py](examples/google_adk_enterprise_report.py) for a Google ADK enterprise services/eval/deployment report, and [examples/pydantic_validation_report.py](examples/pydantic_validation_report.py) for a typed-output validation report with normalized output comparison.
 
+Run [examples/scenario_report_suite.py](examples/scenario_report_suite.py) to generate one aggregate JSON index for the deep scenario reports and backend availability in your current environment.
+
 ## Streaming Quickstart
 
 ```python
