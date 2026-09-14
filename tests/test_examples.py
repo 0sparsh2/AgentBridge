@@ -7,6 +7,7 @@ from examples.model_routes import build_model_route_catalog
 from examples.openai_agents_approval_report import build_report as build_openai_agents_report
 from examples.pydantic_validation_report import build_report as build_pydantic_report
 from examples.rag_migration_report import build_report as build_rag_report
+from examples.scenario_report_suite import build_suite
 from examples.strands_agentcore_report import build_report as build_strands_report
 
 
@@ -206,3 +207,29 @@ def test_crewai_prototype_report_documents_role_task_migration_shape() -> None:
         assert "complete" in report["offline_run_comparison"]["crewai"]["events"]
     else:
         assert "error" in report["offline_run_comparison"]["crewai"]
+
+
+def test_scenario_report_suite_indexes_all_deep_reports() -> None:
+    suite = build_suite()
+
+    assert suite["reports_count"] == 6
+    assert suite["source_frameworks"] == [
+        "crewai",
+        "google_adk",
+        "langchain",
+        "openai_agents",
+        "pydantic_ai",
+        "strands",
+    ]
+    assert suite["target_frameworks"] == ["langgraph"]
+    assert set(suite["scenario_index"]) == {
+        "crewai_prototype",
+        "google_adk_enterprise",
+        "openai_agents_approval",
+        "pydantic_validation",
+        "rag_migration",
+        "strands_agentcore",
+    }
+    assert suite["backend_availability"]["mock"]["available"] == 6
+    assert suite["backend_availability"]["langgraph"]["available"] == 6
+    assert "crewai" in suite["backend_availability"]

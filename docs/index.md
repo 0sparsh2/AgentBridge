@@ -44,6 +44,7 @@ Use this page as the navigation map for the repository.
 - [examples/strands_agentcore_report.py](../examples/strands_agentcore_report.py): No-key Strands-to-LangGraph AgentCore production-path report with output comparison.
 - [examples/google_adk_enterprise_report.py](../examples/google_adk_enterprise_report.py): No-key Google ADK-to-LangGraph enterprise services/eval/deployment report with output comparison.
 - [examples/pydantic_validation_report.py](../examples/pydantic_validation_report.py): No-key Pydantic AI-to-LangGraph typed validation report with output comparison.
+- [examples/scenario_report_suite.py](../examples/scenario_report_suite.py): Aggregate no-key scenario report suite and framework/backend coverage index.
 - [examples/model_routes.py](../examples/model_routes.py): Machine-readable model route catalog for offline, hosted, local, OpenRouter, NVIDIA NIM, and custom gateways.
 - [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.
 

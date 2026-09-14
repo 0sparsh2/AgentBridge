@@ -76,3 +76,15 @@ A scenario report is not complete until it has:
 - Clear instructions for optional credentialed runs.
 - Assertions or golden output where possible.
 - A note explaining which framework nuances are fully tested versus metadata-only.
+
+## Suite Runner
+
+Run the aggregate report suite when changing report shape, model-route coverage, or framework
+extension examples:
+
+```bash
+python examples/scenario_report_suite.py
+```
+
+The suite indexes every deep scenario report, records source/target framework coverage, and summarizes
+which backend comparisons were available in the current environment.
