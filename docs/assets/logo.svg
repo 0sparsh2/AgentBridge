@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">AgentBridge logo</title>
+  <desc id="desc">A bridge connecting application code to agent frameworks.</desc>
+  <rect width="96" height="96" rx="22" fill="#10131a"/>
+  <path d="M18 58c10-18 20-27 30-27s20 9 30 27" fill="none" stroke="#72e4ff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M24 62h48" stroke="#f4f7fb" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="28" cy="44" r="7" fill="#f6c85f"/>
+  <circle cx="68" cy="44" r="7" fill="#ff6f61"/>
+</svg>

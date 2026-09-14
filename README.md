@@ -8,6 +8,8 @@ The first wedge is migration: teams can prototype in a high-level framework, val
 
 > AG-UI standardizes agent-to-frontend interaction. LiteLLM standardizes model-provider access. AgentBridge standardizes app-to-agent-framework compatibility.
 
+Documentation site target: [GitHub Pages](https://0sparsh2.github.io/agent-framework-connector/). The same source docs remain readable directly in this repository under [docs](docs/index.md).
+
 ## What This Repo Contains
 
 - A framework-neutral `AgentSpec` for instructions, model strings, tools, metadata, and backend options.
@@ -297,6 +299,7 @@ agentbridge conformance --backend custom
 - [docs/requirements.md](docs/requirements.md): Product requirements, target users, non-goals, and success criteria.
 - [docs/research.md](docs/research.md): Research notes comparing AG-UI, LiteLLM, LangGraph, CrewAI, and Pydantic AI.
 - [docs/architecture.md](docs/architecture.md): SDK architecture, adapter model, data flow, and diagrams.
+- [docs/diagrams.md](docs/diagrams.md): Visual system maps for the product, migration flow, capability layers, plugin boundary, and status graduation.
 - [docs/design.md](docs/design.md): Design decisions, tradeoffs, and extension principles.
 - [docs/adapters.md](docs/adapters.md): Adapter support matrix and framework-specific notes.
 - [docs/capability_coverage.md](docs/capability_coverage.md): Long-term feature coverage strategy.
@@ -306,7 +309,7 @@ agentbridge conformance --backend custom
 - [docs/plugin_authoring.md](docs/plugin_authoring.md): External adapter plugin guide.
 - [docs/version_policy.md](docs/version_policy.md): Adopted and verified dependency versions.
 - [docs/roadmap.md](docs/roadmap.md): v0, v0.1, and v1 milestones.
-- [articles/README.md](articles/README.md): Shareable posts on why AgentBridge exists and how the compatibility layer works.
+- [docs/articles/index.md](docs/articles/index.md): Shareable posts on why AgentBridge exists and how the compatibility layer works.
 
 ## Project Layout
 
