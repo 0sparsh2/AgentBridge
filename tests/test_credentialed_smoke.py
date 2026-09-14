@@ -23,7 +23,7 @@ def test_credentialed_smoke_matrix_requires_route_specific_credentials() -> None
     assert matrix["routes"]["openrouter"]["missing_env"] == ["OPENROUTER_API_KEY"]
     assert matrix["routes"]["nvidia_nim_openai_compatible"]["missing_env"] == [
         "NVIDIA_NIM_API_KEY",
-        "NVIDIA_NIM_BASE_URL",
+        "NVIDIA_NIM_API_BASE or NVIDIA_NIM_BASE_URL",
     ]
     assert matrix["native_runtime_smokes"]["strands_agentcore_deployment"]["missing_env"] == [
         "AWS_ACCESS_KEY_ID",
@@ -49,6 +49,21 @@ def test_credentialed_smoke_matrix_marks_ready_only_with_double_opt_in() -> None
     assert matrix["routes"]["openrouter"]["ready"] is True
     assert matrix["routes"]["openrouter"]["status"] == "ready"
     assert matrix["routes"]["openai_api"]["ready"] is False
+
+
+def test_credentialed_smoke_matrix_accepts_nvidia_base_url_alias() -> None:
+    matrix = build_smoke_matrix(
+        environ={
+            "AGENTBRIDGE_RUN_CREDENTIAL_SMOKE": "1",
+            "NVIDIA_NIM_API_KEY": "test-key",
+            "NVIDIA_NIM_API_BASE": "https://integrate.api.nvidia.com/v1",
+            "NVIDIA_MODEL": "deepseek-ai/deepseek-v4-flash",
+        }
+    )
+
+    route = matrix["routes"]["nvidia_nim_openai_compatible"]
+    assert route["ready"] is True
+    assert route["missing_env"] == []
 
 
 def test_native_runtime_smokes_mark_ready_only_with_framework_credentials() -> None:

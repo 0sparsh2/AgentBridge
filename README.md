@@ -106,6 +106,7 @@ Framework-specific knobs live in extension namespaces instead of the portable `A
 
 Run [examples/scenario_report_suite.py](examples/scenario_report_suite.py) to generate one aggregate JSON index for the deep scenario reports and backend availability in your current environment.
 Use [examples/credentialed_smoke_matrix.py](examples/credentialed_smoke_matrix.py) to inspect the double-gated environment variables for optional hosted, local, OpenRouter, NVIDIA NIM, and custom gateway smoke paths without contacting providers by default.
+Use [examples/live_model_smoke.py](examples/live_model_smoke.py) for an explicit NVIDIA NIM live check after setting `AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1`, `NVIDIA_NIM_API_KEY`, `NVIDIA_NIM_API_BASE` or `NVIDIA_NIM_BASE_URL`, and `NVIDIA_MODEL`.
 
 ## Streaming Quickstart
 
