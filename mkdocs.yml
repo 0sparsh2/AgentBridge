@@ -1,6 +1,6 @@
 site_name: AgentBridge
 site_description: Define an agent once and run it across multiple agent frameworks.
-site_url: http://sparshnagpal.com/agent-framework-connector/
+site_url: https://agentbridge.readthedocs.io/
 repo_url: https://github.com/0sparsh2/agent-framework-connector
 repo_name: 0sparsh2/agent-framework-connector
 edit_uri: edit/main/docs/

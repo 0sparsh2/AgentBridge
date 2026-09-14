@@ -8,7 +8,7 @@ The first wedge is migration: teams can prototype in a high-level framework, val
 
 > AG-UI standardizes agent-to-frontend interaction. LiteLLM standardizes model-provider access. AgentBridge standardizes app-to-agent-framework compatibility.
 
-Documentation site target: [GitHub Pages](http://sparshnagpal.com/agent-framework-connector/). The same source docs remain readable directly in this repository under [docs](docs/index.md).
+Documentation site target: [Read the Docs](https://agentbridge.readthedocs.io/). The same source docs remain readable directly in this repository under [docs](docs/index.md).
 
 ## What This Repo Contains
 
