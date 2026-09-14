@@ -1,0 +1,70 @@
+site_name: AgentBridge
+site_description: Define an agent once and run it across multiple agent frameworks.
+site_url: http://sparshnagpal.com/agent-framework-connector/
+repo_url: https://github.com/0sparsh2/agent-framework-connector
+repo_name: 0sparsh2/agent-framework-connector
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      primary: black
+      accent: blue
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Vision:
+      - Target State: vision.md
+      - Requirements: requirements.md
+      - Roadmap: roadmap.md
+  - Product:
+      - Research: research.md
+      - Adapter Target Research: adapter_target_research.md
+      - Capability Coverage: capability_coverage.md
+      - Scenario Reports: scenario_reports.md
+      - Model Routing: model_routing.md
+      - Version Policy: version_policy.md
+  - Engineering:
+      - Architecture: architecture.md
+      - Visual System Maps: diagrams.md
+      - Design: design.md
+      - Adapters: adapters.md
+      - CLI: cli.md
+      - Conformance: conformance.md
+      - Migration Helpers: migration.md
+      - Plugin Authoring: plugin_authoring.md
+      - Release Workflow: release.md
+  - Articles:
+      - Articles Home: articles/index.md
+      - Why AgentBridge Exists: articles/why-agentbridge.md
+      - Agent Framework Fragmentation: articles/agent-framework-fragmentation.md
+      - Prototype To Production Migration: articles/prototype-to-production-migration.md

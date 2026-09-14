@@ -4,14 +4,14 @@ Use this page as the navigation map for the repository.
 
 ## Start Here
 
-- [README](../README.md): Public project overview, quickstarts, architecture summary, and development workflow.
+- [README](https://github.com/0sparsh2/agent-framework-connector/blob/main/README.md): Public project overview, quickstarts, architecture summary, and development workflow.
 - [Vision And Target State](vision.md): Final target, goals, plugin families, and long-term ecosystem map.
 - [Requirements](requirements.md): Product requirements, target users, non-goals, success criteria, and acceptance criteria.
 - [Roadmap](roadmap.md): v0, v0.1, and v1 milestones.
 
 ## Product And Research
 
-- [Articles](../articles/README.md): Shareable GitHub posts about why AgentBridge exists and how the compatibility layer works.
+- [Articles](articles/index.md): Shareable GitHub posts about why AgentBridge exists and how the compatibility layer works.
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
 - [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Strands, direct LangChain, and Google ADK.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
@@ -23,6 +23,7 @@ Use this page as the navigation map for the repository.
 ## Engineering
 
 - [Architecture](architecture.md): System architecture, data flow, plugin loading, manifest flow, and normalized type model.
+- [Visual System Maps](diagrams.md): Shareable Mermaid diagrams for market positioning, migration, capability layers, plugin boundaries, and support status graduation.
 - [Design](design.md): Design decisions, tradeoffs, extension principles, and boundaries.
 - [Adapters](adapters.md): Backend support matrix, current limitations, and adapter-specific notes.
 - [CLI](cli.md): Command reference for validating, running, comparing, and inspecting agents.
@@ -32,22 +33,22 @@ Use this page as the navigation map for the repository.
 
 ## Examples
 
-- [examples/refund_agent.py](../examples/refund_agent.py): Same agent spec against selectable framework adapters.
-- [examples/research_agent.py](../examples/research_agent.py): Tool use and streaming event demo.
-- [examples/agui_events.py](../examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
-- [examples/framework_extensions.py](../examples/framework_extensions.py): Framework-specific extension config examples for LangChain, OpenAI Agents, Strands, and Google ADK.
-- [examples/langchain_native_memory_retriever.py](../examples/langchain_native_memory_retriever.py): Offline LangChain example with native retriever, checkpointer, and store objects.
-- [examples/deep_scenario_report.py](../examples/deep_scenario_report.py): No-key report-shaped example for deep framework features, migrations, outputs, and model routing.
-- [examples/openai_agents_approval_report.py](../examples/openai_agents_approval_report.py): No-key OpenAI Agents-to-LangGraph approval queue/resume report with output comparison.
-- [examples/crewai_prototype_report.py](../examples/crewai_prototype_report.py): No-key CrewAI-to-LangGraph prototype migration report with role/task/crew nuance.
-- [examples/rag_migration_report.py](../examples/rag_migration_report.py): No-key LangChain-to-LangGraph RAG migration report with output comparison.
-- [examples/strands_agentcore_report.py](../examples/strands_agentcore_report.py): No-key Strands-to-LangGraph AgentCore production-path report with output comparison.
-- [examples/google_adk_enterprise_report.py](../examples/google_adk_enterprise_report.py): No-key Google ADK-to-LangGraph enterprise services/eval/deployment report with output comparison.
-- [examples/pydantic_validation_report.py](../examples/pydantic_validation_report.py): No-key Pydantic AI-to-LangGraph typed validation report with output comparison.
-- [examples/scenario_report_suite.py](../examples/scenario_report_suite.py): Aggregate no-key scenario report suite and framework/backend coverage index.
-- [examples/credentialed_smoke_matrix.py](../examples/credentialed_smoke_matrix.py): Readiness matrix for double-gated hosted/local/provider smoke paths.
-- [examples/model_routes.py](../examples/model_routes.py): Machine-readable model route catalog for offline, hosted, local, OpenRouter, NVIDIA NIM, and custom gateways.
-- [examples/refund_agent.yaml](../examples/refund_agent.yaml): Static manifest for CLI runs.
+- [examples/refund_agent.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/refund_agent.py): Same agent spec against selectable framework adapters.
+- [examples/research_agent.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/research_agent.py): Tool use and streaming event demo.
+- [examples/agui_events.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/agui_events.py): Convert normalized AgentBridge events into AG-UI-shaped events.
+- [examples/framework_extensions.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/framework_extensions.py): Framework-specific extension config examples for LangChain, OpenAI Agents, Strands, and Google ADK.
+- [examples/langchain_native_memory_retriever.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/langchain_native_memory_retriever.py): Offline LangChain example with native retriever, checkpointer, and store objects.
+- [examples/deep_scenario_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/deep_scenario_report.py): No-key report-shaped example for deep framework features, migrations, outputs, and model routing.
+- [examples/openai_agents_approval_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/openai_agents_approval_report.py): No-key OpenAI Agents-to-LangGraph approval queue/resume report with output comparison.
+- [examples/crewai_prototype_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/crewai_prototype_report.py): No-key CrewAI-to-LangGraph prototype migration report with role/task/crew nuance.
+- [examples/rag_migration_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/rag_migration_report.py): No-key LangChain-to-LangGraph RAG migration report with output comparison.
+- [examples/strands_agentcore_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/strands_agentcore_report.py): No-key Strands-to-LangGraph AgentCore production-path report with output comparison.
+- [examples/google_adk_enterprise_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/google_adk_enterprise_report.py): No-key Google ADK-to-LangGraph enterprise services/eval/deployment report with output comparison.
+- [examples/pydantic_validation_report.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/pydantic_validation_report.py): No-key Pydantic AI-to-LangGraph typed validation report with output comparison.
+- [examples/scenario_report_suite.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/scenario_report_suite.py): Aggregate no-key scenario report suite and framework/backend coverage index.
+- [examples/credentialed_smoke_matrix.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/credentialed_smoke_matrix.py): Readiness matrix for double-gated hosted/local/provider smoke paths.
+- [examples/model_routes.py](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/model_routes.py): Machine-readable model route catalog for offline, hosted, local, OpenRouter, NVIDIA NIM, and custom gateways.
+- [examples/refund_agent.yaml](https://github.com/0sparsh2/agent-framework-connector/blob/main/examples/refund_agent.yaml): Static manifest for CLI runs.
 
 ## Maintainer Checklist
 
