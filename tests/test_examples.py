@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from examples.crewai_prototype_report import build_report as build_crewai_report
 from examples.deep_scenario_report import build_report
 from examples.google_adk_enterprise_report import build_report as build_google_adk_report
 from examples.model_routes import build_model_route_catalog
@@ -182,3 +183,26 @@ def test_openai_agents_approval_report_documents_queue_and_resume_shape() -> Non
         assert "complete" in report["offline_run_comparison"]["openai_agents"]["events"]
     else:
         assert "error" in report["offline_run_comparison"]["openai_agents"]
+
+
+def test_crewai_prototype_report_documents_role_task_migration_shape() -> None:
+    report = build_crewai_report()
+
+    assert report["source_framework"] == "crewai"
+    assert report["target_framework"] == "langgraph"
+    crew_config = report["framework_extensions"]["crewai_source"]
+    assert crew_config["role"] == "Refund specialist"
+    assert crew_config["process"] == "hierarchical"
+    assert crew_config["allow_delegation"] is True
+    assert crew_config["memory"] is True
+    assert crew_config["human_input"] is True
+    assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
+    assert report["model_routes"]["local_ollama"] == "ollama/llama3.1"
+    assert report["capability_deltas"]["roles_tasks_crews"] == "extension"
+    assert report["offline_run_comparison"]["mock"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert "crewai" in report["offline_run_comparison"]
+    if report["offline_run_comparison"]["crewai"]["available"]:
+        assert "complete" in report["offline_run_comparison"]["crewai"]["events"]
+    else:
+        assert "error" in report["offline_run_comparison"]["crewai"]
