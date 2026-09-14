@@ -3,6 +3,7 @@ from __future__ import annotations
 from examples.deep_scenario_report import build_report
 from examples.google_adk_enterprise_report import build_report as build_google_adk_report
 from examples.model_routes import build_model_route_catalog
+from examples.openai_agents_approval_report import build_report as build_openai_agents_report
 from examples.pydantic_validation_report import build_report as build_pydantic_report
 from examples.rag_migration_report import build_report as build_rag_report
 from examples.strands_agentcore_report import build_report as build_strands_report
@@ -154,3 +155,30 @@ def test_pydantic_validation_report_documents_typed_output_shape() -> None:
         assert "complete" in report["offline_run_comparison"]["pydantic_ai"]["events"]
     else:
         assert "error" in report["offline_run_comparison"]["pydantic_ai"]
+
+
+def test_openai_agents_approval_report_documents_queue_and_resume_shape() -> None:
+    report = build_openai_agents_report()
+
+    assert report["source_framework"] == "openai_agents"
+    assert report["target_framework"] == "langgraph"
+    openai_config = report["framework_extensions"]["openai_agents_source"]
+    assert openai_config["approval_policy"] == {"issue_refund": "required"}
+    assert openai_config["approval_store"] == "ApprovalQueue"
+    assert openai_config["handoffs"] == ["billing_specialist_agent"]
+    assert openai_config["mcp_servers"] == ["orders_mcp"]
+    assert openai_config["tracing"] is True
+    assert report["framework_extensions"]["langgraph_target"]["enable_checkpointing"] is True
+    resume_payload = report["approval_queue_fixture"]["resume_payload"]
+    assert resume_payload["id"] == "approval-refund-A123"
+    assert resume_payload["backend"] == "openai_agents"
+    assert resume_payload["status"] == "approved"
+    assert resume_payload["decision"]["reviewer"] == "support_manager"
+    assert report["approval_queue_fixture"]["pending_after_decision"] == []
+    assert report["offline_run_comparison"]["mock"]["available"] is True
+    assert report["offline_run_comparison"]["langgraph"]["available"] is True
+    assert "openai_agents" in report["offline_run_comparison"]
+    if report["offline_run_comparison"]["openai_agents"]["available"]:
+        assert "complete" in report["offline_run_comparison"]["openai_agents"]["events"]
+    else:
+        assert "error" in report["offline_run_comparison"]["openai_agents"]
