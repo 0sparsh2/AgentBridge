@@ -62,3 +62,24 @@ def test_scaffold_adapter_plugin_does_not_overwrite_without_force(tmp_path) -> N
         assert "already exists" in str(exc)
     else:  # pragma: no cover - defensive assertion style
         raise AssertionError("Expected existing files to fail without force")
+
+
+def test_scaffold_adapter_plugin_preflights_collisions_before_writing(tmp_path) -> None:
+    target = tmp_path / "plugin"
+    package_dir = target / "agentbridge_custom"
+    package_dir.mkdir(parents=True)
+    (package_dir / "adapter.py").write_text("# existing adapter\n", encoding="utf-8")
+
+    try:
+        scaffold_adapter_plugin(target, backend_name="custom")
+    except FileExistsError as exc:
+        message = str(exc)
+        assert "adapter.py" in message
+        assert "force=True" in message
+    else:  # pragma: no cover - defensive assertion style
+        raise AssertionError("Expected existing adapter.py to fail without force")
+
+    assert not (target / "pyproject.toml").exists()
+    assert not (target / "README.md").exists()
+    assert not (package_dir / "__init__.py").exists()
+    assert not (target / "tests" / "test_adapter.py").exists()

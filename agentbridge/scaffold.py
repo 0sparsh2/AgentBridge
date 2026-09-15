@@ -61,9 +61,15 @@ def scaffold_adapter_plugin(
         ),
     }
 
+    collisions = [path for path in files if path.exists()]
+    if collisions and not force:
+        formatted = ", ".join(str(path) for path in collisions)
+        raise FileExistsError(
+            f"Scaffold target already exists at generated path(s): {formatted}; "
+            "pass force=True to overwrite"
+        )
+
     for path, content in files.items():
-        if path.exists() and not force:
-            raise FileExistsError(f"{path} already exists; pass force=True to overwrite")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         created.append(ScaffoldedFile(path=path, created=True))
