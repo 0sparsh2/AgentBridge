@@ -40,7 +40,13 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "evaluation",
             "action": "Use EvaluationExample/EvaluationReport locally or the optional LangSmith publisher; add provider-specific fields when required.",
         }
-    if any(token in lower for token in ("prompt", "playground", "studio")):
+    if "prompt" in lower:
+        return {
+            "status": "extension",
+            "owner": "prompt-management",
+            "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting.",
+        }
+    if any(token in lower for token in ("playground", "studio")):
         return {
             "status": "planned",
             "owner": "prompt-management",

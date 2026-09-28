@@ -112,6 +112,23 @@ The integration creates the dataset with `Client.create_dataset`, uploads exampl
 `Client.evaluate` API. Credentials, evaluator definitions, and hosted retention remain
 LangSmith concerns; AgentBridge supplies the portable target and input mapping.
 
+Prompt versioning is available without adding LangSmith to core:
+
+```python
+from agentbridge_langchain.langsmith_prompts import pull_prompt, push_prompt
+
+prompt = pull_prompt("team/refunds:production")
+commit = push_prompt(
+    "team/refunds",
+    prompt=prompt,
+    tags=["production"],
+    commit_description="Reviewed refund policy",
+)
+```
+
+The native prompt object is returned unchanged so LangChain remains responsible for template
+variables, message formatting, model-specific prompt behavior, and prompt serialization.
+
 When `stream_agent(..., backend="langchain")` is used, the adapter first tries LangChain's event
 streaming API and normalizes message deltas, tool-call chunks, completed tool calls, tool results,
 and custom updates into `AgentEvent` values. If a LangChain runtime only supports classic

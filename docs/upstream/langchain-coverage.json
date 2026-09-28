@@ -1646,9 +1646,9 @@
       "title": "LangSmith Chat",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/chat.md",
@@ -1871,9 +1871,9 @@
       "title": "Create a prompt",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/create-account-api-key.md",
@@ -3050,9 +3050,9 @@
       "title": "Prompt Slack users with agent-owned interrupts",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-changelog.md",
@@ -3707,18 +3707,18 @@
       "title": "Manage prompts programmatically",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/manage-prompts.md",
       "title": "Manage prompts",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/manage-trace.md",
@@ -3743,9 +3743,9 @@
       "title": "Configure prompt settings",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/mask-inputs-outputs.md",
@@ -3806,9 +3806,9 @@
       "title": "Include multimodal content in a prompt",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/multiple-messages.md",
@@ -4049,45 +4049,45 @@
       "title": "How to sync prompts with GitHub",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/prompt-context-hub.md",
       "title": "Prompt & Context Hub",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/prompt-engineering-concepts.md",
       "title": "Prompt engineering concepts",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/prompt-engineering-quickstart.md",
       "title": "Prompt engineering quickstart",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/prompt-template-format.md",
       "title": "Prompt template format guide",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/pytest.md",
@@ -4112,9 +4112,9 @@
       "title": "Prompt Slack users with agent-owned interrupts",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-changelog.md",
@@ -8270,63 +8270,63 @@
       "title": "Create prompt webhook",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/prompt-webhooks/delete-prompt-webhook.md",
       "title": "Delete prompt webhook",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/prompt-webhooks/get-prompt-webhook.md",
       "title": "Get prompt webhook",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/prompt-webhooks/list-prompt-webhooks.md",
       "title": "List prompt webhooks",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/prompt-webhooks/test-prompt-webhook.md",
       "title": "Test prompt webhook",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/prompt-webhooks/update-prompt-webhook.md",
       "title": "Update prompt webhook",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/prompts/invoke-prompt.md",
       "title": "Invoke prompt",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/public/count-shared-examples.md",
@@ -8549,9 +8549,9 @@
       "title": "Optimize prompt job",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/repos/update-repo.md",
@@ -10952,9 +10952,9 @@
       "title": "Use tools in a prompt",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/langsmith/use-webhooks.md",
@@ -11024,9 +11024,9 @@
       "title": "Write your prompt with AI",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
-      "status": "planned",
+      "status": "extension",
       "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/approval-modes.md",

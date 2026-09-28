@@ -30,7 +30,7 @@ raw backend escape hatch, or an explicit diagnostic.
 | LangGraph state graphs, routing, checkpoints, interrupts, resume, stores, retrievers | Built-in LangGraph adapter and `LangGraphConfig` | `extension` |
 | LangSmith tracing, metadata, tags, run names, sessions, trace context | Shared observability helpers and LangChain/LangGraph config | `extension` |
 | Langfuse LangChain callback integration | Lazy callback integration in the optional LangChain plugin | `extension` |
-| LangSmith datasets, evaluators, prompts, experiments, monitoring, REST API, governance | No normalized SDK surface yet; tracked by the page inventory | `planned` |
+| LangSmith datasets, evaluators, prompts, experiments, monitoring, REST API, governance | Evaluation contract, LangSmith dataset/evaluation bridge, and prompt pull/push helpers; remaining hosted APIs stay native | `extension` |
 | Deep Agents, sandboxes, filesystem backends, permissions, skills, interpreters | No dedicated adapter; raw model/tool primitives remain usable | `planned` |
 | LangChain deployment, Agent Server, Studio, Fleet, Managed Deep Agents | No hosted control plane in AgentBridge v0/v1 | `planned` or `unsupported` depending on page |
 | LangChain LLM Gateway and provider administration | Model routing remains delegated to LiteLLM-style strings; no LangSmith gateway control plane | `native_only` |
@@ -65,7 +65,7 @@ The first pass is intentionally ordered by value to application developers:
 
 1. Complete LangChain/LangGraph model, tool, middleware, streaming, structured-output, memory, retrieval, and human-in-the-loop option forwarding.
 2. Use the new core `EvaluationExample`/`EvaluationReport` contract for provider-neutral offline evaluation, then add LangSmith dataset/evaluator publishing.
-3. Add prompt/version and experiment integration while preserving raw LangSmith clients.
+3. Expand prompt/version and experiment integration while preserving raw LangSmith clients.
 4. Add OpenTelemetry-compatible trace export and first-class Langfuse/LangSmith trace correlation.
 5. Add deployment and Deep Agents plugins only after their hosted/runtime boundaries are defined.
 
