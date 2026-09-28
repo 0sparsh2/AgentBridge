@@ -28,6 +28,21 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "langsmith-api",
             "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified.",
         }
+    if any(
+        token in url
+        for token in (
+            "/oss/python/integrations/",
+            "/oss/python/concepts/",
+            "/oss/python/reference/",
+            "/oss/python/migrate/",
+            "/oss/python/releases/",
+        )
+    ):
+        return {
+            "status": "native_only",
+            "owner": "langchain-adapter",
+            "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies.",
+        }
     if "/oss/python/deepagents/" in url or url.endswith("/oss/python/reference/deepagents-python.md"):
         if any(token in lower for token in ("ag-ui", "a2a", "acp", "/frontend/")):
             return {

@@ -13130,36 +13130,36 @@
       "title": "Context overview",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/concepts/memory.md",
       "title": "Memory overview",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/concepts/products.md",
       "title": "Runtimes, frameworks, and harnesses",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/concepts/providers-and-models.md",
       "title": "Providers and models",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/contributing/code.md",
@@ -13589,234 +13589,234 @@
       "title": "Backend integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/chat/index.md",
       "title": "Chat model integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/checkpointers/index.md",
       "title": "Checkpointer integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/document_loaders/index.md",
       "title": "Document loader integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/embeddings/index.md",
       "title": "Embedding model integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/long-term-memory/index.md",
       "title": "Store integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/memory/mongodb-long-term-memory.md",
       "title": "Long-term memory with MongoDB Atlas",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/memory/mongodb-short-term-memory.md",
       "title": "Short-term memory with MongoDB Atlas",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/middleware/index.md",
       "title": "Middleware integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/all_providers.md",
       "title": "All LangChain Python integration providers",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/anthropic.md",
       "title": "Anthropic (Claude) integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/aws.md",
       "title": "AWS (Amazon) integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/fireworks.md",
       "title": "Fireworks integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/google.md",
       "title": "Google integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/groq.md",
       "title": "Groq integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/huggingface.md",
       "title": "Hugging Face integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/microsoft.md",
       "title": "Microsoft integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/nvidia.md",
       "title": "NVIDIA",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/ollama.md",
       "title": "Ollama integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/openai.md",
       "title": "OpenAI integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/providers/overview.md",
       "title": "LangChain Python integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/retrievers/index.md",
       "title": "Retriever integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/sandboxes/index.md",
       "title": "Sandbox integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/splitters/index.md",
       "title": "Text splitter integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/tools/index.md",
       "title": "Tool integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/vectorstores/index.md",
       "title": "Vector store integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/langchain/academy.md",
@@ -14786,81 +14786,81 @@
       "title": "Migrate from langchain-mcp-adapters",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/migrate/langchain-v1.md",
       "title": "LangChain v1 migration guide",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/migrate/langgraph-supervisor.md",
       "title": "Migrate from langgraph-supervisor",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/migrate/langgraph-v1.md",
       "title": "LangGraph v1 migration guide",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/reference/deepagents-python.md",
       "title": "Deep Agents",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "extension",
-      "owner": "deepagents-adapter",
-      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/reference/integrations-python.md",
       "title": "Integrations",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/reference/langchain-python.md",
       "title": "LangChain SDK",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/reference/langgraph-python.md",
       "title": "LangGraph SDK",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/reference/overview.md",
       "title": "Reference",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/release-policy.md",
@@ -14876,27 +14876,27 @@
       "title": "Changelog",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/releases/langchain-v1.md",
       "title": "What's new in LangChain v1",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/releases/langgraph-v1.md",
       "title": "What's new in LangGraph v1",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "ecosystem-review",
-      "action": "Review the page and assign it to a concrete adapter, integration, escape hatch, or scope decision."
+      "status": "native_only",
+      "owner": "langchain-adapter",
+      "action": "Use the native model/tool/retriever/checkpointer object or LangChain native_options; provider-specific packages remain optional dependencies."
     },
     {
       "url": "https://docs.langchain.com/oss/python/security-policy.md",
