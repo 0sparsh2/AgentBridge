@@ -22,6 +22,12 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "python-sdk",
             "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed.",
         }
+    if any(token in lower for token in ("/agent-server-api/", "/api-reference/", "/smith-api/", "openapi.json")):
+        return {
+            "status": "native_only",
+            "owner": "langsmith-api",
+            "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified.",
+        }
     if "/oss/python/deepagents/" in url or url.endswith("/oss/python/reference/deepagents-python.md"):
         if any(token in lower for token in ("ag-ui", "a2a", "acp", "/frontend/")):
             return {

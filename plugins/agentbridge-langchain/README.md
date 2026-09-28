@@ -131,6 +131,21 @@ commit = push_prompt(
 The native prompt object is returned unchanged so LangChain remains responsible for template
 variables, message formatting, model-specific prompt behavior, and prompt serialization.
 
+LangSmith deployment and control-plane API pages are exposed through an optional generic transport:
+
+```python
+from agentbridge_langchain.langsmith_api import LangSmithAPIClient
+
+client = LangSmithAPIClient()
+thread = client.request_json("POST", "/v1/threads", body={})
+events = client.stream_events("POST", "/threads/THREAD_ID/runs/stream", body={})
+```
+
+The client supports arbitrary JSON endpoints and newline-delimited SSE responses, including
+query parameters and raw payloads. It is intentionally native-only: endpoint-specific schemas,
+hosted lifecycle behavior, and credentials remain LangSmith concerns rather than being faked as
+portable AgentBridge semantics.
+
 For an option that AgentBridge has not normalized yet, pass it explicitly:
 
 ```python
