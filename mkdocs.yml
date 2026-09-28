@@ -52,6 +52,7 @@ nav:
       - Capability Coverage: capability_coverage.md
       - Scenario Reports: scenario_reports.md
       - Model Routing: model_routing.md
+      - LangChain Ecosystem Coverage: langchain_coverage.md
       - Version Policy: version_policy.md
   - Engineering:
       - Architecture: architecture.md
@@ -63,6 +64,7 @@ nav:
       - Migration Helpers: migration.md
       - Plugin Authoring: plugin_authoring.md
       - Release Workflow: release.md
+      - Upstream Compatibility: upstream_compatibility.md
   - Articles:
       - Articles Home: articles/index.md
       - Why AgentBridge Exists: articles/why-agentbridge.md

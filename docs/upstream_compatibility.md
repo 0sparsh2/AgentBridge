@@ -11,6 +11,7 @@ The weekly `Upstream Compatibility` workflow performs three checks:
 - Queries PyPI for the latest release of every adopted framework package.
 - Runs core AgentBridge tests and conformance checks on supported Python versions.
 - Installs each external adapter in an isolated job and runs its plugin contract tests.
+- Follows LangChain's official recursive documentation indexes and detects page additions or removals.
 
 If an upstream release leaves the adopted range, the scheduled check fails and uploads a version
 report. That failure is a compatibility-review signal, not proof that the new release is broken.
@@ -32,6 +33,11 @@ When a framework publishes an update:
 5. Add credentialed smoke coverage for provider, hosted, deployment, or observability paths when available.
 6. Update the scenario report showing the feature through AgentBridge and the normalized result/events.
 7. Update the adopted range only after the exact version passes its adapter checks.
+
+For LangChain-specific review, use [`docs/langchain_coverage.md`](langchain_coverage.md)
+and the page snapshot it references. Documentation drift is a compatibility signal:
+new pages must be classified and either implemented, exposed as native-only, or
+recorded as planned/unsupported.
 
 ## Feature Coverage Rule
 
