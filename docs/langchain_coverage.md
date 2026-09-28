@@ -3,7 +3,8 @@
 AgentBridge tracks the LangChain ecosystem from the official recursive
 documentation index at [`docs.langchain.com/llms.txt`](https://docs.langchain.com/llms.txt).
 The current URL snapshot is [`docs/upstream/langchain-pages.json`](upstream/langchain-pages.json).
-It is an inventory, not a claim that every page is already implemented.
+The page-level decision ledger is [`docs/upstream/langchain-coverage.json`](upstream/langchain-coverage.json).
+It is an audit trail: every page has an explicit status, owner, and next action.
 
 ## Coverage Contract
 
@@ -42,6 +43,7 @@ Refresh the snapshot intentionally after reviewing new pages:
 ```bash
 python scripts/crawl_langchain_docs.py \
   --output docs/upstream/langchain-pages.json
+python scripts/build_langchain_coverage.py
 ```
 
 Check for upstream drift without changing the repository:
@@ -49,6 +51,7 @@ Check for upstream drift without changing the repository:
 ```bash
 python scripts/crawl_langchain_docs.py \
   --check --fail-on-drift
+python scripts/build_langchain_coverage.py --check
 ```
 
 When drift is found, review each added or removed page, update the capability

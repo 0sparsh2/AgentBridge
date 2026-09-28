@@ -40,6 +40,7 @@ jobs:
             --check \
             --fail-on-drift \
             --output langchain-pages-current.json
+          python scripts/build_langchain_coverage.py --check
       - name: Upload LangChain documentation inventory
         if: always()
         uses: actions/upload-artifact@v4
