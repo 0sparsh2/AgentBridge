@@ -17,6 +17,7 @@ AgentBridge adapter plugin for `langchain`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
 - LangSmith tracing context and Langfuse callback integration through one AgentBridge observability config.
+- LangSmith dataset publishing and hosted evaluation through an optional integration module.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 
@@ -90,6 +91,26 @@ pytest plugins/agentbridge-langchain/tests/test_langsmith_smoke.py
 
 The smoke test runs the offline LangChain adapter inside a LangSmith tracing context and verifies
 that AgentBridge runtime metadata is preserved.
+
+Publish the same framework-neutral evaluation examples to LangSmith and run a hosted experiment:
+
+```python
+from agentbridge import EvaluationExample
+from agentbridge_langchain.langsmith_evaluation import evaluate_on_langsmith
+
+results = evaluate_on_langsmith(
+    agent,
+    backend="langchain",
+    dataset=[EvaluationExample(input="Check order A123")],
+    dataset_name="refund-regression",
+    experiment_prefix="agentbridge-refund-v1",
+)
+```
+
+The integration creates the dataset with `Client.create_dataset`, uploads examples with
+`Client.create_examples`, and delegates execution/evaluator orchestration to the native
+`Client.evaluate` API. Credentials, evaluator definitions, and hosted retention remain
+LangSmith concerns; AgentBridge supplies the portable target and input mapping.
 
 When `stream_agent(..., backend="langchain")` is used, the adapter first tries LangChain's event
 streaming API and normalizes message deltas, tool-call chunks, completed tool calls, tool results,
