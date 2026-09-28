@@ -87,6 +87,7 @@ class Adapter(BackendAdapter):
                 "debug",
             ),
         )
+        _copy_native_options(config.get("native_options"), agent_kwargs)
 
         native_agent = create_agent(**agent_kwargs)
         return CompiledLangChainAgent(
@@ -191,6 +192,23 @@ def _copy_native_create_agent_options(
             agent_kwargs[option_name] = bool(value)
         else:
             agent_kwargs[option_name] = value
+
+
+def _copy_native_options(config: Any, agent_kwargs: dict[str, Any]) -> None:
+    """Forward future LangChain options without allowing identity override."""
+
+    if not config:
+        return
+    if not isinstance(config, dict):
+        raise TypeError("LangChain native_options must be a dictionary.")
+    reserved = {"model", "tools", "system_prompt", "response_format", "name"}
+    conflicts = sorted(reserved.intersection(config))
+    if conflicts:
+        raise ValueError(
+            "LangChain native_options cannot override AgentSpec-owned fields: "
+            + ", ".join(conflicts)
+        )
+    agent_kwargs.update(config)
 
 
 def _to_langchain_tool(structured_tool: Any, tool_spec: Any) -> Any:
@@ -458,6 +476,7 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
             "native_store": "store" in applied_native_options,
         },
         "applied_native_options": applied_native_options,
+        "native_options_count": len(config.get("native_options") or {}),
     }
     if config.get("observability"):
         summary["observability"] = _safe_summary(config["observability"])

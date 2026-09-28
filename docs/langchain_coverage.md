@@ -27,6 +27,7 @@ raw backend escape hatch, or an explicit diagnostic.
 | LangChain area | AgentBridge surface | Current status |
 | --- | --- | --- |
 | LangChain `create_agent`, tools, structured output, middleware, streaming, runtime context | `AgentSpec`, `ToolSpec`, LangChain plugin configuration and normalized events | `extension` |
+| Newly added LangChain `create_agent` options | Guarded `LangChainExtension.native_options` pass-through with diagnostics | `native_only` until normalized |
 | LangGraph state graphs, routing, checkpoints, interrupts, resume, stores, retrievers | Built-in LangGraph adapter and `LangGraphConfig` | `extension` |
 | LangSmith tracing, metadata, tags, run names, sessions, trace context | Shared observability helpers and LangChain/LangGraph config | `extension` |
 | Langfuse LangChain callback integration | Lazy callback integration in the optional LangChain plugin | `extension` |

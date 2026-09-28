@@ -283,6 +283,7 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
         context_schema=context_schema,
         transformers=[transformer],
         debug=True,
+        native_options={"future_option": "enabled"},
     )
 
     compiled = adapter.compile(agent)
@@ -298,6 +299,7 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
     assert compiled.native_agent.kwargs["context_schema"] is context_schema
     assert compiled.native_agent.kwargs["transformers"] == [transformer]
     assert compiled.native_agent.kwargs["debug"] is True
+    assert compiled.native_agent.kwargs["future_option"] == "enabled"
     assert result.metadata["extension_summary"] == {
         "agent_type": None,
         "prompt_template": False,
@@ -322,7 +324,37 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
             "transformers",
             "debug",
         ],
+        "native_options_count": 1,
     }
+
+
+def test_native_options_cannot_override_agent_identity(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="support_agent",
+            instructions="Echo the user request.",
+            model="openai/gpt-5",
+        ),
+        native_options={"name": "unexpected"},
+    )
+
+    try:
+        Adapter().compile(agent)
+    except ValueError as exc:
+        assert "name" in str(exc)
+    else:  # pragma: no cover - assertion clarity
+        raise AssertionError("reserved native option was accepted")
 
 
 def test_adapter_summarizes_native_langchain_retrievers(monkeypatch) -> None:

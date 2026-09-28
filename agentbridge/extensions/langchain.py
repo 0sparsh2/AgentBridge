@@ -32,6 +32,7 @@ class LangChainConfig(BaseModel):
     debug: bool | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     observability: dict[str, Any] = Field(default_factory=dict)
+    native_options: dict[str, Any] = Field(default_factory=dict)
 
 
 class LangChainExtension(FrameworkExtension):
@@ -59,6 +60,7 @@ class LangChainExtension(FrameworkExtension):
         debug: bool | None = None,
         metadata: dict[str, Any] | None = None,
         observability: dict[str, Any] | None = None,
+        native_options: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable LangChain adapter configuration."""
 
@@ -80,6 +82,7 @@ class LangChainExtension(FrameworkExtension):
             debug=debug,
             metadata=metadata or {},
             observability=observability or {},
+            native_options=native_options or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 
     @staticmethod

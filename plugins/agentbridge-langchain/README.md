@@ -16,6 +16,8 @@ AgentBridge adapter plugin for `langchain`.
 - Structured output through native LangChain `response_format` and typed `structured_response`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
+- A guarded `native_options` escape hatch for newly released LangChain `create_agent` options;
+  AgentSpec-owned identity/model/tool fields cannot be overridden.
 - LangSmith tracing context and Langfuse callback integration through one AgentBridge observability config.
 - LangSmith dataset publishing and hosted evaluation through an optional integration module.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
@@ -128,6 +130,19 @@ commit = push_prompt(
 
 The native prompt object is returned unchanged so LangChain remains responsible for template
 variables, message formatting, model-specific prompt behavior, and prompt serialization.
+
+For an option that AgentBridge has not normalized yet, pass it explicitly:
+
+```python
+agent = LangChainExtension.with_config(
+    agent,
+    native_options={"new_langchain_option": value},
+)
+```
+
+The option is included in adapter diagnostics and is forwarded unchanged to native
+`create_agent`. This is the compatibility path for upstream additions while a normalized
+AgentBridge contract is being designed.
 
 When `stream_agent(..., backend="langchain")` is used, the adapter first tries LangChain's event
 streaming API and normalizes message deltas, tool-call chunks, completed tool calls, tool results,
