@@ -45,3 +45,10 @@
 - Scenario report suite covering deep framework nuances, framework-to-framework migrations, and model routing across hosted APIs, local models, OpenRouter, NVIDIA NIM, and custom gateways.
 - Adapter authoring guide for new frameworks and tools.
 - First-class external adapter packages for OpenAI Agents SDK, Strands Agents, LangChain, Google ADK, CrewAI, and additional ecosystem frameworks.
+
+## Continuous Compatibility Program
+
+- Weekly upstream version-drift checks with isolated core and external-plugin conformance jobs.
+- Machine-readable framework feature inventories linked to capability, extension, native-only, and unsupported outcomes.
+- Credentialed smoke-test lanes for provider, observability, governance, and deployment integrations.
+- Automated compatibility reports and visible scheduled failures when upstream releases leave adopted ranges.

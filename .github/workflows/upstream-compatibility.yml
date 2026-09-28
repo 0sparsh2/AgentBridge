@@ -1,0 +1,76 @@
+name: Upstream Compatibility
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  version-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install AgentBridge
+        run: python -m pip install -e ".[dev]"
+      - name: Check upstream versions
+        run: python scripts/check_upstream_versions.py --output upstream-version-report.md --fail-on-drift
+      - name: Upload version report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-version-report
+          path: upstream-version-report.md
+
+  core-conformance:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install core backends
+        run: python -m pip install -e ".[dev,langgraph,pydantic-ai]"
+      - name: Run core tests and conformance
+        run: |
+          python -m pytest -q
+          agentbridge conformance --backend mock --backend langgraph --backend pydantic_ai --json
+
+  external-plugin-conformance:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: langchain
+            path: plugins/agentbridge-langchain
+            tests: plugins/agentbridge-langchain/tests
+          - name: strands
+            path: plugins/agentbridge-strands
+            tests: plugins/agentbridge-strands/tests
+          - name: google-adk
+            path: plugins/agentbridge-google-adk
+            tests: plugins/agentbridge-google-adk/tests
+          - name: openai-agents
+            path: plugins/agentbridge-openai-agents
+            tests: plugins/agentbridge-openai-agents/tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install core package and plugin
+        run: |
+          python -m pip install -e ".[dev]"
+          python -m pip install -e "${{ matrix.path }}"
+      - name: Run plugin contract tests
+        run: python -m pytest -q "${{ matrix.tests }}"
