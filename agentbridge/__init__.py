@@ -14,6 +14,13 @@ from agentbridge.capabilities import (
 )
 from agentbridge.conformance import ConformanceCheck, ConformanceReport, run_conformance
 from agentbridge.compare import BackendComparison, compare_backends
+from agentbridge.evaluation import (
+    EvaluationCase,
+    EvaluationExample,
+    EvaluationReport,
+    EvaluationScore,
+    evaluate_agent,
+)
 from agentbridge.extensions import ExtensionProfile, extension_profile, extension_profiles
 from agentbridge.manifest import AgentManifest, load_agent_spec, load_manifest
 from agentbridge.migration import (
@@ -61,6 +68,10 @@ __all__ = [
     "ConformanceCheck",
     "ConformanceReport",
     "CoverageReport",
+    "EvaluationCase",
+    "EvaluationExample",
+    "EvaluationReport",
+    "EvaluationScore",
     "ExtensionProfile",
     "ManifestValidation",
     "MigrationFinding",
@@ -76,6 +87,7 @@ __all__ = [
     "coverage_report",
     "dependency_versions",
     "event_to_agui",
+    "evaluate_agent",
     "extension_profile",
     "extension_profiles",
     "get_adapter",

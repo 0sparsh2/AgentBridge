@@ -61,7 +61,7 @@ inventory when it fails.
 The first pass is intentionally ordered by value to application developers:
 
 1. Complete LangChain/LangGraph model, tool, middleware, streaming, structured-output, memory, retrieval, and human-in-the-loop option forwarding.
-2. Add a provider-neutral evaluation contract backed by LangSmith datasets and evaluators.
+2. Use the new core `EvaluationExample`/`EvaluationReport` contract for provider-neutral offline evaluation, then add LangSmith dataset/evaluator publishing.
 3. Add prompt/version and experiment integration while preserving raw LangSmith clients.
 4. Add OpenTelemetry-compatible trace export and first-class Langfuse/LangSmith trace correlation.
 5. Add deployment and Deep Agents plugins only after their hosted/runtime boundaries are defined.

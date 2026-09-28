@@ -33,6 +33,7 @@
 - Existing-project import helpers for common LangChain agent apps.
 - Conservative `MigrationReport` helpers for LangChain and LangGraph object shapes.
 - Tracing and diagnostics surfaces for plugin backends, with provider-specific smoke tests where credentials/config are available.
+- Provider-neutral offline evaluation reports with per-example scores, failures, and aggregate summaries.
 - Deep scenario reports that demonstrate framework-specific features, migration deltas, normalized outputs, and model routing variants.
 - Full AG-UI server example.
 
