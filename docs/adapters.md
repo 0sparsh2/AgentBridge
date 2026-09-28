@@ -70,12 +70,31 @@ Current focus:
 - Report checkpoint-backed interrupt state when `interrupt_before` or `interrupt_after` pauses execution.
 - Resume checkpointed interrupts through `resume_agent(compiled, backend="langgraph", session_id=...)`
   or `get_adapter("langgraph").resume(...)`.
+- Forward native callbacks, metadata, tags, and run names through LangGraph runtime config.
+- Activate LangSmith tracing context or Langfuse's native callback with the same observability
+  configuration used by the direct LangChain adapter.
 
 Next areas:
 
 - Richer graph state.
 - Tool-call lifecycle streaming.
 - Portable approval and resume helpers on top of native LangGraph interrupts.
+
+Observability example:
+
+```python
+agent = LangGraphExtension.with_config(
+    agent,
+    callbacks=[my_callback],
+    metadata={"team": "support"},
+    observability={
+        "tags": ["production", "refunds"],
+        "run_name": "refund-graph",
+        "langsmith": {"enabled": True, "project_name": "agentbridge-refunds"},
+        "langfuse": {"enabled": True, "user_id": "customer-123"},
+    },
+)
+```
 
 Example:
 

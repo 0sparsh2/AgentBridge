@@ -261,3 +261,39 @@ def test_langgraph_capabilities_include_checkpointing_extension() -> None:
     assert capabilities.status("workflow.routing") == "extension"
     assert capabilities.status("human_approval") == "extension"
     assert capabilities.status("structured_output") == "full"
+    assert capabilities.status("observability.tracing") == "extension"
+
+
+def test_langgraph_forwards_observability_runtime_config_when_available() -> None:
+    adapter = get_adapter("langgraph")
+    agent = LangGraphExtension.with_config(
+        AgentSpec(
+            name="observed_graph",
+            instructions="Run an observed graph.",
+            model="agentbridge/offline",
+        ),
+        callbacks=["callback"],
+        metadata={"owner": "support"},
+        observability={"tags": ["graph"], "run_name": "observed-graph"},
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    invoke_config = adapter._invoke_config(
+        compiled,
+        RunInput(input="hello", metadata={"request_id": "req-1"}, session_id="session-1"),
+    )
+
+    assert invoke_config == {
+        "callbacks": ["callback"],
+        "metadata": {
+            "owner": "support",
+            "request_id": "req-1",
+            "session_id": "session-1",
+        },
+        "tags": ["graph"],
+        "run_name": "observed-graph",
+    }

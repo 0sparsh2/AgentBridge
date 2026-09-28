@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from contextlib import nullcontext
 from collections.abc import Iterator
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Any
 
 from agentbridge.adapters import BackendAdapter
+from agentbridge.observability import callbacks_for_config, langsmith_context
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
 
 
@@ -103,7 +103,7 @@ class Adapter(BackendAdapter):
         compiled_agent = _ensure_compiled(compiled)
         payload = _input_payload(run_input)
         runtime_config = _runtime_config(compiled_agent, run_input)
-        with _langsmith_context(compiled_agent.config):
+        with langsmith_context(compiled_agent.config):
             result = compiled_agent.native_agent.invoke(
                 payload,
                 config=runtime_config,
@@ -369,7 +369,7 @@ def _input_payload(run_input: RunInput) -> dict[str, Any]:
 
 def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> dict[str, Any]:
     config: dict[str, Any] = {}
-    callbacks = _observability_callbacks(compiled.config)
+    callbacks = callbacks_for_config(compiled.config)
     if callbacks:
         config["callbacks"] = callbacks
     metadata = dict(compiled.config.get("metadata", {}))
@@ -399,46 +399,12 @@ def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> di
     return config
 
 
-def _observability_callbacks(config: dict[str, Any]) -> list[Any]:
-    callbacks = list(config.get("callbacks") or [])
-    observability = config.get("observability", {})
-    langfuse = observability.get("langfuse", {})
-    if langfuse.get("enabled"):
-        try:
-            from langfuse.langchain import CallbackHandler
-        except ImportError as exc:  # pragma: no cover - optional integration
-            raise ImportError(
-                "Langfuse observability is enabled but langfuse is not installed. "
-                "Install the plugin with `pip install 'agentbridge-langchain[observability]'`."
-            ) from exc
-        callbacks.append(CallbackHandler())
-    return callbacks
-
-
-def _langsmith_context(config: dict[str, Any]) -> Any:
-    langsmith = config.get("observability", {}).get("langsmith", {})
-    if not langsmith.get("enabled"):
-        return nullcontext()
-    try:
-        from langsmith.run_helpers import tracing_context
-    except ImportError as exc:  # pragma: no cover - optional integration
-        raise ImportError(
-            "LangSmith observability is enabled but langsmith is not installed."
-        ) from exc
-    return tracing_context(
-        project_name=langsmith.get("project_name"),
-        tags=langsmith.get("tags") or config.get("observability", {}).get("tags"),
-        metadata=langsmith.get("metadata") or config.get("metadata", {}),
-        enabled=True,
-    )
-
-
 def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Iterator[Any]:
     payload = _input_payload(run_input)
     runtime_config = _runtime_config(compiled, run_input)
     native_agent = compiled.native_agent
 
-    with _langsmith_context(compiled.config):
+    with langsmith_context(compiled.config):
         if hasattr(native_agent, "stream_events"):
             try:
                 yield from native_agent.stream_events(

@@ -21,6 +21,9 @@ class LangGraphConfig(BaseModel):
     routes: dict[str, str] = Field(default_factory=dict)
     interrupt_before: list[str] | None = None
     interrupt_after: list[str] | None = None
+    callbacks: list[Any] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    observability: dict[str, Any] = Field(default_factory=dict)
 
 
 class LangGraphExtension(FrameworkExtension):
@@ -39,6 +42,9 @@ class LangGraphExtension(FrameworkExtension):
         routes: dict[str, str] | None = None,
         interrupt_before: list[str] | None = None,
         interrupt_after: list[str] | None = None,
+        callbacks: list[Any] | None = None,
+        metadata: dict[str, Any] | None = None,
+        observability: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable LangGraph adapter configuration."""
 
@@ -51,6 +57,9 @@ class LangGraphExtension(FrameworkExtension):
             routes=routes or {},
             interrupt_before=interrupt_before,
             interrupt_after=interrupt_after,
+            callbacks=callbacks or [],
+            metadata=metadata or {},
+            observability=observability or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 
     @staticmethod
@@ -74,4 +83,6 @@ class LangGraphExtension(FrameworkExtension):
     def conditional_routing(self) -> None:
         """Placeholder for future graph routing helpers."""
 
-        raise UnsupportedExtension("LangGraph conditional routing extension is not implemented yet.")
+        raise UnsupportedExtension(
+            "LangGraph conditional routing extension is not implemented yet."
+        )

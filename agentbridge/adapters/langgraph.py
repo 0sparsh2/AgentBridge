@@ -9,6 +9,7 @@ from typing import Any, TypedDict
 from agentbridge.adapters.base import BackendAdapter
 from agentbridge.errors import MissingDependencyError
 from agentbridge.extensions.langgraph import LangGraphConfig
+from agentbridge.observability import callbacks_for_config, langsmith_context
 from agentbridge.tool_execution import execute_sync_tools
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
 
@@ -51,6 +52,7 @@ class LangGraphAdapter(BackendAdapter):
                 "human_approval": "extension",
                 "observability.raw": "full",
                 "observability.diagnostics": "full",
+                "observability.tracing": "extension",
                 "agui.events": "partial",
             },
             notes={
@@ -62,6 +64,7 @@ class LangGraphAdapter(BackendAdapter):
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True).",
                 "workflow.routing": "Enable via LangGraphExtension.config(route_on_context_key=..., routes=...).",
                 "observability.diagnostics": "Summarizes route, checkpointing, interrupts, tools, and normalized event counts.",
+                "observability.tracing": "Forwards callbacks, tags, metadata, and optional LangSmith/Langfuse configuration through LangGraph runtime config.",
             },
         )
 
@@ -141,16 +144,17 @@ class LangGraphAdapter(BackendAdapter):
 
     def run(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
         invoke_config = self._invoke_config(compiled, run_input)
-        raw = compiled.graph.invoke(
-            {
-                "input": run_input.input,
-                "context": run_input.context,
-                "output": "",
-                "tool_outputs": [],
-                "route": "",
-            },
-            config=invoke_config,
-        )
+        with langsmith_context(self._observability_config(compiled)):
+            raw = compiled.graph.invoke(
+                {
+                    "input": run_input.input,
+                    "context": run_input.context,
+                    "output": "",
+                    "tool_outputs": [],
+                    "route": "",
+                },
+                config=invoke_config,
+            )
         interrupt_state = self._interrupt_state(compiled, invoke_config)
         output = raw.get("output", raw)
         if interrupt_state and not output:
@@ -184,7 +188,8 @@ class LangGraphAdapter(BackendAdapter):
         if not compiled.config.enable_checkpointing:
             raise ValueError("LangGraph resume requires enable_checkpointing=True.")
         invoke_config = self._invoke_config(compiled, run_input)
-        raw = compiled.graph.invoke(None, config=invoke_config)
+        with langsmith_context(self._observability_config(compiled)):
+            raw = compiled.graph.invoke(None, config=invoke_config)
         raw = raw or {}
         interrupt_state = self._interrupt_state(compiled, invoke_config)
         output = raw.get("output", raw)
@@ -236,9 +241,34 @@ class LangGraphAdapter(BackendAdapter):
         compiled: LangGraphCompiledAgent,
         run_input: RunInput,
     ) -> dict[str, Any] | None:
-        if not compiled.config.enable_checkpointing:
-            return None
-        return {"configurable": {"thread_id": run_input.session_id or compiled.spec.name}}
+        config = self._observability_config(compiled)
+        invoke_config: dict[str, Any] = {}
+        if compiled.config.enable_checkpointing:
+            invoke_config["configurable"] = {
+                "thread_id": run_input.session_id or compiled.spec.name
+            }
+        callbacks = callbacks_for_config(config)
+        if callbacks:
+            invoke_config["callbacks"] = callbacks
+        metadata = dict(compiled.config.metadata)
+        metadata.update(run_input.metadata)
+        if run_input.session_id:
+            metadata["session_id"] = run_input.session_id
+        if metadata:
+            invoke_config["metadata"] = metadata
+        observability = compiled.config.observability
+        if observability.get("tags"):
+            invoke_config["tags"] = list(observability["tags"])
+        if observability.get("run_name"):
+            invoke_config["run_name"] = observability["run_name"]
+        return invoke_config or None
+
+    def _observability_config(self, compiled: LangGraphCompiledAgent) -> dict[str, Any]:
+        return {
+            "callbacks": compiled.config.callbacks,
+            "metadata": compiled.config.metadata,
+            "observability": compiled.config.observability,
+        }
 
     def _interrupt_state(
         self,
@@ -368,7 +398,9 @@ class LangGraphAdapter(BackendAdapter):
                     data={"name": record["name"], "result": record["result"]},
                 )
             )
-        events.append(AgentEvent(type="complete", backend=self.backend_name, data={"output": output}))
+        events.append(
+            AgentEvent(type="complete", backend=self.backend_name, data={"output": output})
+        )
         return events
 
     def _run_diagnostics(
