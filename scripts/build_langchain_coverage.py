@@ -11,6 +11,28 @@ SNAPSHOT = Path("docs/upstream/langchain-pages.json")
 DEFAULT_OUTPUT = Path("docs/upstream/langchain-coverage.json")
 
 
+def category_for(url: str) -> str:
+    if "/langgraph/" in url:
+        return "langgraph"
+    if "/langchain/" in url:
+        return "langchain"
+    if "/deepagents/" in url or "/deep-agents/" in url:
+        return "deep_agents"
+    if "/langsmith/" in url or "lang-smith" in url:
+        return "langsmith"
+    if "/fleet/" in url:
+        return "fleet"
+    if "/gateway/" in url or "llm-gateway" in url:
+        return "llm_gateway"
+    if "/deploy" in url or "/deployment" in url or "agent-server" in url:
+        return "deployment"
+    if "/oss/" in url:
+        return "open_source_other"
+    if "/_llms/" in url:
+        return "index"
+    return "platform_other"
+
+
 def classify(page: dict[str, str]) -> dict[str, str]:
     url = page["url"]
     title = page.get("title", "")
@@ -27,6 +49,33 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "status": "native_only",
             "owner": "langsmith-api",
             "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified.",
+        }
+    if any(token in url for token in ("/langsmith/fleet/", "llm-gateway", "managed-deep-agents")):
+        return {
+            "status": "native_only",
+            "owner": "langsmith-api",
+            "action": "Use the hosted LangSmith product/runtime or LangSmithAPIClient; these lifecycle services are not portable AgentBridge core semantics.",
+        }
+    if any(
+        token in lower
+        for token in (
+            "billing",
+            "pricing",
+            "byoc",
+            "self-host",
+            "self host",
+            "cloud (saas)",
+            "administration",
+            "enterprise",
+            "sso",
+            "encryption",
+            "data storage",
+        )
+    ):
+        return {
+            "status": "unsupported",
+            "owner": "sdk-boundary",
+            "action": "Hosted billing, identity, infrastructure, and organization operations belong to LangSmith deployment, not the AgentBridge runtime SDK.",
         }
     if any(
         token in url
@@ -57,9 +106,15 @@ def classify(page: dict[str, str]) -> dict[str, str]:
         }
     if "/oss/deepagents/code/" in url or "managed-deep-agents" in url:
         return {
-            "status": "planned",
-            "owner": "runtime-integrations",
-            "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first.",
+            "status": "unsupported",
+            "owner": "sdk-boundary",
+            "action": "Deep Agents Code is a separate CLI/coding environment, not a Python agent runtime; integrate it as a future tool/plugin rather than claiming SDK adapter coverage.",
+        }
+    if "deep-agent-from-scratch" in url:
+        return {
+            "status": "extension",
+            "owner": "langchain-adapter",
+            "action": "Use the LangChain adapter's native model/tool/middleware/checkpoint pass-through to reproduce the documented harness; the tutorial composes existing LangChain primitives.",
         }
     if "/_llms/" in url or url.endswith("openapi.json"):
         return {
@@ -87,9 +142,33 @@ def classify(page: dict[str, str]) -> dict[str, str]:
         }
     if any(token in lower for token in ("playground", "studio")):
         return {
-            "status": "planned",
-            "owner": "prompt-management",
-            "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core.",
+            "status": "unsupported",
+            "owner": "sdk-boundary",
+            "action": "Hosted Studio and Playground UI behavior is not an AgentBridge Python runtime feature; use the native LangSmith UI with preserved run and prompt identifiers.",
+        }
+    if category_for(url) == "langsmith":
+        return {
+            "status": "native_only",
+            "owner": "langsmith-api",
+            "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics.",
+        }
+    if category_for(url) == "deployment":
+        return {
+            "status": "native_only",
+            "owner": "deployment",
+            "action": "Use LangSmith/Agent Server native deployment clients and the generic API bridge; hosting infrastructure remains external to the SDK.",
+        }
+    if category_for(url) == "platform_other":
+        return {
+            "status": "native_only",
+            "owner": "docs-index",
+            "action": "Documentation/setup navigation is tracked by the inventory and does not define a separate runtime primitive.",
+        }
+    if category_for(url) == "open_source_other":
+        return {
+            "status": "native_only",
+            "owner": "ecosystem-review",
+            "action": "Use the relevant native LangChain package or integration object through the adapter escape hatch; no cross-framework normalization is claimed.",
         }
     if any(token in lower for token in ("deepagent", "deep-agent", "fleet", "gateway", "managed")):
         return {
@@ -99,9 +178,9 @@ def classify(page: dict[str, str]) -> dict[str, str]:
         }
     if any(token in lower for token in ("deploy", "deployment", "agent-server", "self-host", "control-plane", "data-plane")):
         return {
-            "status": "planned",
+            "status": "native_only",
             "owner": "deployment",
-            "action": "Expose deployment metadata and native SDK/API clients; do not make a hosted control plane a core dependency.",
+            "action": "Use the native LangSmith/LangGraph deployment client and the optional API bridge; do not make a hosted control plane a core dependency.",
         }
     if "/oss/python/langgraph/" in url or "/oss/python/langchain/" in url:
         return {
