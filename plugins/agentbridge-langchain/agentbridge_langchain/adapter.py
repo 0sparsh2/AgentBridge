@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from collections.abc import Iterator
 from dataclasses import dataclass
 from importlib import import_module
@@ -102,10 +103,11 @@ class Adapter(BackendAdapter):
         compiled_agent = _ensure_compiled(compiled)
         payload = _input_payload(run_input)
         runtime_config = _runtime_config(compiled_agent, run_input)
-        result = compiled_agent.native_agent.invoke(
-            payload,
-            config=runtime_config,
-        )
+        with _langsmith_context(compiled_agent.config):
+            result = compiled_agent.native_agent.invoke(
+                payload,
+                config=runtime_config,
+            )
         output = _final_output(result)
         events = _events_from_result(result, backend=self.backend_name)
         events.extend(
@@ -256,7 +258,9 @@ class _AgentBridgeOfflineModelBase:
                 ],
             )
         else:
-            message = messages_module.AIMessage(content=f"offline response: {_last_user_text(messages)}")
+            message = messages_module.AIMessage(
+                content=f"offline response: {_last_user_text(messages)}"
+            )
 
         return outputs_module.ChatResult(
             generations=[outputs_module.ChatGeneration(message=message)]
@@ -282,18 +286,14 @@ def _arguments_for_tool(tool: Any, messages: list[Any]) -> dict[str, Any]:
     fields = getattr(getattr(tool, "args_schema", None), "model_fields", {}) or {}
     if not args and fields:
         args = {
-            name: getattr(field, "json_schema_extra", None) or {}
-            for name, field in fields.items()
+            name: getattr(field, "json_schema_extra", None) or {} for name, field in fields.items()
         }
     if not args:
         return {_first_tool_argument_name(tool): _last_user_text(messages)}
 
     required = _required_tool_arguments(tool)
     selected = required or list(args)
-    return {
-        name: _argument_value_for_schema(args.get(name, {}), messages)
-        for name in selected
-    }
+    return {name: _argument_value_for_schema(args.get(name, {}), messages) for name in selected}
 
 
 def _required_tool_arguments(tool: Any) -> list[str]:
@@ -369,17 +369,68 @@ def _input_payload(run_input: RunInput) -> dict[str, Any]:
 
 def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> dict[str, Any]:
     config: dict[str, Any] = {}
-    callbacks = compiled.config.get("callbacks")
+    callbacks = _observability_callbacks(compiled.config)
     if callbacks:
         config["callbacks"] = callbacks
     metadata = dict(compiled.config.get("metadata", {}))
     metadata.update(run_input.metadata)
+    observability = compiled.config.get("observability", {})
+    langfuse = observability.get("langfuse", {})
+    if langfuse.get("enabled") and (langfuse.get("session_id") or run_input.session_id):
+        metadata["langfuse_session_id"] = langfuse.get("session_id") or run_input.session_id
+    if langfuse.get("enabled"):
+        for config_key, metadata_key in (
+            ("user_id", "langfuse_user_id"),
+            ("trace_id", "langfuse_trace_id"),
+        ):
+            if langfuse.get(config_key):
+                metadata[metadata_key] = langfuse[config_key]
     if run_input.session_id:
         metadata["session_id"] = run_input.session_id
         config["configurable"] = {"thread_id": run_input.session_id}
+    tags = list(observability.get("tags", []))
+    if tags:
+        config["tags"] = tags
+    run_name = observability.get("run_name")
+    if run_name:
+        config["run_name"] = run_name
     if metadata:
         config["metadata"] = metadata
     return config
+
+
+def _observability_callbacks(config: dict[str, Any]) -> list[Any]:
+    callbacks = list(config.get("callbacks") or [])
+    observability = config.get("observability", {})
+    langfuse = observability.get("langfuse", {})
+    if langfuse.get("enabled"):
+        try:
+            from langfuse.langchain import CallbackHandler
+        except ImportError as exc:  # pragma: no cover - optional integration
+            raise ImportError(
+                "Langfuse observability is enabled but langfuse is not installed. "
+                "Install the plugin with `pip install 'agentbridge-langchain[observability]'`."
+            ) from exc
+        callbacks.append(CallbackHandler())
+    return callbacks
+
+
+def _langsmith_context(config: dict[str, Any]) -> Any:
+    langsmith = config.get("observability", {}).get("langsmith", {})
+    if not langsmith.get("enabled"):
+        return nullcontext()
+    try:
+        from langsmith.run_helpers import tracing_context
+    except ImportError as exc:  # pragma: no cover - optional integration
+        raise ImportError(
+            "LangSmith observability is enabled but langsmith is not installed."
+        ) from exc
+    return tracing_context(
+        project_name=langsmith.get("project_name"),
+        tags=langsmith.get("tags") or config.get("observability", {}).get("tags"),
+        metadata=langsmith.get("metadata") or config.get("metadata", {}),
+        enabled=True,
+    )
 
 
 def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Iterator[Any]:
@@ -387,26 +438,27 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
     runtime_config = _runtime_config(compiled, run_input)
     native_agent = compiled.native_agent
 
-    if hasattr(native_agent, "stream_events"):
+    with _langsmith_context(compiled.config):
+        if hasattr(native_agent, "stream_events"):
+            try:
+                yield from native_agent.stream_events(
+                    payload,
+                    config=runtime_config,
+                    version="v3",
+                )
+                return
+            except TypeError:
+                pass
+
         try:
-            yield from native_agent.stream_events(
+            yield from native_agent.stream(
                 payload,
                 config=runtime_config,
-                version="v3",
+                stream_mode=["messages", "updates", "custom"],
+                version="v2",
             )
-            return
         except TypeError:
-            pass
-
-    try:
-        yield from native_agent.stream(
-            payload,
-            config=runtime_config,
-            stream_mode=["messages", "updates", "custom"],
-            version="v2",
-        )
-    except TypeError:
-        yield from native_agent.stream(payload, config=runtime_config)
+            yield from native_agent.stream(payload, config=runtime_config)
 
 
 def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
@@ -426,7 +478,7 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         for option_name in native_agent_options
         if option_name in config and config[option_name] is not None
     ]
-    return {
+    summary = {
         "agent_type": config.get("agent_type"),
         "prompt_template": bool(config.get("prompt_template")),
         "middleware_count": len(config.get("middleware") or []),
@@ -441,6 +493,9 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         },
         "applied_native_options": applied_native_options,
     }
+    if config.get("observability"):
+        summary["observability"] = _safe_summary(config["observability"])
+    return summary
 
 
 def _final_output(result: Any) -> Any:
@@ -471,7 +526,9 @@ def _message_content(message: Any) -> str:
         return content
     if isinstance(content, list):
         return "".join(
-            str(item.get("text", item.get("content", item))) if isinstance(item, dict) else str(item)
+            str(item.get("text", item.get("content", item)))
+            if isinstance(item, dict)
+            else str(item)
             for item in content
         )
     return str(content)
@@ -491,7 +548,9 @@ def _events_from_result(result: Any, *, backend: str) -> list[AgentEvent]:
                     data=_payload(tool_call),
                 )
             )
-        message_type = message.get("type") if isinstance(message, dict) else getattr(message, "type", None)
+        message_type = (
+            message.get("type") if isinstance(message, dict) else getattr(message, "type", None)
+        )
         if message_type == "tool":
             events.append(
                 AgentEvent(
@@ -516,14 +575,14 @@ def _run_diagnostics(
     return {
         "messages_count": len(messages),
         "tool_calls_count": sum(
-            1
-            for message in messages
-            for _tool_call in (_mapping_get(message, "tool_calls") or [])
+            1 for message in messages for _tool_call in (_mapping_get(message, "tool_calls") or [])
         ),
         "tool_results_count": sum(
             1
             for message in messages
-            if (message.get("type") if isinstance(message, dict) else getattr(message, "type", None))
+            if (
+                message.get("type") if isinstance(message, dict) else getattr(message, "type", None)
+            )
             == "tool"
         ),
         "structured_response": _mapping_get(result, "structured_response") is not None,

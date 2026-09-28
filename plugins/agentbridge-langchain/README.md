@@ -16,7 +16,7 @@ AgentBridge adapter plugin for `langchain`.
 - Structured output through native LangChain `response_format` and typed `structured_response`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
-- LangSmith/callback-style tracing metadata via native LangChain runtime config.
+- LangSmith tracing context and Langfuse callback integration through one AgentBridge observability config.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 
@@ -53,6 +53,31 @@ teams can choose between direct app compatibility and explicit graph control.
 When `LangChainExtension.config(callbacks=..., metadata=...)` is used, the adapter passes those
 values into LangChain's native runtime config and includes a serializable `runtime_config` summary in
 `RunResult.metadata`.
+
+Enable LangSmith and Langfuse through the same AgentBridge configuration:
+
+```python
+agent = LangChainExtension.with_config(
+    agent,
+    observability={
+        "tags": ["production", "refunds"],
+        "run_name": "refund-agent",
+        "langsmith": {
+            "enabled": True,
+            "project_name": "agentbridge-refunds",
+        },
+        "langfuse": {
+            "enabled": True,
+            "user_id": "customer-123",
+        },
+    },
+)
+```
+
+LangSmith and Langfuse credentials remain environment/provider concerns. Install the optional
+integration dependencies with `pip install 'agentbridge-langchain[observability]'`. AgentBridge
+forwards native callbacks and metadata, adds Langfuse's `CallbackHandler` when enabled, and wraps
+the invocation/stream in LangSmith's native tracing context. No API keys are stored in `AgentSpec`.
 
 LangSmith smoke coverage is available but disabled by default to avoid accidental network calls:
 

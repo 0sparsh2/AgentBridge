@@ -31,6 +31,7 @@ class LangChainConfig(BaseModel):
     transformers: list[Any] = Field(default_factory=list)
     debug: bool | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+    observability: dict[str, Any] = Field(default_factory=dict)
 
 
 class LangChainExtension(FrameworkExtension):
@@ -57,6 +58,7 @@ class LangChainExtension(FrameworkExtension):
         transformers: list[Any] | None = None,
         debug: bool | None = None,
         metadata: dict[str, Any] | None = None,
+        observability: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable LangChain adapter configuration."""
 
@@ -77,6 +79,7 @@ class LangChainExtension(FrameworkExtension):
             transformers=transformers or [],
             debug=debug,
             metadata=metadata or {},
+            observability=observability or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 
     @staticmethod

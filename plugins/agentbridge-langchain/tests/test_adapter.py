@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import sys
 from types import SimpleNamespace
 
@@ -25,7 +26,10 @@ class FakeNativeAgent:
         self.last_config = config
         return {
             "messages": [
-                {"role": "assistant", "content": f"native langchain: {payload['messages'][0]['content']}"}
+                {
+                    "role": "assistant",
+                    "content": f"native langchain: {payload['messages'][0]['content']}",
+                }
             ]
         }
 
@@ -178,6 +182,68 @@ def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
     assert result.metadata["run_diagnostics"]["runtime_config"] == compiled.native_agent.last_config
     assert result.metadata["extension_config"]["callbacks"] == ["langsmith"]
     assert result.metadata["native_agent_type"] == "FakeNativeAgent"
+
+
+def test_adapter_connects_langsmith_context_and_langfuse_callback(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    langfuse_handler = object()
+    monkeypatch.setitem(
+        sys.modules,
+        "langfuse.langchain",
+        SimpleNamespace(CallbackHandler=lambda: langfuse_handler),
+    )
+    tracing_calls = []
+
+    @contextmanager
+    def tracing_context(**kwargs):
+        tracing_calls.append(kwargs)
+        yield
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langsmith.run_helpers",
+        SimpleNamespace(tracing_context=tracing_context),
+    )
+    adapter = Adapter()
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="observed_agent",
+            instructions="Reply to the user.",
+            model="agentbridge/offline",
+        ),
+        observability={
+            "tags": ["test"],
+            "run_name": "observed-run",
+            "langsmith": {"enabled": True, "project_name": "agentbridge-tests"},
+            "langfuse": {"enabled": True, "user_id": "user-1"},
+        },
+    )
+
+    result = adapter.run(adapter.compile(agent), RunInput(input="hello", session_id="session-1"))
+
+    runtime_config = result.metadata["runtime_config"]
+    assert runtime_config["callbacks"] == ["object"]
+    assert runtime_config["tags"] == ["test"]
+    assert runtime_config["run_name"] == "observed-run"
+    assert runtime_config["metadata"]["langfuse_user_id"] == "user-1"
+    assert runtime_config["metadata"]["langfuse_session_id"] == "session-1"
+    assert tracing_calls == [
+        {
+            "project_name": "agentbridge-tests",
+            "tags": ["test"],
+            "metadata": {},
+            "enabled": True,
+        }
+    ]
 
 
 def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:

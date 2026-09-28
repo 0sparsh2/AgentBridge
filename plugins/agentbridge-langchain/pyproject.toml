@@ -21,6 +21,10 @@ langchain = "agentbridge_langchain.adapter:Adapter"
 dev = [
   "pytest>=8.0",
 ]
+observability = [
+  "langfuse>=3,<4",
+  "langsmith>=0.3,<1",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
