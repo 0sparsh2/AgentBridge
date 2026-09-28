@@ -22,6 +22,24 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "python-sdk",
             "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed.",
         }
+    if "/oss/python/deepagents/" in url or url.endswith("/oss/python/reference/deepagents-python.md"):
+        if any(token in lower for token in ("ag-ui", "a2a", "acp", "/frontend/")):
+            return {
+                "status": "native_only",
+                "owner": "deepagents-adapter",
+                "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected.",
+            }
+        return {
+            "status": "extension",
+            "owner": "deepagents-adapter",
+            "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option.",
+        }
+    if "/oss/deepagents/code/" in url or "managed-deep-agents" in url:
+        return {
+            "status": "planned",
+            "owner": "runtime-integrations",
+            "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first.",
+        }
     if "/_llms/" in url or url.endswith("openapi.json"):
         return {
             "status": "native_only",

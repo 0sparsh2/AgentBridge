@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from agentbridge.extensions.crewai import CrewAIConfig
+from agentbridge.extensions.deepagents import DeepAgentsConfig
 from agentbridge.extensions.google_adk import GoogleADKConfig
 from agentbridge.extensions.langchain import LangChainConfig
 from agentbridge.extensions.langgraph import LangGraphConfig
@@ -31,6 +32,26 @@ def extension_profiles() -> list[ExtensionProfile]:
     """Return metadata for built-in extension namespaces."""
 
     return [
+        ExtensionProfile(
+            framework="deepagents",
+            module="agentbridge.extensions.deepagents",
+            config_model="DeepAgentsConfig",
+            config_schema=DeepAgentsConfig.model_json_schema(),
+            capabilities=[
+                "state.memory",
+                "state.subagents",
+                "filesystem.backend",
+                "human_approval",
+                "structured_output",
+                "observability.tracing",
+            ],
+            status="partial",
+            notes=[
+                "External plugin maps AgentSpec and ToolSpec to create_deep_agent.",
+                "Memory, skills, permissions, filesystem backends, subagents, middleware, interrupts, schemas, checkpoints, stores, caching, and native options are forwarded.",
+                "Sandbox execution, hosted Managed Deep Agents, and Deep Agents Code remain separate runtime integrations.",
+            ],
+        ),
         ExtensionProfile(
             framework="langgraph",
             module="agentbridge.extensions.langgraph",

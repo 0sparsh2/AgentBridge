@@ -5,6 +5,7 @@ portable AgentSpec core or pretending every framework has the same mental model.
 """
 
 from agentbridge.extensions.base import FrameworkExtension, UnsupportedExtension
+from agentbridge.extensions.deepagents import DeepAgentsExtension
 from agentbridge.extensions.google_adk import GoogleADKExtension
 from agentbridge.extensions.langchain import LangChainExtension
 from agentbridge.extensions.openai_agents import OpenAIAgentsExtension
@@ -13,6 +14,7 @@ from agentbridge.extensions.strands import StrandsExtension
 
 __all__ = [
     "ExtensionProfile",
+    "DeepAgentsExtension",
     "FrameworkExtension",
     "GoogleADKExtension",
     "LangChainExtension",

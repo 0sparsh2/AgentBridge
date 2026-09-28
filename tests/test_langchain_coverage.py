@@ -14,7 +14,7 @@ def test_classify_assigns_explicit_outcome_to_each_major_area():
     assert [decision["status"] for decision in decisions] == [
         "extension",
         "extension",
-        "planned",
+        "extension",
         "unsupported",
     ]
     assert all(decision["owner"] and decision["action"] for decision in decisions)

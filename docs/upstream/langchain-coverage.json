@@ -3043,16 +3043,16 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-agent-owned-interrupts.md",
       "title": "Prompt Slack users with agent-owned interrupts",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
-      "status": "extension",
-      "owner": "prompt-management",
-      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
+      "status": "planned",
+      "owner": "runtime-integrations",
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-changelog.md",
@@ -3061,7 +3061,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-channels-http.md",
@@ -3070,7 +3070,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-channels-slack.md",
@@ -3079,7 +3079,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-channels.md",
@@ -3088,7 +3088,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-cli.md",
@@ -3097,7 +3097,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-connections.md",
@@ -3106,7 +3106,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-context-hub.md",
@@ -3115,7 +3115,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-deploy.md",
@@ -3124,7 +3124,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-evals.md",
@@ -3133,7 +3133,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-identity.md",
@@ -3142,7 +3142,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-instructions.md",
@@ -3151,7 +3151,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-local-development.md",
@@ -3159,8 +3159,8 @@
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
-      "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "owner": "runtime-integrations",
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-mcp-connectors.md",
@@ -3169,7 +3169,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-mcp-endpoint.md",
@@ -3178,7 +3178,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-memory.md",
@@ -3187,7 +3187,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-middleware.md",
@@ -3196,7 +3196,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-migrate.md",
@@ -3205,7 +3205,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-overview.md",
@@ -3214,7 +3214,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-project-structure.md",
@@ -3223,7 +3223,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-quickstart.md",
@@ -3232,7 +3232,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-sandboxes.md",
@@ -3241,7 +3241,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-schedules.md",
@@ -3250,7 +3250,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-search.md",
@@ -3259,7 +3259,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-skills.md",
@@ -3268,7 +3268,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-tools.md",
@@ -3277,7 +3277,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents-tutorial.md",
@@ -3286,7 +3286,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/javascript/managed-deep-agents.md",
@@ -3295,7 +3295,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/jit-invite-sso.md",
@@ -4105,16 +4105,16 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-agent-owned-interrupts.md",
       "title": "Prompt Slack users with agent-owned interrupts",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "extension",
-      "owner": "prompt-management",
-      "action": "Use the optional LangSmith prompt pull/push bridge and preserve the native prompt object for LangChain formatting."
+      "status": "planned",
+      "owner": "runtime-integrations",
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-changelog.md",
@@ -4123,7 +4123,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-channels-http.md",
@@ -4132,7 +4132,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-channels-slack.md",
@@ -4141,7 +4141,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-channels.md",
@@ -4150,7 +4150,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-cli.md",
@@ -4159,7 +4159,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-connections.md",
@@ -4168,7 +4168,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-context-hub.md",
@@ -4177,7 +4177,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-deploy.md",
@@ -4186,7 +4186,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-evals.md",
@@ -4195,7 +4195,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-identity.md",
@@ -4204,7 +4204,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-instructions.md",
@@ -4213,7 +4213,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-local-development.md",
@@ -4221,8 +4221,8 @@
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
-      "owner": "prompt-management",
-      "action": "Add prompt references, commit/tag resolution, and a native client escape hatch without putting hosted credentials in core."
+      "owner": "runtime-integrations",
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-mcp-connectors.md",
@@ -4231,7 +4231,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-mcp-endpoint.md",
@@ -4240,7 +4240,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-memory.md",
@@ -4249,7 +4249,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-middleware.md",
@@ -4258,7 +4258,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-migrate.md",
@@ -4267,7 +4267,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-overview.md",
@@ -4276,7 +4276,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-project-structure.md",
@@ -4285,7 +4285,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-quickstart.md",
@@ -4294,7 +4294,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-sandboxes.md",
@@ -4303,7 +4303,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-schedules.md",
@@ -4312,7 +4312,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-search.md",
@@ -4321,7 +4321,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-skills.md",
@@ -4330,7 +4330,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-tools.md",
@@ -4339,7 +4339,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents-tutorial.md",
@@ -4348,7 +4348,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/python/managed-deep-agents.md",
@@ -4357,7 +4357,7 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/langsmith/query-threads.md",
@@ -11035,7 +11035,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/changelog.md",
@@ -11044,7 +11044,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/cli-reference.md",
@@ -11053,7 +11053,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/config-file.md",
@@ -11062,7 +11062,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/configuration.md",
@@ -11071,7 +11071,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/credentials.md",
@@ -11080,7 +11080,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/extensions.md",
@@ -11089,7 +11089,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/goals-and-rubrics.md",
@@ -11098,7 +11098,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/hooks.md",
@@ -11107,7 +11107,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/mcp-tools.md",
@@ -11116,7 +11116,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/memory-and-skills.md",
@@ -11125,7 +11125,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/overview.md",
@@ -11134,7 +11134,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/plugins.md",
@@ -11143,7 +11143,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/providers.md",
@@ -11152,7 +11152,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/quickstart.md",
@@ -11161,7 +11161,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/remote-sandboxes.md",
@@ -11170,7 +11170,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/deepagents/code/subagents.md",
@@ -11179,7 +11179,7 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup.md",
       "status": "planned",
       "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "action": "Keep separate from the local Deep Agents adapter; define hosted/code-runtime credentials and lifecycle contracts first."
     },
     {
       "url": "https://docs.langchain.com/oss/javascript/common-errors.md",
@@ -13238,45 +13238,45 @@
       "title": "A2A server",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/acp.md",
       "title": "Agent Client Protocol (ACP)",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/ag-ui.md",
       "title": "Agent User Interaction Protocol (AG-UI)",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/async-subagents.md",
       "title": "Async subagents",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/backends.md",
       "title": "Backends",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/changelog-py.md",
@@ -13284,305 +13284,305 @@
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "extension",
-      "owner": "observability",
-      "action": "Use AgentBridge metadata/events plus the optional provider integration; add a focused adapter test when the page describes a new option."
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/comparison.md",
       "title": "Comparison with Claude Agent SDK",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/content-builder.md",
       "title": "Build a content builder agent",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/context-engineering.md",
       "title": "Context engineering in Deep Agents",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/customization.md",
       "title": "Customize Deep Agents",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/data-analysis.md",
       "title": "Build a data analysis agent",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/deep-research.md",
       "title": "Build a deep research agent",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/dynamic-subagents.md",
       "title": "Dynamic subagents",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/event-streaming.md",
       "title": "Event streaming",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/fault-tolerance.md",
       "title": "Fault tolerance",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/frontend/overview.md",
       "title": "Overview",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/frontend/sandbox.md",
       "title": "Sandbox",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/frontend/subagent-streaming.md",
       "title": "Subagent streaming",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/frontend/todo-list.md",
       "title": "Todo list",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "native_only",
+      "owner": "deepagents-adapter",
+      "action": "Preserve the native Deep Agents protocol/runtime object; add a protocol-specific AgentBridge adapter when its contract is selected."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/going-to-production.md",
       "title": "Going to production",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/human-in-the-loop.md",
       "title": "Human-in-the-loop",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/interpreters.md",
       "title": "Interpreters",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/mcp.md",
       "title": "Model Context Protocol",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/memory.md",
       "title": "Memory",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/models.md",
       "title": "Models",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/multimodal.md",
       "title": "Multimodal inputs and outputs",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/openwiki.md",
       "title": "OpenWiki",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/overview.md",
       "title": "Deep Agents overview",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/permissions.md",
       "title": "Permissions",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/profiles.md",
       "title": "Profiles",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/quickstart.md",
       "title": "Quickstart",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/rag.md",
       "title": "Retrieval Augmented Generation (RAG) with Deep Agents",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/retrieval.md",
       "title": "Retrieval",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/rubric.md",
       "title": "Grading rubrics",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/sandboxes.md",
       "title": "Sandboxes",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/skills.md",
       "title": "Skills",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/streaming.md",
       "title": "Streaming",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/subagents.md",
       "title": "Subagents",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/deepagents/tools.md",
       "title": "Tools",
       "category": "deep_agents",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/integrations/backends/index.md",
@@ -14822,9 +14822,9 @@
       "title": "Deep Agents",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
-      "status": "planned",
-      "owner": "runtime-integrations",
-      "action": "Create an optional integration only after the hosted/runtime boundary and credential contract are documented."
+      "status": "extension",
+      "owner": "deepagents-adapter",
+      "action": "Use the optional Deep Agents adapter and native_options pass-through; add a focused contract fixture when a page introduces a new runtime option."
     },
     {
       "url": "https://docs.langchain.com/oss/python/reference/integrations-python.md",

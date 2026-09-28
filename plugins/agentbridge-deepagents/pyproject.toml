@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentbridge-deepagents"
+version = "0.1.0"
+description = "AgentBridge adapter plugin for LangChain Deep Agents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "agentbridge>=0.1.0",
+  "deepagents>=0.7,<1",
+]
+
+[project.entry-points."agentbridge.adapters"]
+deepagents = "agentbridge_deepagents.adapter:Adapter"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -18,6 +18,7 @@ AgentBridge adapters must document the framework versions they target. Agent fra
 | `google-adk` | External Google ADK adapter plugin | `>=2.9,<3` | `2.9.0` | Partial native adapter |
 | `strands-agents` | External Strands Agents adapter plugin | `>=1.55,<2` | `1.55.1` | Partial native adapter |
 | `langchain` | External direct LangChain adapter plugin | `>=1.4,<2` | `1.4.0` | Partial native adapter |
+| `deepagents` | External LangChain Deep Agents adapter plugin | `>=0.7,<1` | `0.7.19` API verified | Partial native adapter |
 
 ## Notes
 

@@ -75,6 +75,9 @@ jobs:
           - name: langchain
             path: plugins/agentbridge-langchain
             tests: plugins/agentbridge-langchain/tests
+          - name: deepagents
+            path: plugins/agentbridge-deepagents
+            tests: plugins/agentbridge-deepagents/tests
           - name: strands
             path: plugins/agentbridge-strands
             tests: plugins/agentbridge-strands/tests
