@@ -16,6 +16,8 @@ backends, subagents, middleware, human approval, structured output, state and
 context schemas, checkpointing, stores, caching, debug mode, and native option
 pass-through. Native backend, sandbox, filesystem, and subagent objects are
 preserved as escape hatches and summarized in normalized diagnostics.
+Protocol labels such as `ag_ui` and `a2a` plus sandbox metadata can be recorded
+without forcing a protocol or sandbox dependency into AgentBridge core.
 
 Install it separately because Deep Agents may bring filesystem, sandbox, and
 provider-specific dependencies:

@@ -91,6 +91,31 @@ class LangSmithAPIClient:
             if payload and payload != "[DONE]":
                 yield json.loads(payload)
 
+    def get_thread(self, thread_id: str) -> Any:
+        """Fetch a LangSmith/LangGraph deployment thread."""
+
+        return self.request_json("GET", f"/threads/{thread_id}")
+
+    def create_thread(self, *, metadata: Mapping[str, Any] | None = None) -> Any:
+        """Create a thread for a deployed graph or Agent Server runtime."""
+
+        return self.request_json("POST", "/threads", body={"metadata": dict(metadata or {})})
+
+    def stream_thread_run(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        input: Any,
+    ) -> Iterator[dict[str, Any]]:
+        """Stream a deployed LangGraph run through the native SSE endpoint."""
+
+        return self.stream_events(
+            "POST",
+            f"/threads/{thread_id}/runs/stream",
+            body={"assistant_id": assistant_id, "input": input},
+        )
+
     def _request(
         self,
         method: str,
@@ -129,4 +154,3 @@ def _default_transport(
     request = Request(url, data=body, headers=headers, method=method)
     with urlopen(request, timeout=30) as response:
         return response.status, dict(response.headers.items()), response.read()
-

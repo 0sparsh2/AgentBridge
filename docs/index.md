@@ -18,6 +18,7 @@ Use this page as the navigation map for the repository.
 - [Scenario Reports](scenario_reports.md): Target format for deep framework-nuance examples, migration comparisons, outputs, and model-provider routing.
 - [Model Routing](model_routing.md): How AgentBridge records hosted, local, OpenAI-compatible, and offline model routes without becoming a model gateway.
 - [Version Policy](version_policy.md): Adopted package ranges, verified local versions, and adapter version rules.
+- [AgentCore Integration](agentcore.md): Runtime, Memory, Gateway, observability, protocol, and native-operation coverage.
 - [Release Workflow](release.md): Package build checks, tag workflow, and future PyPI publishing path.
 
 ## Engineering

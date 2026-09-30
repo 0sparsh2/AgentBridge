@@ -53,3 +53,5 @@
 - Machine-readable framework feature inventories linked to capability, extension, native-only, and unsupported outcomes.
 - Credentialed smoke-test lanes for provider, observability, governance, and deployment integrations.
 - Automated compatibility reports and visible scheduled failures when upstream releases leave adopted ranges.
+- AgentCore Runtime, Memory, Gateway, Identity, protocol, and observability bridge with generic native API access.
+- LangSmith thread/run helpers and Langfuse ingestion/score helpers layered over dependency-free transports.

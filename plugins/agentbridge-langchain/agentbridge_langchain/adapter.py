@@ -36,8 +36,10 @@ class Adapter(BackendAdapter):
                 "agent.model": "partial",
                 "tools.sync": "full",
                 "tools.async": "partial",
+                "tools.mcp": "extension",
                 "structured_output": "full",
                 "state.memory": "extension",
+                "workflow.human_in_the_loop": "extension",
                 "observability.tracing": "extension",
                 "observability.diagnostics": "full",
                 "observability.raw": "full",
@@ -48,6 +50,7 @@ class Adapter(BackendAdapter):
                 "agent.model": "Normalizes provider/model to provider:model for LangChain provider parsing; provider support is environment dependent.",
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
                 "tools.async": "LangChain supports async runnables, but this adapter currently exposes synchronous run and best-effort stream.",
+                "tools.mcp": "Passes native MCP adapter tools through LangChain create_agent without making langchain-mcp-adapters a core dependency.",
                 "structured_output": "Maps AgentSpec.output_type to LangChain response_format and validates native structured_response.",
                 "state.memory": "Records memory/retriever hints and forwards native checkpointer/store objects when provided; portable memory semantics remain extension-level.",
                 "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
@@ -62,8 +65,9 @@ class Adapter(BackendAdapter):
         create_agent, structured_tool = _load_langchain()
         config = dict(spec.backend_config.get(self.backend_name, {}))
         native_tools = [_to_langchain_tool(structured_tool, tool) for tool in spec.tools]
+        native_tools.extend(config.get("mcp_tools") or [])
         agent_kwargs: dict[str, Any] = {
-            "model": config.get("model") or _model_for_spec(spec),
+            "model": config.get("model") or _model_for_spec(spec, config),
             "tools": native_tools,
             "system_prompt": config.get("prompt_template") or spec.instructions,
             "name": spec.name,
@@ -148,6 +152,45 @@ class Adapter(BackendAdapter):
             raw=result,
         )
 
+    async def arun(self, compiled: Any, run_input: RunInput) -> RunResult:
+        """Use LangChain's native async invoke path when available."""
+
+        compiled_agent = _ensure_compiled(compiled)
+        if not hasattr(compiled_agent.native_agent, "ainvoke"):
+            return await super().arun(compiled_agent, run_input)
+        runtime_config = _runtime_config(compiled_agent, run_input)
+        with langsmith_context(compiled_agent.config):
+            result = await compiled_agent.native_agent.ainvoke(
+                _input_payload(run_input),
+                config=runtime_config,
+            )
+        output = _final_output(result)
+        events = _events_from_result(result, backend=self.backend_name)
+        events.extend(
+            [
+                AgentEvent(
+                    type="message",
+                    backend=self.backend_name,
+                    data={"content": output, "agent": compiled_agent.spec.name},
+                ),
+                AgentEvent(type="complete", backend=self.backend_name, data={"output": output}),
+            ]
+        )
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            metadata={
+                "agent": compiled_agent.spec.name,
+                "runtime_config": _safe_summary(runtime_config),
+                "extension_config": _safe_summary(compiled_agent.config),
+                "extension_summary": _extension_summary(compiled_agent.config),
+                "native_agent_type": type(compiled_agent.native_agent).__name__,
+                "run_diagnostics": _run_diagnostics(result, events, compiled_agent, runtime_config),
+            },
+            raw=result,
+        )
+
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         compiled_agent = _ensure_compiled(compiled)
         if _uses_offline_model(compiled_agent):
@@ -219,7 +262,7 @@ def _to_langchain_tool(structured_tool: Any, tool_spec: Any) -> Any:
     )
 
 
-def _model_for_spec(spec: AgentSpec) -> Any:
+def _model_for_spec(spec: AgentSpec, config: dict[str, Any] | None = None) -> Any:
     if spec.model == "agentbridge/offline":
         model_base = import_module("langchain_core.language_models.chat_models").BaseChatModel
 
@@ -227,7 +270,29 @@ def _model_for_spec(spec: AgentSpec) -> Any:
             pass
 
         return AgentBridgeOfflineModel()
+    model_options = dict((config or {}).get("model_options") or {})
+    if model_options:
+        provider = (config or {}).get("model_provider") or _provider_from_model(spec.model)
+        if provider in {"openai", "openrouter", "nvidia_nim"}:
+            try:
+                chat_openai = import_module("langchain_openai").ChatOpenAI
+            except ImportError as exc:
+                raise ImportError(
+                    "LangChain OpenAI-compatible model options require langchain-openai. "
+                    "Install `agentbridge-langchain[openai]`."
+                ) from exc
+            model_options.setdefault("model", _model_name(spec.model))
+            return chat_openai(**model_options)
+        raise ValueError(f"Unsupported LangChain model_provider for model_options: {provider!r}")
     return _normalize_model(spec.model)
+
+
+def _provider_from_model(model: str) -> str:
+    return model.split("/", 1)[0] if "/" in model else model.split(":", 1)[0]
+
+
+def _model_name(model: str) -> str:
+    return model.split("/", 1)[1] if "/" in model else model
 
 
 class _AgentBridgeOfflineModelBase:
@@ -475,11 +540,14 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
             "requested": _safe_summary(config.get("retrievers") or []),
             "native_store": "store" in applied_native_options,
         },
+        "mcp_tools_count": len(config.get("mcp_tools") or []),
         "applied_native_options": applied_native_options,
         "native_options_count": len(config.get("native_options") or {}),
     }
     if config.get("observability"):
         summary["observability"] = _safe_summary(config["observability"])
+    if config.get("agentcore"):
+        summary["agentcore"] = _safe_summary(config["agentcore"])
     return summary
 
 
@@ -521,6 +589,15 @@ def _message_content(message: Any) -> str:
 
 def _events_from_result(result: Any, *, backend: str) -> list[AgentEvent]:
     events: list[AgentEvent] = []
+    interrupts = _mapping_get(result, "__interrupt__")
+    if interrupts:
+        events.append(
+            AgentEvent(
+                type="workflow",
+                backend=backend,
+                data={"phase": "interrupted", "interrupts": _safe_summary(interrupts)},
+            )
+        )
     for message in _mapping_get(result, "messages") or []:
         tool_calls = getattr(message, "tool_calls", None)
         if isinstance(message, dict):
@@ -557,6 +634,7 @@ def _run_diagnostics(
     for event in events:
         event_counts[event.type] = event_counts.get(event.type, 0) + 1
     messages = list(_mapping_get(result, "messages") or [])
+    interrupts = _mapping_get(result, "__interrupt__")
     return {
         "messages_count": len(messages),
         "tool_calls_count": sum(
@@ -571,6 +649,10 @@ def _run_diagnostics(
             == "tool"
         ),
         "structured_response": _mapping_get(result, "structured_response") is not None,
+        "interrupted": bool(interrupts),
+        "interrupts_count": len(interrupts)
+        if isinstance(interrupts, list | tuple)
+        else int(bool(interrupts)),
         "runtime_config": _safe_summary(runtime_config),
         "extension_summary": _extension_summary(compiled.config),
         "native_agent_type": type(compiled.native_agent).__name__,
@@ -581,6 +663,14 @@ def _run_diagnostics(
 def _normalize_native_events(native_event: Any, *, backend: str) -> Iterator[AgentEvent]:
     payload = _payload(native_event)
     event_type = str(payload.get("type", "")).lower()
+
+    if payload.get("__interrupt__"):
+        yield AgentEvent(
+            type="workflow",
+            backend=backend,
+            data={"phase": "interrupted", "interrupts": _safe_summary(payload["__interrupt__"])},
+        )
+        return
 
     if event_type == "messages":
         yield from _events_from_message_stream_data(payload.get("data"), backend=backend)
@@ -767,7 +857,10 @@ def _safe_summary(value: Any) -> Any:
     if isinstance(value, list | tuple | set):
         return [_safe_summary(item) for item in value]
     if isinstance(value, dict):
-        return {str(key): _safe_summary(item) for key, item in value.items()}
+        return {
+            str(key): "[redacted]" if _is_secret_key(str(key)) else _safe_summary(item)
+            for key, item in value.items()
+        }
     if hasattr(value, "__dict__"):
         return {
             str(key): _safe_summary(item)
@@ -775,3 +868,8 @@ def _safe_summary(value: Any) -> Any:
             if not key.startswith("_")
         }
     return type(value).__name__
+
+
+def _is_secret_key(key: str) -> bool:
+    normalized = key.lower().replace("-", "_")
+    return any(token in normalized for token in ("api_key", "token", "secret", "password"))

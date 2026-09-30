@@ -39,7 +39,7 @@ from agentbridge.registry import (
     register_adapter,
     reset_adapters,
 )
-from agentbridge.runner import resume_agent, run_agent, stream_agent
+from agentbridge.runner import arun_agent, resume_agent, run_agent, stream_agent
 from agentbridge.tool_registry import (
     ToolRegistry,
     coerce_tool_registry,
@@ -50,7 +50,14 @@ from agentbridge.tool_registry import (
 )
 from agentbridge.validation import ManifestValidation, validate_manifest
 from agentbridge.versioning import dependency_versions
-from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult, ToolSpec
+from agentbridge.types import (
+    AgentEvent,
+    AgentSpec,
+    BackendCapabilities,
+    RunInput,
+    RunResult,
+    ToolSpec,
+)
 
 __all__ = [
     "AgentEvent",
@@ -81,6 +88,7 @@ __all__ = [
     "ToolRegistry",
     "ToolSpec",
     "adapter_sources",
+    "arun_agent",
     "capability_matrix",
     "coerce_tool_registry",
     "compare_backends",

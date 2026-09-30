@@ -1,0 +1,47 @@
+{
+  "backend": "langchain",
+  "model": "agentbridge/offline",
+  "credential_free": true,
+  "checks": [
+    {
+      "name": "structured_output",
+      "surfaces": ["create_agent.response_format", "normalized typed output"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "tools_and_normalized_events",
+      "surfaces": ["StructuredTool", "tool_call", "tool_result", "complete"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "mcp_tool_passthrough",
+      "surfaces": ["native MCP adapter tools", "create_agent tools list", "mcp_tools_count diagnostics"],
+      "test": "plugins/agentbridge-langchain/tests/test_adapter.py::test_adapter_passes_native_mcp_tools_without_hard_dependency"
+    },
+    {
+      "name": "openai_compatible_native_model",
+      "surfaces": ["ChatOpenAI", "base_url", "provider model options", "secret redaction"],
+      "test": "plugins/agentbridge-langchain/tests/test_adapter.py::test_adapter_builds_openai_compatible_native_model_from_options"
+    },
+    {
+      "name": "middleware_memory_retrieval",
+      "surfaces": ["middleware", "checkpointer", "store", "interrupt_before", "interrupt_after", "retriever hints"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "human_in_the_loop",
+      "surfaces": ["HumanInTheLoopMiddleware", "checkpointed interrupt", "normalized workflow interrupt event"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "observability_runtime_config",
+      "surfaces": ["callbacks", "tags", "run_name", "session/thread config"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "native_options_escape_hatch",
+      "surfaces": ["guarded create_agent option pass-through"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    }
+  ]
+}

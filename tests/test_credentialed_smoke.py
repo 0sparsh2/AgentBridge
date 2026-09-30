@@ -9,10 +9,8 @@ def test_credentialed_smoke_matrix_is_disabled_by_default() -> None:
     assert matrix["enabled"] is False
     assert all(route["status"] == "skipped" for route in matrix["routes"].values())
     assert all(route["ready"] is False for route in matrix["routes"].values())
-    assert all(
-        smoke["status"] == "skipped"
-        for smoke in matrix["native_runtime_smokes"].values()
-    )
+    assert all(smoke["status"] == "skipped" for smoke in matrix["native_runtime_smokes"].values())
+    assert all(smoke["status"] == "skipped" for smoke in matrix["observability_smokes"].values())
 
 
 def test_credentialed_smoke_matrix_requires_route_specific_credentials() -> None:
@@ -79,3 +77,20 @@ def test_native_runtime_smokes_mark_ready_only_with_framework_credentials() -> N
 
     assert matrix["native_runtime_smokes"]["strands_agentcore_deployment"]["ready"] is True
     assert matrix["native_runtime_smokes"]["openai_agents_native_resume"]["ready"] is False
+
+
+def test_observability_smokes_require_their_own_credentials() -> None:
+    from examples.credentialed_smoke_matrix import build_smoke_matrix
+
+    matrix = build_smoke_matrix(
+        environ={
+            "AGENTBRIDGE_RUN_CREDENTIAL_SMOKE": "1",
+            "LANGSMITH_API_KEY": "test-key",
+        }
+    )
+
+    assert matrix["observability_smokes"]["langsmith_api"]["ready"] is True
+    assert matrix["observability_smokes"]["langfuse_runtime"]["missing_env"] == [
+        "LANGFUSE_PUBLIC_KEY",
+        "LANGFUSE_SECRET_KEY",
+    ]

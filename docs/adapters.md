@@ -10,6 +10,7 @@ Adapters translate `AgentSpec` into backend-native runtime objects and normalize
 | `langgraph` | Core optional extra | `pip install -e ".[langgraph]"` | Verified locally | Durable stateful orchestration and graph-shaped flows. |
 | `pydantic_ai` | Core optional extra | `pip install -e ".[pydantic-ai]"` | Verified locally | Typed Python-native agents and structured output pathfinding. |
 | `crewai` | External plugin scaffold | `plugins/agentbridge-crewai` | Blocked | High-level role/task/crew prototyping once dependency resolution is isolated. |
+| `agentcore` | External plugin | `plugins/agentbridge-agentcore[aws]` | Contract verified | Invoke deployed AgentCore Runtime and preserve Memory, Gateway, Identity, observability, and protocol bindings. |
 
 ## Distribution Types
 
@@ -41,6 +42,16 @@ Core adapters should be included only when they satisfy all of these:
 - The adapter adds strategic coverage to the migration story.
 
 If an adapter fails these rules, keep it as a plugin.
+
+## `agentcore`
+
+AgentCore is the deployment and operations bridge for agents built with LangChain, LangGraph,
+Strands, CrewAI, Google ADK, or another runtime. Install the external plugin only for AWS-backed
+execution. `AgentCoreClient.call(service, operation, ...)` keeps the complete native service surface
+available while `Adapter` normalizes Runtime invocation into `RunResult` and `AgentEvent`.
+
+See [AgentCore Integration](agentcore.md) for Runtime, Memory, Gateway, Identity, observability,
+A2A, and AG-UI bindings.
 
 ## `mock`
 

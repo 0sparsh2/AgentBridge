@@ -15,6 +15,11 @@ class LangGraphConfig(BaseModel):
 
     node_name: str = Field(default="agent", min_length=1)
     graph_name: str | None = None
+    remote_graph: str | None = None
+    deployment_url: str | None = None
+    deployment: dict[str, Any] = Field(default_factory=dict)
+    agentcore_memory_id: str | None = None
+    agentcore_store_namespace: str | None = None
     include_context_in_output: bool = False
     enable_checkpointing: bool = False
     route_on_context_key: str | None = None
@@ -36,6 +41,11 @@ class LangGraphExtension(FrameworkExtension):
         *,
         node_name: str = "agent",
         graph_name: str | None = None,
+        remote_graph: str | None = None,
+        deployment_url: str | None = None,
+        deployment: dict[str, Any] | None = None,
+        agentcore_memory_id: str | None = None,
+        agentcore_store_namespace: str | None = None,
         include_context_in_output: bool = False,
         enable_checkpointing: bool = False,
         route_on_context_key: str | None = None,
@@ -51,6 +61,11 @@ class LangGraphExtension(FrameworkExtension):
         return LangGraphConfig(
             node_name=node_name,
             graph_name=graph_name,
+            remote_graph=remote_graph,
+            deployment_url=deployment_url,
+            deployment=deployment or {},
+            agentcore_memory_id=agentcore_memory_id,
+            agentcore_store_namespace=agentcore_store_namespace,
             include_context_in_output=include_context_in_output,
             enable_checkpointing=enable_checkpointing,
             route_on_context_key=route_on_context_key,

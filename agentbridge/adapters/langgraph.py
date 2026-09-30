@@ -170,6 +170,9 @@ class LangGraphAdapter(BackendAdapter):
             "node_name": compiled.config.node_name,
             "checkpointing": compiled.config.enable_checkpointing,
             "route": raw.get("route", compiled.config.node_name),
+            "deployment": _deployment_summary(compiled.config),
+            "agentcore_memory_id": compiled.config.agentcore_memory_id,
+            "agentcore_store_namespace": compiled.config.agentcore_store_namespace,
             "run_diagnostics": self._run_diagnostics(raw, events, compiled, interrupt_state),
         }
         if interrupt_state:
@@ -420,6 +423,9 @@ class LangGraphAdapter(BackendAdapter):
             "route": raw.get("route", compiled.config.node_name),
             "node_name": compiled.config.node_name,
             "graph_name": compiled.config.graph_name,
+            "deployment": _deployment_summary(compiled.config),
+            "agentcore_memory_id": compiled.config.agentcore_memory_id,
+            "agentcore_store_namespace": compiled.config.agentcore_store_namespace,
             "checkpointing": compiled.config.enable_checkpointing,
             "interrupted": interrupt_state is not None,
             "resumed": resumed,
@@ -455,6 +461,17 @@ def _structured_output_for_spec(
         if callable(model_validate):
             return model_validate(payload)
     return payload
+
+
+def _deployment_summary(config: LangGraphConfig) -> dict[str, Any]:
+    """Expose remote/deployment intent without making a hosted API call."""
+
+    summary = dict(config.deployment)
+    if config.remote_graph:
+        summary["remote_graph"] = config.remote_graph
+    if config.deployment_url:
+        summary["deployment_url"] = config.deployment_url
+    return summary
 
 
 def _value_for_schema(

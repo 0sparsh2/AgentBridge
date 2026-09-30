@@ -38,6 +38,21 @@ def run_agent(
     return adapter.run(compiled, _coerce_run_input(input, **run_input_kwargs))
 
 
+async def arun_agent(
+    agent: AgentSpec,
+    *,
+    backend: str | None = None,
+    framework: str | None = None,
+    input: str | RunInput,
+    **run_input_kwargs: object,
+) -> RunResult:
+    """Compile and run an agent asynchronously against a framework adapter."""
+
+    adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
+    compiled = adapter.compile(agent)
+    return await adapter.arun(compiled, _coerce_run_input(input, **run_input_kwargs))
+
+
 def resume_agent(
     compiled: object,
     *,

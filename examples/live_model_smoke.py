@@ -83,7 +83,11 @@ def run_nvidia_nim_smoke_from_env() -> dict[str, Any]:
         }
     api_key = os.getenv("NVIDIA_NIM_API_KEY")
     base_url = os.getenv("NVIDIA_NIM_API_BASE") or os.getenv("NVIDIA_NIM_BASE_URL")
-    model = os.getenv("NVIDIA_MODEL") or os.getenv("NVIDIA_NIM_MODEL") or "deepseek-ai/deepseek-v4-flash-0731"
+    model = (
+        os.getenv("NVIDIA_MODEL")
+        or os.getenv("NVIDIA_NIM_MODEL")
+        or "deepseek-ai/deepseek-v4-flash-0731"
+    )
     missing = [
         name
         for name, value in {
@@ -104,6 +108,57 @@ def run_nvidia_nim_smoke_from_env() -> dict[str, Any]:
         base_url=str(base_url),
         model=str(model),
     )
+
+
+def run_provider_smoke_matrix_from_env() -> dict[str, dict[str, Any]]:
+    """Run gated OpenAI-compatible smoke tests for NIM, OpenRouter, and Ollama."""
+
+    route_names = ("nvidia_nim", "openrouter", "ollama")
+    if os.getenv("AGENTBRIDGE_RUN_CREDENTIAL_SMOKE") != "1":
+        return {
+            name: {
+                "ok": False,
+                "status": "skipped",
+                "reason": "Set AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1 to run live smoke tests.",
+            }
+            for name in route_names
+        }
+
+    routes = {
+        "nvidia_nim": {
+            "api_key": os.getenv("NVIDIA_NIM_API_KEY"),
+            "base_url": os.getenv("NVIDIA_NIM_API_BASE") or os.getenv("NVIDIA_NIM_BASE_URL"),
+            "model": os.getenv("NVIDIA_MODEL") or os.getenv("NVIDIA_NIM_MODEL"),
+        },
+        "openrouter": {
+            "api_key": os.getenv("OPENROUTER_API_KEY"),
+            "base_url": os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+            "model": os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+        },
+        "ollama": {
+            "api_key": os.getenv("OLLAMA_API_KEY", "ollama"),
+            "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+            "model": os.getenv("OLLAMA_MODEL", "llama3.1"),
+        },
+    }
+    results: dict[str, dict[str, Any]] = {}
+    for name, route in routes.items():
+        missing: list[str] = []
+        if not route["api_key"]:
+            missing.append(
+                "NVIDIA_NIM_API_KEY" if name == "nvidia_nim" else f"{name.upper()}_API_KEY"
+            )
+        if name == "nvidia_nim" and not route["base_url"]:
+            missing.append("NVIDIA_NIM_API_BASE or NVIDIA_NIM_BASE_URL")
+        if missing:
+            results[name] = {"ok": False, "status": "skipped", "missing_env": missing}
+            continue
+        results[name] = run_openai_compatible_smoke(
+            api_key=str(route["api_key"]),
+            base_url=str(route["base_url"]),
+            model=str(route["model"]),
+        )
+    return results
 
 
 def _first_message_content(data: dict[str, Any]) -> str:

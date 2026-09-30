@@ -8,6 +8,7 @@ AgentBridge adapter plugin for `langchain`.
 - Adopted range: `>=1.4,<2`
 - Verified locally: `1.4.0`
 - Status: partial native adapter
+- Optional MCP package: `langchain-mcp-adapters>=0.1,<1`
 
 ## Target Capabilities
 
@@ -16,10 +17,17 @@ AgentBridge adapter plugin for `langchain`.
 - Structured output through native LangChain `response_format` and typed `structured_response`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
+- Native `HumanInTheLoopMiddleware` pauses are surfaced as normalized workflow interrupt events and
+  preserve the native checkpoint state for the caller's approval/resume flow.
+- Native MCP adapter tools can be supplied with `LangChainExtension(mcp_tools=[...])` and are
+  forwarded unchanged to `create_agent`; `langchain-mcp-adapters` remains optional.
+- OpenAI-compatible native models can use `model_provider="openai"` and `model_options={...}`
+  for NVIDIA NIM, OpenRouter, or internal gateways; install the optional `openai` extra.
 - A guarded `native_options` escape hatch for newly released LangChain `create_agent` options;
   AgentSpec-owned identity/model/tool fields cannot be overridden.
 - LangSmith tracing context and Langfuse callback integration through one AgentBridge observability config.
 - LangSmith dataset publishing and hosted evaluation through an optional integration module.
+- Langfuse callback wiring plus a dependency-free JSON/SSE API transport for ingestion and export endpoints.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 
@@ -94,6 +102,20 @@ pytest plugins/agentbridge-langchain/tests/test_langsmith_smoke.py
 The smoke test runs the offline LangChain adapter inside a LangSmith tracing context and verifies
 that AgentBridge runtime metadata is preserved.
 
+Run the combined credentialed observability lane with:
+
+```bash
+export AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1
+export LANGSMITH_API_KEY=...
+export LANGFUSE_PUBLIC_KEY=...
+export LANGFUSE_SECRET_KEY=...
+python examples/observability_smoke.py
+```
+
+The LangSmith check authenticates against `GET /info` without creating a run. The Langfuse check
+executes the offline LangChain agent with the native Langfuse callback enabled, proving callback
+construction and AgentBridge runtime wiring without depending on model-provider credentials.
+
 Publish the same framework-neutral evaluation examples to LangSmith and run a hosted experiment:
 
 ```python
@@ -130,6 +152,19 @@ commit = push_prompt(
 
 The native prompt object is returned unchanged so LangChain remains responsible for template
 variables, message formatting, model-specific prompt behavior, and prompt serialization.
+
+For direct Langfuse API operations without adding another framework abstraction:
+
+```python
+from agentbridge_langchain.langfuse_api import LangfuseAPIClient
+
+client = LangfuseAPIClient()
+health = client.request_json("GET", "/api/public/health")
+```
+
+The transport preserves arbitrary endpoint payloads and keeps Langfuse credentials in the
+environment. Use the native Langfuse SDK callback for framework traces and this client for API
+operations that are not yet normalized.
 
 LangSmith deployment and control-plane API pages are exposed through an optional generic transport:
 

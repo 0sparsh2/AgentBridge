@@ -36,6 +36,51 @@ Adapters should not:
 - Require paid provider credentials for the default test suite.
 - Claim that OpenAI-compatible endpoints work unless a smoke test or documented manual run exists.
 
+For the LangChain plugin, an OpenAI-compatible native model can be configured without changing the
+framework-neutral `AgentSpec` shape:
+
+```python
+agent = LangChainExtension.with_config(
+    agent,
+    model_provider="openai",
+    model_options={
+        "base_url": "https://integrate.api.nvidia.com/v1",
+        "api_key": os.environ["NVIDIA_NIM_API_KEY"],
+    },
+)
+```
+
+Install `agentbridge-langchain[openai]` for this path. The adapter constructs the native
+`ChatOpenAI` object, passes it to LangChain, and redacts secrets from `RunResult.metadata`.
+
+## Executable Provider Smoke Matrix
+
+The repository includes a double-gated smoke matrix for NVIDIA NIM, OpenRouter, and local Ollama:
+
+```bash
+AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1 python examples/live_model_smoke.py
+```
+
+The callable form is `run_provider_smoke_matrix_from_env()`. It never runs by default. Configure
+`NVIDIA_NIM_API_KEY` plus `NVIDIA_NIM_API_BASE` or `NVIDIA_NIM_BASE_URL` for NIM,
+`OPENROUTER_API_KEY` for OpenRouter, or a reachable Ollama server. Optional overrides are
+`NVIDIA_MODEL`, `OPENROUTER_BASE_URL`, `OPENROUTER_MODEL`, `OLLAMA_BASE_URL`, and `OLLAMA_MODEL`.
+Each result records normalized content, usage, and provider errors without exposing API keys.
+
+Observability providers use a separate executable lane:
+
+```bash
+AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1 \
+  LANGSMITH_API_KEY=... \
+  LANGFUSE_PUBLIC_KEY=... \
+  LANGFUSE_SECRET_KEY=... \
+  python examples/observability_smoke.py
+```
+
+This authenticates to LangSmith's `/info` endpoint and runs an offline LangChain invocation through
+the Langfuse callback path. It does not claim hosted evaluation, prompt-management, or deployment
+parity; those remain separate LangSmith API contract surfaces.
+
 ## OpenAI-Compatible Providers
 
 Many providers expose OpenAI-compatible chat/completions APIs. AgentBridge should represent these
@@ -57,6 +102,16 @@ Example report shape:
 ```
 
 This keeps the model routing story explicit without adding another abstraction layer.
+
+Provider smoke outputs can be compared without exposing credentials:
+
+```python
+from examples.provider_comparison_report import build_provider_comparison_report
+
+report = build_provider_comparison_report(route_results)
+```
+
+The report is result-driven and offline, making it suitable for CI artifacts and migration comparisons across NVIDIA NIM, OpenRouter, Ollama, and other compatible routes.
 
 ## Scenario Report Requirement
 

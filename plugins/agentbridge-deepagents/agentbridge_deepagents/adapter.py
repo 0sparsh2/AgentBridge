@@ -35,6 +35,9 @@ class Adapter(BackendAdapter):
                 "state.memory": "extension",
                 "state.subagents": "extension",
                 "filesystem.backend": "native_only",
+                "protocols.ag_ui": "extension",
+                "protocols.a2a": "extension",
+                "sandbox.execution": "native_only",
                 "human_approval": "extension",
                 "streaming.events": "partial",
                 "observability.tracing": "extension",
@@ -44,6 +47,9 @@ class Adapter(BackendAdapter):
                 "agent.model": "Provider:model strings and initialized native models are passed to create_deep_agent.",
                 "state.memory": "Deep Agents memory/skills paths are forwarded unchanged.",
                 "filesystem.backend": "Backend and permission objects remain native escape hatches.",
+                "protocols.ag_ui": "Protocol labels and native transport options are preserved as extension metadata.",
+                "protocols.a2a": "Protocol labels and native transport options are preserved as extension metadata.",
+                "sandbox.execution": "Sandbox/provider objects remain native escape hatches.",
                 "observability.tracing": "Callbacks and metadata use the shared AgentBridge observability config.",
             },
         )
@@ -100,6 +106,8 @@ class Adapter(BackendAdapter):
                 "runtime_config": _safe_summary(runtime_config),
                 "native_agent_type": type(compiled_agent.native_agent).__name__,
                 "native_options_count": len(compiled_agent.config.get("native_options") or {}),
+                "protocols": list(compiled_agent.config.get("protocols") or []),
+                "sandbox": _safe_summary(compiled_agent.config.get("sandbox")),
             },
             raw=result,
         )
@@ -204,4 +212,3 @@ def _safe_summary(value: Any) -> Any:
     if isinstance(value, list | tuple):
         return [_safe_summary(item) for item in value]
     return type(value).__name__
-

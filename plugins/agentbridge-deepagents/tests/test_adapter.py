@@ -39,6 +39,8 @@ def test_deep_agents_adapter_maps_core_and_native_options(monkeypatch):
                 "memory": ["AGENTS.md"],
                 "skills": ["skills/"],
                 "native_options": {"future_option": True},
+                "protocols": ["ag_ui", "a2a"],
+                "sandbox": {"provider": "modal", "image": "python:3.12"},
             }
         },
     )
@@ -52,6 +54,8 @@ def test_deep_agents_adapter_maps_core_and_native_options(monkeypatch):
     assert compiled.native_agent.kwargs["future_option"] is True
     assert result.output == "A123"
     assert result.metadata["native_options_count"] == 1
+    assert result.metadata["protocols"] == ["ag_ui", "a2a"]
+    assert result.metadata["sandbox"]["provider"] == "modal"
 
 
 def test_deep_agents_adapter_rejects_identity_override(monkeypatch):

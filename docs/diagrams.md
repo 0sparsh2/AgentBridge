@@ -20,6 +20,21 @@ flowchart LR
 
 AgentBridge sits above framework runtime selection and below application code. It does not replace AG-UI or LiteLLM; it complements them.
 
+## AgentCore Operations
+
+```mermaid
+flowchart TB
+    app["AgentBridge application"] --> adapter["LangChain / LangGraph adapter"]
+    adapter --> runtime["AgentCore Runtime"]
+    runtime --> memory["AgentCore Memory"]
+    runtime --> gateway["AgentCore Gateway / MCP"]
+    runtime --> identity["AgentCore Identity"]
+    runtime --> obs["AgentCore Observability"]
+    runtime --> protocols["A2A / AG-UI"]
+    adapter -. native callbacks .-> smith["LangSmith"]
+    adapter -. native callback/API .-> fuse["Langfuse"]
+```
+
 ## Migration Wedge
 
 ```mermaid

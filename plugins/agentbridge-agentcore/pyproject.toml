@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentbridge-agentcore"
+version = "0.1.0"
+description = "Amazon Bedrock AgentCore runtime and service bridge for AgentBridge."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["agentbridge>=0.1.0"]
+
+[project.entry-points."agentbridge.adapters"]
+agentcore = "agentbridge_agentcore.adapter:Adapter"
+
+[project.optional-dependencies]
+aws = ["boto3>=1.35,<2"]
+dev = ["pytest>=8.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agentbridge_agentcore"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

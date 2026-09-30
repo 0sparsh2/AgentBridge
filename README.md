@@ -41,6 +41,7 @@ Current backend status:
 | `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through with a local MCP stdio fixture, native intervention/guardrail trace fixture coverage, hook/intervention/guardrail lifecycle event normalization, run diagnostics, tracing summaries, and structured deployment metadata are covered; live AWS deployment remains extension-level. |
 | `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, run diagnostics, native retriever/checkpointer/store examples, LangSmith tracing context, and Langfuse callback integration are covered. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output, run diagnostics, opt-in session/memory/artifact service snapshots, eval runner bindings, and structured deployment metadata are contract-tested, while eval execution and deployment publishing remain extension-level. |
+| `agentcore` | External plugin | Contract verified | Invokes deployed Amazon Bedrock AgentCore Runtime and preserves Memory, Gateway, Identity, observability, A2A, and AG-UI bindings through `plugins/agentbridge-agentcore`. |
 
 Adopted package versions are tracked in [docs/version_policy.md](docs/version_policy.md).
 
@@ -349,7 +350,7 @@ Near-term work is tracked in GitHub Issues. Current priorities include:
 - Add deeper native fixtures for OpenAI Agents SDK resume execution, Strands live AgentCore/AWS deployment, broader LangChain Runnable fixtures, and Google ADK eval execution/deployment publishing.
 - Turn the CrewAI scaffold into a separately verified plugin package in a dependency-compatible environment.
 - Keep conformance, version policy, and capability coverage synchronized as each framework-specific nuance graduates from extension metadata to tested behavior.
-- Continue researching additional adapter targets such as AgentCore, smolagents, AutoGen/AG2, and LlamaIndex Workflows.
+- Continue expanding AgentCore service-specific contracts and researching additional adapter targets such as smolagents, AutoGen/AG2, and LlamaIndex Workflows.
 
 See [docs/roadmap.md](docs/roadmap.md) for milestone-level planning.
 

@@ -31,6 +31,10 @@ When a framework publishes an update:
 3. Add or update the extension configuration needed to expose native options.
 4. Add offline contract tests for deterministic behavior.
 5. Add credentialed smoke coverage for provider, hosted, deployment, or observability paths when available.
+
+The scheduled workflow also runs isolated CrewAI adapter contracts and credential-free provider,
+observability, and comparison-report lanes. Credentialed lanes remain opt-in and are never enabled
+by the scheduled job without repository secrets and explicit environment gates.
 6. Update the scenario report showing the feature through AgentBridge and the normalized result/events.
 7. Update the adopted range only after the exact version passes its adapter checks.
 
@@ -47,6 +51,12 @@ Every documented framework capability must have one of these explicit outcomes:
 - `extension`: available through a framework-specific AgentBridge extension.
 - `native_only`: available through the raw backend object with documented escape-hatch access.
 - `unsupported`: tracked as a known gap with an issue or roadmap item.
+
+The current LangChain inventory tracks 1,663 official pages across 13 recursive indexes. Every page
+has an owner, action, and explicit decision in `docs/upstream/langchain-coverage.json`; no page is
+left unassigned. Runtime pages map to adapter contracts or native escape hatches, while hosted
+control-plane and product pages remain explicitly external rather than being misrepresented as
+portable runtime behavior.
 
 An adapter must not silently discard a documented framework option. The capability matrix,
 coverage report, version policy, and scenario reports are the audit trail for that decision.

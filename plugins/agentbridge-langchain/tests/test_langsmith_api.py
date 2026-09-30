@@ -34,3 +34,22 @@ def test_langsmith_api_client_parses_sse_data_lines():
     client = LangSmithAPIClient(api_key="secret", transport=transport)
 
     assert list(client.stream_events("POST", "v1/runs/stream")) == [{"event": "update"}]
+
+
+def test_langsmith_thread_helpers_preserve_native_api_shapes():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if url.endswith("/runs/stream"):
+            return 200, {}, b'data: {"event": "message"}\n\ndata: [DONE]\n'
+        return 200, {"content-type": "application/json"}, b'{"id": "thread-1"}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    assert client.create_thread(metadata={"team": "support"})["id"] == "thread-1"
+    assert client.get_thread("thread-1")["id"] == "thread-1"
+    assert list(client.stream_thread_run("thread-1", assistant_id="assistant", input={"x": 1})) == [
+        {"event": "message"}
+    ]
+    assert calls[0][2] == b'{"metadata": {"team": "support"}}'

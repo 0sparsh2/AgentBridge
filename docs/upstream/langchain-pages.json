@@ -1,7 +1,7 @@
 {
   "source": "https://docs.langchain.com/llms.txt",
-  "index_count": 12,
-  "page_count": 1659,
+  "index_count": 13,
+  "page_count": 1663,
   "indexes": [
     "https://docs.langchain.com/_llms/agent-development-lifecycle.md",
     "https://docs.langchain.com/_llms/agent-development-lifecycle/build.md",
@@ -14,6 +14,7 @@
     "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
     "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api/administration.md",
     "https://docs.langchain.com/_llms/products-and-setup.md",
+    "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
     "https://docs.langchain.com/llms.txt"
   ],
   "pages": [
@@ -399,7 +400,7 @@
       "url": "https://docs.langchain.com/langsmith/abac.md",
       "title": "Attribute-based access control",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/access-current-span.md",
@@ -429,13 +430,13 @@
       "url": "https://docs.langchain.com/langsmith/admin.md",
       "title": "Account",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/administration-overview.md",
       "title": "Overview",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/agent-auth.md",
@@ -951,7 +952,7 @@
       "url": "https://docs.langchain.com/langsmith/audit-logs.md",
       "title": "Audit logs",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/auth.md",
@@ -963,19 +964,19 @@
       "url": "https://docs.langchain.com/langsmith/authentication-methods.md",
       "title": "Authentication methods",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/aws-self-hosted.md",
       "title": "Self-hosted LangSmith on AWS",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/azure-self-hosted.md",
       "title": "Self-hosted LangSmith on Azure",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/background-run.md",
@@ -993,7 +994,7 @@
       "url": "https://docs.langchain.com/langsmith/billing.md",
       "title": "Manage billing in your account",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/bind-evaluator-to-dataset-link.md",
@@ -1011,73 +1012,73 @@
       "url": "https://docs.langchain.com/langsmith/byoc-architecture.md",
       "title": "BYOC architecture",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-billing.md",
       "title": "BYOC billing",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-byoiam.md",
       "title": "Bring your own IAM roles (AWS)",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-byovpc.md",
       "title": "Bring your own VPC on AWS",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-faq.md",
       "title": "BYOC FAQ",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-migration.md",
       "title": "Migrate to BYOC",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-onboarding.md",
       "title": "BYOC onboarding",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-operations.md",
       "title": "BYOC operations",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-shared-responsibility.md",
       "title": "BYOC shared responsibility model",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-usage.md",
       "title": "BYOC usage",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-why.md",
       "title": "Why BYOC",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc.md",
       "title": "Bring Your Own Cloud (BYOC)",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/caching.md",
@@ -1095,7 +1096,7 @@
       "url": "https://docs.langchain.com/langsmith/changelog.md",
       "title": "LangSmith Cloud changelog",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/chat-evaluation.md",
@@ -1119,7 +1120,7 @@
       "url": "https://docs.langchain.com/langsmith/chat.md",
       "title": "LangSmith Chat",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/cicd-pipeline-example.md",
@@ -1143,7 +1144,7 @@
       "url": "https://docs.langchain.com/langsmith/cloud.md",
       "title": "Cloud (SaaS)",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/code-evaluator-sdk.md",
@@ -1269,7 +1270,7 @@
       "url": "https://docs.langchain.com/langsmith/create-account-api-key.md",
       "title": "Create an account and API key",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/create-few-shot-evaluators.md",
@@ -1389,13 +1390,13 @@
       "url": "https://docs.langchain.com/langsmith/data-purging-compliance.md",
       "title": "Data purging for compliance",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/data-storage-and-privacy.md",
       "title": "Data storage and privacy",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/dataset-json-types.md",
@@ -1473,7 +1474,7 @@
       "url": "https://docs.langchain.com/langsmith/deploy-self-hosted-full-platform.md",
       "title": "Enable additional LangSmith features",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/deploy-standalone-server.md",
@@ -1563,7 +1564,7 @@
       "url": "https://docs.langchain.com/langsmith/endpoint-deprecation.md",
       "title": "API and SDK deprecation policy",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/engine-github.md",
@@ -1593,7 +1594,7 @@
       "url": "https://docs.langchain.com/langsmith/engine-self-hosted-link.md",
       "title": "Enable Engine",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/engine-self-hosted.md",
@@ -1617,7 +1618,7 @@
       "url": "https://docs.langchain.com/langsmith/enterprise.md",
       "title": "LangSmith for Enterprise",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/env-var-cloud.md",
@@ -1761,7 +1762,7 @@
       "url": "https://docs.langchain.com/langsmith/export-backend.md",
       "title": "Export LangSmith telemetry to your observability backend",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/export-traces.md",
@@ -1773,7 +1774,7 @@
       "url": "https://docs.langchain.com/langsmith/faq.md",
       "title": "Frequently asked questions",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/feedback-data-format.md",
@@ -1959,7 +1960,7 @@
       "url": "https://docs.langchain.com/langsmith/gcp-self-hosted.md",
       "title": "Self-hosted LangSmith on GCP",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/generative-ui-react.md",
@@ -1971,13 +1972,13 @@
       "url": "https://docs.langchain.com/langsmith/govern-overview.md",
       "title": "Govern",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/granular-usage.md",
       "title": "Granular billable usage",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/graph-rebuild.md",
@@ -2007,13 +2008,13 @@
       "url": "https://docs.langchain.com/langsmith/hybrid-legacy.md",
       "title": "Setup guide (legacy)",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/hybrid.md",
       "title": "Hybrid",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/improve-judge-evaluator-feedback.md",
@@ -2217,13 +2218,13 @@
       "url": "https://docs.langchain.com/langsmith/jit-invite-sso.md",
       "title": "Manage user access in SSO organizations",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/kubernetes.md",
       "title": "Self-host LangSmith on Kubernetes",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/langchain-runnable.md",
@@ -2247,19 +2248,19 @@
       "url": "https://docs.langchain.com/langsmith/langsmith-cli.md",
       "title": "LangSmith CLI",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/langsmith-collector.md",
       "title": "Configure your collector for LangSmith telemetry",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/langsmith-managed-clickhouse.md",
       "title": "LangSmith-managed ClickHouse",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/langsmith-mcp-server.md",
@@ -2295,7 +2296,7 @@
       "url": "https://docs.langchain.com/langsmith/llm-auth-proxy-self-hosted.md",
       "title": "Set up the LLM auth proxy",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/llm-gateway-access.md",
@@ -2481,7 +2482,7 @@
       "url": "https://docs.langchain.com/langsmith/manage-organization-by-api.md",
       "title": "Manage your organization using the API",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/manage-prompts-programmatically.md",
@@ -2505,7 +2506,7 @@
       "url": "https://docs.langchain.com/langsmith/manage-with-terraform.md",
       "title": "Manage LangSmith with Terraform",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/managing-model-configurations.md",
@@ -2529,7 +2530,7 @@
       "url": "https://docs.langchain.com/langsmith/model-configurations.md",
       "title": "Manage model configurations",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/monitor-deployment.md",
@@ -2595,7 +2596,7 @@
       "url": "https://docs.langchain.com/langsmith/observability-stack.md",
       "title": "Deploy an observability stack for your LangSmith deployment",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/observability-studio.md",
@@ -2661,7 +2662,7 @@
       "url": "https://docs.langchain.com/langsmith/organization-workspace-operations.md",
       "title": "Organization and workspace operations reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/otel-gateway-trace-redaction.md",
@@ -2673,7 +2674,7 @@
       "url": "https://docs.langchain.com/langsmith/platform-setup.md",
       "title": "Set up LangSmith",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/playground-link.md",
@@ -2703,13 +2704,13 @@
       "url": "https://docs.langchain.com/langsmith/pricing-plans.md",
       "title": "Pricing plans",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/profile-configuration.md",
       "title": "Profile configuration",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/prompt-commit.md",
@@ -2937,7 +2938,7 @@
       "url": "https://docs.langchain.com/langsmith/rbac.md",
       "title": "Role-based access control",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/read-local-experiment-results.md",
@@ -2961,7 +2962,7 @@
       "url": "https://docs.langchain.com/langsmith/regions-faq.md",
       "title": "Regions FAQ",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/reject-concurrent.md",
@@ -2973,13 +2974,13 @@
       "url": "https://docs.langchain.com/langsmith/release-stages.md",
       "title": "Release stages",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/release-versions.md",
       "title": "Release policy",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/remote-graph.md",
@@ -3111,283 +3112,331 @@
       "url": "https://docs.langchain.com/langsmith/scalability-and-resilience.md",
       "title": "Scalability & resilience",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-delete-a-workspace.md",
       "title": "Delete workspaces",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-delete-an-organization.md",
       "title": "Delete organizations",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-delete-traces.md",
       "title": "Delete traces",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-generate-clickhouse-stats.md",
       "title": "Generate ClickHouse stats",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-generate-query-stats.md",
       "title": "Generate query stats",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-running-ch-support-queries.md",
       "title": "Run support queries against ClickHouse",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/script-running-pg-support-queries.md",
       "title": "Run support queries against PostgreSQL",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-basic-auth.md",
       "title": "Basic authentication with email and password",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-blob-storage.md",
       "title": "Enable blob storage",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-custom-tls-certificates.md",
       "title": "Configure custom TLS certificates",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-dependency-versions.md",
       "title": "Minimum versions for self-hosting dependencies",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-disaster-recovery.md",
       "title": "Disaster recovery for self-hosted LangSmith",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-egress.md",
       "title": "Egress for billing and operational telemetry",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-environment-variables.md",
       "title": "Configure environment variables in the Helm chart",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-external-clickhouse.md",
       "title": "Connect to an external ClickHouse database",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-external-postgres.md",
       "title": "Connect to an external PostgreSQL database",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-external-redis.md",
       "title": "Connect to an external Redis or Valkey database",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-fips.md",
       "title": "FIPS-compliant images",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-ingress.md",
       "title": "Create an Ingress for installations (Kubernetes)",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-mirroring-images.md",
       "title": "Mirror images for your LangSmith installation",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-organization-charts.md",
       "title": "View trace counts across your organization",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-playground-environment-settings.md",
       "title": "Use environment variables for model providers",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-scale.md",
       "title": "Configure LangSmith for scale",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-infrastructure.md",
+      "title": "Prepare SmithDB supporting infrastructure",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-install.md",
+      "title": "Install LangSmith with SmithDB",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-metrics.md",
+      "title": "SmithDB metrics reference",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-migrate.md",
+      "title": "Migrate ClickHouse history to SmithDB",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-observability.md",
+      "title": "Configure SmithDB observability",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-scale.md",
+      "title": "Configure SmithDB for scale",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb-troubleshooting.md",
+      "title": "Troubleshoot SmithDB",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-smithdb.md",
+      "title": "Enable SmithDB on self-hosted LangSmith",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-sso.md",
       "title": "Set up SSO with OAuth2.0 and OIDC",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-aws-architecture.md",
       "title": "AWS Terraform architecture",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-aws-deploy.md",
       "title": "Deploy LangSmith on AWS with Terraform",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-aws-quick-reference.md",
       "title": "AWS Terraform quick reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-aws-troubleshooting.md",
       "title": "AWS Terraform troubleshooting",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-aws-variables.md",
       "title": "AWS Terraform variables reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-azure-architecture.md",
       "title": "Azure Terraform architecture",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-azure-deploy.md",
       "title": "Deploy LangSmith on Azure with Terraform",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-azure-quick-reference.md",
       "title": "Azure Terraform quick reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-azure-troubleshooting.md",
       "title": "Azure Terraform troubleshooting",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-azure-variables.md",
       "title": "Azure Terraform variables reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-gcp-architecture.md",
       "title": "GCP Terraform architecture",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-gcp-deploy.md",
       "title": "Deploy LangSmith on GCP with Terraform",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-gcp-quick-reference.md",
       "title": "GCP Terraform quick reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-gcp-troubleshooting.md",
       "title": "GCP Terraform troubleshooting",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform-gcp-variables.md",
       "title": "GCP Terraform variables reference",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-terraform.md",
       "title": "Deploy LangSmith with Terraform",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-ttl.md",
       "title": "Enable TTL and data retention",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-ui-customization.md",
       "title": "Customize the UI",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-upgrades.md",
       "title": "Upgrade an installation",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-usage.md",
       "title": "Interact with your self-hosted instance of LangSmith",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-user-management.md",
       "title": "Customize user management",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-host-using-an-existing-secret.md",
       "title": "Use an existing secret for your installation (Kubernetes)",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-hosted-agent-server-metrics.md",
@@ -3399,13 +3448,13 @@
       "url": "https://docs.langchain.com/langsmith/self-hosted-changelog.md",
       "title": "Self-hosted LangSmith changelog",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-hosted-mission-control.md",
       "title": "Install Mission Control",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/self-hosted-platform-features.md",
@@ -3417,7 +3466,7 @@
       "url": "https://docs.langchain.com/langsmith/self-hosted.md",
       "title": "Self-hosted LangSmith",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/semantic-search.md",
@@ -3465,13 +3514,13 @@
       "url": "https://docs.langchain.com/langsmith/set-up-hierarchy.md",
       "title": "Set up hierarchy",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/set-up-resource-tags.md",
       "title": "Set up resource tags",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/setup-app-requirements-txt.md",
@@ -3495,13 +3544,13 @@
       "url": "https://docs.langchain.com/langsmith/shared-responsibility-model.md",
       "title": "LangSmith shared responsibility model",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/skills.md",
       "title": "LangSmith skills",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api-ref.md",
@@ -6909,7 +6958,7 @@
       "url": "https://docs.langchain.com/langsmith/smithdb-sdk-migration.md",
       "title": "Migrate to SmithDB-backed SDK methods",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/smithtune.md",
@@ -6927,7 +6976,7 @@
       "url": "https://docs.langchain.com/langsmith/status.md",
       "title": "LangSmith status",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/store-auth.md",
@@ -7257,7 +7306,7 @@
       "url": "https://docs.langchain.com/langsmith/troubleshooting.md",
       "title": "Troubleshooting",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/tuned-evaluators.md",
@@ -7329,7 +7378,7 @@
       "url": "https://docs.langchain.com/langsmith/user-management.md",
       "title": "User management",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/view-traces.md",
@@ -7341,7 +7390,7 @@
       "url": "https://docs.langchain.com/langsmith/view-usage.md",
       "title": "View usage",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/vitest-jest.md",
@@ -7359,7 +7408,7 @@
       "url": "https://docs.langchain.com/langsmith/workload-isolation.md",
       "title": "Workload isolation",
       "category": "langsmith",
-      "source_index": "https://docs.langchain.com/_llms/products-and-setup.md"
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/write-prompt-with-ai.md",
@@ -7874,18 +7923,6 @@
     {
       "url": "https://docs.langchain.com/oss/javascript/integrations/long-term-memory/index.md",
       "title": "Store integrations",
-      "category": "open_source_other",
-      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
-    },
-    {
-      "url": "https://docs.langchain.com/oss/javascript/integrations/memory/mongodb-long-term-memory.md",
-      "title": "Long-term memory with MongoDB Atlas",
-      "category": "open_source_other",
-      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
-    },
-    {
-      "url": "https://docs.langchain.com/oss/javascript/integrations/memory/mongodb-short-term-memory.md",
-      "title": "Short-term memory with MongoDB Atlas",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
     },
@@ -9104,18 +9141,6 @@
     {
       "url": "https://docs.langchain.com/oss/python/integrations/long-term-memory/index.md",
       "title": "Store integrations",
-      "category": "open_source_other",
-      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md"
-    },
-    {
-      "url": "https://docs.langchain.com/oss/python/integrations/memory/mongodb-long-term-memory.md",
-      "title": "Long-term memory with MongoDB Atlas",
-      "category": "open_source_other",
-      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md"
-    },
-    {
-      "url": "https://docs.langchain.com/oss/python/integrations/memory/mongodb-short-term-memory.md",
-      "title": "Short-term memory with MongoDB Atlas",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md"
     },

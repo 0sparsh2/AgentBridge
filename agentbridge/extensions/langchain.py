@@ -16,11 +16,14 @@ class LangChainConfig(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     agent_type: str | None = None
+    model_provider: str | None = None
+    model_options: dict[str, Any] = Field(default_factory=dict)
     prompt_template: str | None = None
     middleware: list[Any] = Field(default_factory=list)
     callbacks: list[Any] = Field(default_factory=list)
     memory: str | None = None
     retrievers: list[Any] = Field(default_factory=list)
+    mcp_tools: list[Any] = Field(default_factory=list)
     checkpointer: Any | None = None
     store: Any | None = None
     interrupt_before: list[str] | None = None
@@ -32,6 +35,7 @@ class LangChainConfig(BaseModel):
     debug: bool | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     observability: dict[str, Any] = Field(default_factory=dict)
+    agentcore: dict[str, Any] = Field(default_factory=dict)
     native_options: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -44,11 +48,14 @@ class LangChainExtension(FrameworkExtension):
     def config(
         *,
         agent_type: str | None = None,
+        model_provider: str | None = None,
+        model_options: dict[str, Any] | None = None,
         prompt_template: str | None = None,
         middleware: list[Any] | None = None,
         callbacks: list[Any] | None = None,
         memory: str | None = None,
         retrievers: list[Any] | None = None,
+        mcp_tools: list[Any] | None = None,
         checkpointer: Any | None = None,
         store: Any | None = None,
         interrupt_before: list[str] | None = None,
@@ -60,17 +67,21 @@ class LangChainExtension(FrameworkExtension):
         debug: bool | None = None,
         metadata: dict[str, Any] | None = None,
         observability: dict[str, Any] | None = None,
+        agentcore: dict[str, Any] | None = None,
         native_options: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build serializable LangChain adapter configuration."""
 
         return LangChainConfig(
             agent_type=agent_type,
+            model_provider=model_provider,
+            model_options=model_options or {},
             prompt_template=prompt_template,
             middleware=middleware or [],
             callbacks=callbacks or [],
             memory=memory,
             retrievers=retrievers or [],
+            mcp_tools=mcp_tools or [],
             checkpointer=checkpointer,
             store=store,
             interrupt_before=interrupt_before,
@@ -82,6 +93,7 @@ class LangChainExtension(FrameworkExtension):
             debug=debug,
             metadata=metadata or {},
             observability=observability or {},
+            agentcore=agentcore or {},
             native_options=native_options or {},
         ).model_dump(exclude_none=True, exclude_defaults=True)
 

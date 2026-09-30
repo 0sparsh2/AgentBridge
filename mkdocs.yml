@@ -54,6 +54,7 @@ nav:
       - Evaluation: evaluation.md
       - Model Routing: model_routing.md
       - LangChain Ecosystem Coverage: langchain_coverage.md
+      - AgentCore Integration: agentcore.md
       - Version Policy: version_policy.md
   - Engineering:
       - Architecture: architecture.md

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Iterator
 from typing import Any
 
@@ -27,6 +28,11 @@ class BackendAdapter:
         """Run a compiled agent and return a normalized result."""
 
         raise NotImplementedError
+
+    async def arun(self, compiled: Any, run_input: RunInput) -> RunResult:
+        """Run asynchronously; adapters may override with native async execution."""
+
+        return await asyncio.to_thread(self.run, compiled, run_input)
 
     def resume(self, compiled: Any, run_input: RunInput) -> RunResult:
         """Resume a previously interrupted compiled agent."""

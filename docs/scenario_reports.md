@@ -104,6 +104,7 @@ Then provide the route-specific credentials shown by the matrix, such as `OPENAI
 or the custom gateway environment variables.
 The same matrix has a separate `native_runtime_smokes` section for framework-native flows such as
 OpenAI Agents approval/resume, Strands AgentCore deployment, and Google ADK eval/deployment.
-The matrix is intentionally readiness-only today; live provider/runtime calls should be added per
-backend as small explicit smoke tests once the corresponding adapter path is stable enough for
-networked CI.
+The matrix reports readiness for model, framework-runtime, and observability lanes. Executable
+provider runners are available for NVIDIA NIM, OpenRouter, and Ollama; executable observability
+checks are available for LangSmith API authentication and Langfuse callback/runtime wiring. All
+live paths remain double-gated and should be enabled in a controlled credentialed environment.

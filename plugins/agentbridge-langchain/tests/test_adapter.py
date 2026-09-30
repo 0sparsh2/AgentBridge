@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from agentbridge import AgentSpec, RunInput, ToolSpec
 from agentbridge.extensions.langchain import LangChainExtension
 from agentbridge_langchain.adapter import Adapter, CompiledLangChainAgent
+from agentbridge_langchain.adapter import _normalize_native_events
 
 
 class FakeStructuredTool:
@@ -135,6 +136,21 @@ def test_adapter_compiles_and_runs_native_agent(monkeypatch) -> None:
     assert [event.type for event in result.events] == ["message", "complete"]
     assert result.metadata["run_diagnostics"]["messages_count"] == 1
     assert result.metadata["run_diagnostics"]["event_counts"] == {"message": 1, "complete": 1}
+
+
+def test_stream_normalizes_interrupt_envelope_as_workflow_event() -> None:
+    events = list(
+        _normalize_native_events(
+            {"type": "updates", "__interrupt__": [{"action": "approve"}]},
+            backend="langchain",
+        )
+    )
+
+    assert events[0].type == "workflow"
+    assert events[0].data == {
+        "phase": "interrupted",
+        "interrupts": [{"action": "approve"}],
+    }
 
 
 def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
@@ -325,6 +341,7 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
             "debug",
         ],
         "native_options_count": 1,
+        "mcp_tools_count": 0,
     }
 
 
@@ -355,6 +372,80 @@ def test_native_options_cannot_override_agent_identity(monkeypatch) -> None:
         assert "name" in str(exc)
     else:  # pragma: no cover - assertion clarity
         raise AssertionError("reserved native option was accepted")
+
+
+def test_adapter_passes_native_mcp_tools_without_hard_dependency(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    native_mcp_tool = SimpleNamespace(name="mcp_lookup", description="MCP lookup")
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="mcp_agent",
+            instructions="Use the MCP tool.",
+            model="openai/gpt-5",
+        ),
+        mcp_tools=[native_mcp_tool],
+    )
+
+    compiled = Adapter().compile(agent)
+
+    assert compiled.native_agent.kwargs["tools"] == [native_mcp_tool]
+    assert compiled.config["mcp_tools"] == [native_mcp_tool]
+
+
+def test_adapter_builds_openai_compatible_native_model_from_options(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+
+    class FakeChatOpenAI:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_openai",
+        SimpleNamespace(ChatOpenAI=FakeChatOpenAI),
+    )
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="nim_agent",
+            instructions="Reply to the user.",
+            model="openai/deepseek-ai/deepseek-v4-flash-0731",
+        ),
+        model_provider="openai",
+        model_options={
+            "base_url": "https://integrate.api.nvidia.com/v1",
+            "api_key": "secret-key",
+        },
+    )
+
+    adapter = Adapter()
+    compiled = adapter.compile(agent)
+    result = adapter.run(compiled, RunInput(input="hello"))
+
+    native_model = compiled.native_agent.kwargs["model"]
+    assert native_model.kwargs == {
+        "base_url": "https://integrate.api.nvidia.com/v1",
+        "api_key": "secret-key",
+        "model": "deepseek-ai/deepseek-v4-flash-0731",
+    }
+    assert result.metadata["extension_config"]["model_options"]["api_key"] == "[redacted]"
 
 
 def test_adapter_summarizes_native_langchain_retrievers(monkeypatch) -> None:
@@ -558,3 +649,12 @@ def test_adapter_capabilities_mark_structured_output_full() -> None:
 
     assert capabilities.status("structured_output") == "full"
     assert capabilities.status("observability.diagnostics") == "full"
+
+
+def test_adapter_summarizes_agentcore_bindings():
+    agent = LangChainExtension.with_config(
+        AgentSpec(name="support", instructions="Help.", model="agentbridge/offline"),
+        agentcore={"memory_id": "memory-1", "gateway_url": "https://gateway.example"},
+    )
+    result = Adapter().run(Adapter().compile(agent), RunInput(input="hello"))
+    assert result.metadata["extension_summary"]["agentcore"]["memory_id"] == "memory-1"

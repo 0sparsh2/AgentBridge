@@ -52,6 +52,11 @@ def test_langgraph_adapter_uses_extension_config_when_available() -> None:
         ),
         node_name="refund_node",
         graph_name="refund_graph",
+        remote_graph="refund_graph_remote",
+        deployment_url="https://example.invalid/langgraph",
+        deployment={"target": "langgraph_platform"},
+        agentcore_memory_id="memory-123",
+        agentcore_store_namespace="refunds",
         include_context_in_output=True,
         enable_checkpointing=True,
     )
@@ -74,6 +79,10 @@ def test_langgraph_adapter_uses_extension_config_when_available() -> None:
     assert result.output["context"] == {"tenant": "support"}
     assert result.metadata["node_name"] == "refund_node"
     assert result.metadata["checkpointing"] is True
+    assert result.metadata["deployment"]["remote_graph"] == "refund_graph_remote"
+    assert result.metadata["deployment"]["target"] == "langgraph_platform"
+    assert result.metadata["agentcore_memory_id"] == "memory-123"
+    assert result.metadata["agentcore_store_namespace"] == "refunds"
 
 
 def test_langgraph_adapter_routes_with_extension_config_when_available() -> None:

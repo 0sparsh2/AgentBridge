@@ -5,6 +5,7 @@ documentation index at [`docs.langchain.com/llms.txt`](https://docs.langchain.co
 The current URL snapshot is [`docs/upstream/langchain-pages.json`](upstream/langchain-pages.json).
 The page-level decision ledger is [`docs/upstream/langchain-coverage.json`](upstream/langchain-coverage.json).
 It is an audit trail: every page has an explicit status, owner, and next action.
+Executable native conformance is tracked in [`docs/upstream/langchain-conformance.json`](upstream/langchain-conformance.json).
 
 ## Coverage Contract
 
@@ -27,9 +28,11 @@ raw backend escape hatch, or an explicit diagnostic.
 | LangChain area | AgentBridge surface | Current status |
 | --- | --- | --- |
 | LangChain `create_agent`, tools, structured output, middleware, streaming, runtime context | `AgentSpec`, `ToolSpec`, LangChain plugin configuration and normalized events | `extension` |
-| Newly added LangChain `create_agent` options | Guarded `LangChainExtension.native_options` pass-through with diagnostics | `native_only` until normalized |
+| LangChain human-in-the-loop middleware and checkpointed pauses | Native `HumanInTheLoopMiddleware`, checkpointer pass-through, normalized interrupted workflow event | `extension` |
+| LangChain MCP tools | Native MCP tool objects supplied through `LangChainExtension(mcp_tools=...)`; optional MCP adapter packages remain external | `extension` |
+| Newly added LangChain `create_agent` options | Guarded `LangChainExtension.native_options` pass-through with diagnostics and offline conformance | `native_only` until normalized |
 | LangGraph state graphs, routing, checkpoints, interrupts, resume, stores, retrievers | Built-in LangGraph adapter and `LangGraphConfig` | `extension` |
-| LangSmith tracing, metadata, tags, run names, sessions, trace context | Shared observability helpers and LangChain/LangGraph config | `extension` |
+| LangSmith tracing, metadata, tags, run names, sessions, trace context | Shared observability helpers and LangChain/LangGraph config; runtime-config conformance is executable offline | `extension` |
 | Langfuse LangChain callback integration | Lazy callback integration in the optional LangChain plugin | `extension` |
 | LangSmith datasets, evaluators, prompts, experiments, monitoring, REST API, governance | Evaluation contract, LangSmith dataset/evaluation bridge, and prompt pull/push helpers; remaining hosted APIs stay native | `extension` |
 | Deep Agents, sandboxes, filesystem backends, permissions, skills, interpreters | No dedicated adapter; raw model/tool primitives remain usable | `planned` |
@@ -61,6 +64,27 @@ weekly `Upstream Compatibility` workflow performs this check and uploads the
 inventory when it fails.
 
 ## Next LangChain Slices
+
+Run the credential-free native conformance lane:
+
+```bash
+uv run pytest -q plugins/agentbridge-langchain/tests/test_native_conformance.py
+```
+
+This lane proves translation and normalization for the current native-only surface. It does not
+claim provider, hosted deployment, or remote LangSmith behavior; those require separate credentialed
+smoke lanes.
+
+Run the explicitly credentialed observability lane:
+
+```bash
+AGENTBRIDGE_RUN_CREDENTIAL_SMOKE=1 \
+  LANGSMITH_API_KEY=... LANGFUSE_PUBLIC_KEY=... LANGFUSE_SECRET_KEY=... \
+  python examples/observability_smoke.py
+```
+
+The lane reports LangSmith API authentication and Langfuse callback/runtime wiring separately from
+the credential-free native conformance report.
 
 The first pass is intentionally ordered by value to application developers:
 

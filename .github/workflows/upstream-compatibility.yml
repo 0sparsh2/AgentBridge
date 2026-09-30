@@ -87,6 +87,9 @@ jobs:
           - name: openai-agents
             path: plugins/agentbridge-openai-agents
             tests: plugins/agentbridge-openai-agents/tests
+          - name: agentcore
+            path: plugins/agentbridge-agentcore
+            tests: plugins/agentbridge-agentcore/tests
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -98,3 +101,32 @@ jobs:
           python -m pip install -e "${{ matrix.path }}"
       - name: Run plugin contract tests
         run: python -m pytest -q "${{ matrix.tests }}"
+
+  crewai-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install core package
+        run: python -m pip install -e ".[dev]"
+      - name: Run isolated CrewAI adapter contract
+        run: PYTHONPATH=plugins/agentbridge-crewai python -m pytest -q plugins/agentbridge-crewai/tests
+
+  credential-free-integration-lanes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install core and LangChain plugin
+        run: |
+          python -m pip install -e ".[dev]"
+          python -m pip install -e plugins/agentbridge-langchain
+      - name: Run no-credential provider and observability lanes
+        run: |
+          python -m pytest -q tests/test_live_model_smoke.py tests/test_observability_smoke.py tests/test_provider_comparison_report.py tests/test_framework_to_agentcore_report.py
+          python examples/credentialed_smoke_matrix.py
+          python examples/observability_smoke.py

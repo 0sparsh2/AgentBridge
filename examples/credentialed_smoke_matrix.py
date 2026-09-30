@@ -76,6 +76,39 @@ NATIVE_RUNTIME_SMOKES = {
         ],
         "notes": "Live Google ADK eval execution and Vertex/Agent Engine deployment smoke path.",
     },
+    "agentcore_runtime": {
+        "backend": "agentcore",
+        "required_env": [
+            "AWS_REGION",
+            "AGENTBRIDGE_AGENTCORE_RUNTIME_ARN",
+        ],
+        "optional_env": ["AGENTBRIDGE_AGENTCORE_MEMORY_ID", "AWS_PROFILE"],
+        "notes": "Live AgentCore Runtime invocation through the optional AWS bridge plugin.",
+    },
+}
+
+OBSERVABILITY_SMOKES = {
+    "langsmith_api": {
+        "backend": "observability",
+        "required_env": ["LANGSMITH_API_KEY"],
+        "notes": "Authenticated LangSmith API /info smoke check.",
+    },
+    "langsmith_prompt": {
+        "backend": "observability",
+        "required_env": ["LANGSMITH_API_KEY", "AGENTBRIDGE_LANGSMITH_PROMPT"],
+        "notes": "Pulls one configured LangSmith prompt without exposing prompt content.",
+    },
+    "langfuse_runtime": {
+        "backend": "observability",
+        "required_env": ["LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"],
+        "notes": "Offline LangChain run through the native Langfuse callback path.",
+    },
+    "langfuse_api": {
+        "backend": "observability",
+        "required_env": ["LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"],
+        "optional_env": ["LANGFUSE_HOST"],
+        "notes": "Authenticated Langfuse public health API smoke check.",
+    },
 }
 
 
@@ -95,6 +128,10 @@ def build_smoke_matrix(*, environ: dict[str, str] | None = None) -> dict[str, ob
         "native_runtime_smokes": {
             name: _native_runtime_status(name, config, env=env, enabled=enabled)
             for name, config in NATIVE_RUNTIME_SMOKES.items()
+        },
+        "observability_smokes": {
+            name: _native_runtime_status(name, config, env=env, enabled=enabled)
+            for name, config in OBSERVABILITY_SMOKES.items()
         },
     }
 
