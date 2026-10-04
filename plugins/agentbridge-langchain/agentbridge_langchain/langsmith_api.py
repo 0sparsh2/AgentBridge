@@ -387,6 +387,27 @@ class LangSmithAPIClient:
 
         return self.request_json("GET", f"{path_prefix.rstrip('/')}/agents", query=query)
 
+    def iter_agents(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+        path_prefix: str = "/v1/fleet",
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate cursor-paginated Fleet or Managed Deep Agents."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_agents(query=page_query, path_prefix=path_prefix)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("items", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     def get_agent(
         self,
         agent_id: str,
@@ -442,6 +463,27 @@ class LangSmithAPIClient:
 
         return self.request_json("GET", f"{path_prefix.rstrip('/')}/threads", query=query)
 
+    def iter_fleet_threads(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+        path_prefix: str = "/v1/fleet",
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate cursor-paginated managed-agent threads."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_fleet_threads(query=page_query, path_prefix=path_prefix)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("items", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     def get_fleet_thread(self, thread_id: str, *, path_prefix: str = "/v1/fleet") -> Any:
         """Fetch one managed-agent thread."""
 
@@ -471,6 +513,11 @@ class LangSmithAPIClient:
         """List workspace-registered MCP servers."""
 
         return self.request_json("GET", f"{path_prefix.rstrip('/')}/mcp-servers")
+
+    def list_trigger_templates(self, *, path_prefix: str = "/v1/fleet") -> Any:
+        """List native Fleet trigger templates and their configuration schemas."""
+
+        return self.request_json("GET", f"{path_prefix.rstrip('/')}/trigger-templates")
 
     def create_mcp_server(
         self,

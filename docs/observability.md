@@ -22,7 +22,8 @@ separate from the credential-free correlation contract.
 
 ## Langfuse Telemetry API
 
-The LangChain plugin exposes both the legacy JSON ingestion helper and the current OTLP/HTTP path:
+The LangChain plugin exposes the current OTLP/HTTP path and retains the legacy JSON ingestion
+helper only as a compatibility escape hatch:
 
 ```python
 from agentbridge_langchain.langfuse_api import LangfuseAPIClient
@@ -31,6 +32,8 @@ client = LangfuseAPIClient()
 client.ingest_otlp({"resourceSpans": []})
 client.list_observations(query={"limit": 100})
 client.list_scores_v3(query={"dataType": "NUMERIC"})
+list(client.iter_observations(query={"traceId": "trace-123", "limit": 100}))
+list(client.iter_scores_v3(query={"dataType": "NUMERIC", "limit": 100}))
 client.query_metrics(query={"view": "traces"})
 client.list_experiments(query={"fields": "core,scores"})
 client.list_experiment_items(query={"experimentId": "exp-123", "fields": "io,scores"})
@@ -38,9 +41,10 @@ client.list_datasets(query={"limit": 50})
 client.list_dataset_items(query={"datasetName": "refunds"})
 ```
 
-`ingest_otlp()` also accepts protobuf bytes with `content_type="application/x-protobuf"`. The
-generic request methods remain available for new Langfuse endpoints without waiting for a core
-release.
+`ingest_otlp()` also accepts protobuf bytes with `content_type="application/x-protobuf"` and sends
+`x-langfuse-ingestion-version: 4` by default. The iterators follow `meta.cursor` across pages while
+preserving the caller's filters. The generic request methods remain available for new Langfuse
+endpoints without waiting for a core release.
 
 Dataset lifecycle helpers use the current v2 dataset routes and the versioned dataset-item API:
 `create_dataset`, `list_datasets`, `get_dataset`, `delete_dataset`, and item create/upsert/list/get/

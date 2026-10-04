@@ -40,7 +40,7 @@ AgentBridge adapter plugin for `langchain`.
 - LangSmith dataset publishing and hosted evaluation through an optional integration module.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
-- Langfuse OTLP trace ingestion, Observations v2, Scores v3, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
+- Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
 - Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
@@ -269,8 +269,10 @@ The same client exposes assistant lifecycle, thread search/history/interrupts, r
 cancellation, run feedback, long-term store operations, thread-state helpers, Fleet/Managed Deep
 Agent CRUD, managed-agent thread metadata, and registered MCP-server lifecycle operations for
 common LangGraph and LangSmith workflows while retaining `request_json()`/`call()` for the complete
-native API surface. Use `path_prefix="/v1/deepagents"` for Managed Deep Agents; Fleet agents use
-the default `/v1/fleet` prefix.
+native API surface. Cursor-safe `iter_agents()` and `iter_fleet_threads()` helpers follow native
+`next_cursor` pagination, and `list_trigger_templates()` exposes Fleet trigger schemas. Use
+`path_prefix="/v1/deepagents"` for Managed Deep Agents; Fleet agents use the default `/v1/fleet`
+prefix.
 
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
 `RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing

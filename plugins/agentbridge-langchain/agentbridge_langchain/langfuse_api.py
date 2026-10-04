@@ -98,6 +98,46 @@ class LangfuseAPIClient:
                 if payload and payload != "[DONE]":
                     yield json.loads(payload)
 
+    def iter_observations(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate through all Observations API v2 pages using its cursor contract."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_observations(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    def iter_scores_v3(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate through all Scores API v3 pages using its cursor contract."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_scores_v3(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     async def arequest_json(
         self,
         method: str,
@@ -145,6 +185,7 @@ class LangfuseAPIClient:
         payload: bytes | bytearray | memoryview | Mapping[str, Any],
         *,
         content_type: str = "application/json",
+        ingestion_version: str = "4",
     ) -> Any:
         """Async OTLP trace ingestion helper."""
 
@@ -153,6 +194,7 @@ class LangfuseAPIClient:
             "/api/public/otel/v1/traces",
             body=payload,
             content_type=content_type,
+            headers={"x-langfuse-ingestion-version": ingestion_version},
         )
 
     async def astream_events(
@@ -195,6 +237,7 @@ class LangfuseAPIClient:
         payload: bytes | bytearray | memoryview | Mapping[str, Any],
         *,
         content_type: str = "application/json",
+        ingestion_version: str = "4",
     ) -> Any:
         """Submit traces through Langfuse's current OTLP/HTTP ingestion endpoint."""
 
@@ -203,6 +246,7 @@ class LangfuseAPIClient:
             "/api/public/otel/v1/traces",
             body=payload,
             content_type=content_type,
+            headers={"x-langfuse-ingestion-version": ingestion_version},
         )
 
     def list_observations(self, *, query: Mapping[str, Any] | None = None) -> Any:

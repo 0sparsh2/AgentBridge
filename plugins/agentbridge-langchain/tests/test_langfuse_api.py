@@ -117,6 +117,7 @@ def test_langfuse_current_telemetry_and_query_helpers_preserve_native_paths():
         calls.append((method, url, headers, body))
         if url.endswith("/otel/v1/traces"):
             assert headers["Content-Type"] == "application/x-protobuf"
+            assert headers["x-langfuse-ingestion-version"] == "4"
             assert body == b"otlp-payload"
             return 200, {"content-type": "application/json"}, b'{"accepted":1}'
         return 200, {"content-type": "application/json"}, b'{"data":[]}'
@@ -137,6 +138,40 @@ def test_langfuse_current_telemetry_and_query_helpers_preserve_native_paths():
     assert calls[3][1].endswith("/api/public/v2/metrics?view=traces")
     assert calls[4][1].endswith("/api/public/experiments?fields=core%2Cscores")
     assert calls[5][1].endswith("/api/public/experiment-items?experimentId=exp-1&fields=io%2Cscores")
+
+
+def test_langfuse_query_iterators_follow_cursor_pages_without_dropping_filters():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        if "/observations" in url:
+            if "cursor=next" in url:
+                payload = b'{"data":[{"id":"obs-2"}],"meta":{"cursor":null}}'
+            else:
+                payload = b'{"data":[{"id":"obs-1"}],"meta":{"cursor":"next"}}'
+        else:
+            if "cursor=score-next" in url:
+                payload = b'{"data":[{"id":"score-2"}],"meta":{"cursor":null}}'
+            else:
+                payload = b'{"data":[{"id":"score-1"}],"meta":{"cursor":"score-next"}}'
+        return 200, {"content-type": "application/json"}, payload
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    assert [item["id"] for item in client.iter_observations(query={"traceId": "trace-1"})] == [
+        "obs-1",
+        "obs-2",
+    ]
+    assert [item["id"] for item in client.iter_scores_v3(query={"dataType": "NUMERIC"})] == [
+        "score-1",
+        "score-2",
+    ]
+    assert "traceId=trace-1" in calls[0]
+    assert "cursor=next" in calls[1]
+    assert "dataType=NUMERIC" in calls[2]
+    assert "cursor=score-next" in calls[3]
 
 
 def test_langfuse_prompt_management_supports_versions_and_chat_compilation():

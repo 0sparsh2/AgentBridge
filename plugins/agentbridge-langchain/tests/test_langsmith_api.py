@@ -171,6 +171,42 @@ def test_langsmith_agent_helpers_support_fleet_and_managed_deep_agents():
     assert calls[5][1] == "https://example.test/v1/deepagents/agents"
 
 
+def test_langsmith_cursor_iterators_preserve_fleet_filters():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        if "/agents" in url:
+            if "cursor=agent-next" in url:
+                payload = b'{"items":[{"id":"agent-2"}],"next_cursor":null}'
+            else:
+                payload = b'{"items":[{"id":"agent-1"}],"next_cursor":"agent-next"}'
+        else:
+            if "cursor=thread-next" in url:
+                payload = b'{"items":[{"id":"thread-2"}],"next_cursor":null}'
+            else:
+                payload = b'{"items":[{"id":"thread-1"}],"next_cursor":"thread-next"}'
+        return 200, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    assert [item["id"] for item in client.iter_agents(query={"name": "refund"})] == [
+        "agent-1",
+        "agent-2",
+    ]
+    assert [item["id"] for item in client.iter_fleet_threads(query={"page_size": 10})] == [
+        "thread-1",
+        "thread-2",
+    ]
+    client.list_trigger_templates()
+    assert "name=refund" in calls[0]
+    assert "cursor=agent-next" in calls[1]
+    assert "page_size=10" in calls[2]
+    assert "cursor=thread-next" in calls[3]
+    assert calls[4].endswith("/v1/fleet/trigger-templates")
+
+
 def test_langsmith_feedback_fleet_thread_and_mcp_helpers_preserve_native_shapes():
     calls = []
 
