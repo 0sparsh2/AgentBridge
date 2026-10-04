@@ -53,6 +53,18 @@ AgentBridge abstraction: `middleware`, `subagents`, `skills`, `memory`, `permiss
 See [Deep Agents Integration](deepagents.md) for the supported version, examples, and the boundary
 between contract-tested translation and live sandbox/provider behavior.
 
+## `langchain`
+
+The external LangChain plugin targets `langchain>=1.4,<2` and maps `create_agent`, StructuredTool,
+structured output, middleware, runtime context, checkpointers, stores, MCP tools, HITL, streaming,
+async execution, LangSmith tracing, and Langfuse callbacks. Provider model factories are lazy and
+optional: OpenAI-compatible routes, Ollama, Anthropic, Google, Mistral, Groq, Cohere, Bedrock,
+Fireworks, Hugging Face, xAI, and Azure OpenAI can use `model_provider` plus `model_options`, while
+any native LangChain chat model can be passed through `model=`.
+
+See the package guide at [plugins/agentbridge-langchain](../plugins/agentbridge-langchain) and the
+full [LangChain Ecosystem Coverage](langchain_coverage.md) ledger.
+
 ## Built-In Adapter Rules
 
 Core adapters should be included only when they satisfy all of these:
@@ -300,6 +312,7 @@ Initial namespaces:
 | Namespace | Intended Nuance |
 | --- | --- |
 | `agentbridge.extensions.langgraph` | Checkpointing, resume, conditional routing, graph state helpers. |
+| `agentbridge.extensions.langchain` | LangChain-native middleware, model routing, runtime context, MCP, and observability configuration. |
 | `agentbridge.extensions.pydantic_ai` | Validation retries, dependency injection, typed output helpers. |
 | `agentbridge.extensions.crewai` | Crews, roles, tasks, delegation helpers. |
 

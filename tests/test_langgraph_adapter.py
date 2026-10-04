@@ -66,6 +66,25 @@ def test_langgraph_adapter_accepts_prebuilt_native_graph() -> None:
     assert result.metadata["native_options"] == {"stream_mode": "updates"}
 
 
+def test_langgraph_adapter_passes_runtime_context_to_native_graph() -> None:
+    class NativeGraph:
+        def invoke(self, payload, config=None, *, context=None):
+            assert payload["input"] == "A123"
+            assert config is None
+            return {"output": {"tenant": context["tenant"]}}
+
+    agent = LangGraphExtension.with_config(
+        AgentSpec(name="context_agent", instructions="Use context.", model="openai/gpt-5"),
+        native_graph=NativeGraph(),
+    )
+    result = LangGraphAdapter().run(
+        LangGraphAdapter().compile(agent),
+        RunInput(input="A123", context={"tenant": "support"}),
+    )
+
+    assert result.output == {"tenant": "support"}
+
+
 def test_langgraph_adapter_invokes_supplied_native_model() -> None:
     class FakeModel:
         def invoke(self, messages):

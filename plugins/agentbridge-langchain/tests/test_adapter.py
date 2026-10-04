@@ -575,6 +575,47 @@ def test_adapter_builds_local_ollama_model_from_options(monkeypatch) -> None:
     }
 
 
+def test_adapter_lazily_builds_provider_specific_model_from_options(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+
+    class FakeChatAnthropic:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_anthropic",
+        SimpleNamespace(ChatAnthropic=FakeChatAnthropic),
+    )
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="anthropic_agent",
+            instructions="Reply to the user.",
+            model="anthropic/claude-sonnet-4-5",
+        ),
+        model_provider="anthropic",
+        model_options={"temperature": 0.2, "api_key": "secret-key"},
+    )
+
+    compiled = Adapter().compile(agent)
+    native_model = compiled.native_agent.kwargs["model"]
+
+    assert native_model.kwargs == {
+        "temperature": 0.2,
+        "api_key": "secret-key",
+        "model": "claude-sonnet-4-5",
+    }
+
+
 def test_adapter_accepts_any_native_langchain_model_object(monkeypatch) -> None:
     monkeypatch.setitem(
         sys.modules,

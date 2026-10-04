@@ -27,6 +27,10 @@ AgentBridge adapter plugin for `langchain`.
   for NVIDIA NIM, OpenRouter, or internal gateways; install the optional `openai` extra.
 - Local Ollama models can use `model_provider="ollama"` and `model_options={...}`; install the
   optional `ollama` extra. A custom `base_url` can be passed through unchanged.
+- Provider-specific factories lazily support Anthropic, Google GenAI/Vertex AI, Mistral, Groq,
+  Cohere, Bedrock, Fireworks, Hugging Face, xAI, and Azure OpenAI when their native LangChain
+  integration package is installed. Provider packages remain optional; a pre-built native model
+  object is always accepted as an escape hatch.
 - Any other LangChain provider can pass its already-constructed native chat model through
   `LangChainExtension.with_config(agent, model=native_model)`, keeping provider-specific packages
   and features outside the core install path.

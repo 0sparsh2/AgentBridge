@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
+import inspect
 from typing import Any, TypedDict
 
 from agentbridge.adapters.base import BackendAdapter
@@ -166,6 +167,7 @@ class LangGraphAdapter(BackendAdapter):
                     "route": "",
                 },
                 config=invoke_config,
+                **_context_kwargs(compiled.graph.invoke, run_input.context),
             )
         interrupt_state = self._interrupt_state(compiled, invoke_config)
         output = raw.get("output", raw)
@@ -210,7 +212,11 @@ class LangGraphAdapter(BackendAdapter):
             raise ValueError("LangGraph resume requires enable_checkpointing=True.")
         invoke_config = self._invoke_config(compiled, run_input)
         with langsmith_context(self._observability_config(compiled)):
-            raw = compiled.graph.invoke(None, config=invoke_config)
+            raw = compiled.graph.invoke(
+                None,
+                config=invoke_config,
+                **_context_kwargs(compiled.graph.invoke, run_input.context),
+            )
         raw = raw or {}
         interrupt_state = self._interrupt_state(compiled, invoke_config)
         output = raw.get("output", raw)
@@ -309,7 +315,11 @@ class LangGraphAdapter(BackendAdapter):
 
         config = self._checkpoint_config(compiled, run_input, checkpoint_id=checkpoint_id)
         with langsmith_context(self._observability_config(compiled)):
-            raw = compiled.graph.invoke(None, config=config)
+            raw = compiled.graph.invoke(
+                None,
+                config=config,
+                **_context_kwargs(compiled.graph.invoke, run_input.context),
+            )
         raw = raw or {}
         output = raw.get("output", raw) if isinstance(raw, dict) else raw
         events = self._events_from_raw(raw if isinstance(raw, dict) else {"output": raw}, output)
@@ -494,6 +504,7 @@ class LangGraphAdapter(BackendAdapter):
                     payload,
                     config=invoke_config,
                     **self._stream_options(compiled),
+                    **_context_kwargs(native_stream, run_input.context),
                 )
             except TypeError:
                 stream = native_stream(payload, config=invoke_config)
@@ -542,6 +553,7 @@ class LangGraphAdapter(BackendAdapter):
                     payload,
                     config=invoke_config,
                     **self._stream_options(compiled),
+                    **_context_kwargs(native_astream, run_input.context),
                 )
                 async for chunk in stream:
                     yielded = True
@@ -772,6 +784,22 @@ def _events_from_native_graph_chunk(
             )
         )
     return events, output
+
+
+def _context_kwargs(callable_object: Any, context: dict[str, Any]) -> dict[str, Any]:
+    """Pass runtime context only when the native callable exposes that channel."""
+
+    if not context:
+        return {}
+    try:
+        parameters = inspect.signature(callable_object).parameters.values()
+    except (TypeError, ValueError):
+        return {"context": context}
+    if any(parameter.name == "context" for parameter in parameters):
+        return {"context": context}
+    if any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters):
+        return {"context": context}
+    return {}
 
 
 def _structured_output_for_spec(

@@ -301,9 +301,10 @@ def _model_for_spec(spec: AgentSpec, config: dict[str, Any] | None = None) -> An
     model_options = dict((config or {}).get("model_options") or {})
     if model_options:
         provider = (config or {}).get("model_provider") or _provider_from_model(spec.model)
-        if provider in {"openai", "openrouter", "nvidia_nim"}:
+        if provider in {"openai", "azure_openai", "openrouter", "nvidia_nim"}:
             try:
-                chat_openai = import_module("langchain_openai").ChatOpenAI
+                module = import_module("langchain_openai")
+                chat_openai = getattr(module, "AzureChatOpenAI" if provider == "azure_openai" else "ChatOpenAI")
             except ImportError as exc:
                 raise ImportError(
                     "LangChain OpenAI-compatible model options require langchain-openai. "
@@ -321,6 +322,18 @@ def _model_for_spec(spec: AgentSpec, config: dict[str, Any] | None = None) -> An
                 ) from exc
             model_options.setdefault("model", _model_name(spec.model))
             return chat_ollama(**model_options)
+        provider_model = _provider_model_factory(provider)
+        if provider_model is not None:
+            module_name, class_name, package_name = provider_model
+            try:
+                provider_class = getattr(import_module(module_name), class_name)
+            except (ImportError, AttributeError) as exc:
+                raise ImportError(
+                    f"LangChain provider '{provider}' requires {package_name}. "
+                    f"Install that provider integration before using model_options."
+                ) from exc
+            model_options.setdefault("model", _model_name(spec.model))
+            return provider_class(**model_options)
         raise ValueError(f"Unsupported LangChain model_provider for model_options: {provider!r}")
     return _normalize_model(spec.model)
 
@@ -331,6 +344,25 @@ def _provider_from_model(model: str) -> str:
 
 def _model_name(model: str) -> str:
     return model.split("/", 1)[1] if "/" in model else model
+
+
+def _provider_model_factory(provider: str) -> tuple[str, str, str] | None:
+    """Return a lazy LangChain provider class without importing provider packages eagerly."""
+
+    factories = {
+        "anthropic": ("langchain_anthropic", "ChatAnthropic", "langchain-anthropic"),
+        "google": ("langchain_google_genai", "ChatGoogleGenerativeAI", "langchain-google-genai"),
+        "google_genai": ("langchain_google_genai", "ChatGoogleGenerativeAI", "langchain-google-genai"),
+        "google_vertexai": ("langchain_google_vertexai", "ChatVertexAI", "langchain-google-vertexai"),
+        "mistral": ("langchain_mistralai", "ChatMistralAI", "langchain-mistralai"),
+        "groq": ("langchain_groq", "ChatGroq", "langchain-groq"),
+        "cohere": ("langchain_cohere", "ChatCohere", "langchain-cohere"),
+        "bedrock": ("langchain_aws", "ChatBedrock", "langchain-aws"),
+        "fireworks": ("langchain_fireworks", "ChatFireworks", "langchain-fireworks"),
+        "huggingface": ("langchain_huggingface", "ChatHuggingFace", "langchain-huggingface"),
+        "xai": ("langchain_xai", "ChatXAI", "langchain-xai"),
+    }
+    return factories.get(provider)
 
 
 class _AgentBridgeOfflineModelBase:

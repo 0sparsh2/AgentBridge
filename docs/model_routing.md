@@ -53,6 +53,23 @@ agent = LangChainExtension.with_config(
 Install `agentbridge-langchain[openai]` for this path. The adapter constructs the native
 `ChatOpenAI` object, passes it to LangChain, and redacts secrets from `RunResult.metadata`.
 
+The same configuration shape supports provider-specific LangChain integrations without installing
+all providers into AgentBridge:
+
+```python
+agent = LangChainExtension.with_config(
+    agent,
+    model_provider="anthropic",
+    model_options={"temperature": 0.2},
+)
+```
+
+Lazy factories cover Anthropic, Google GenAI/Vertex AI, Mistral, Groq, Cohere, Bedrock, Fireworks,
+Hugging Face, xAI, Azure OpenAI, OpenAI-compatible gateways, and local Ollama. Install the native
+`langchain-*` package for the provider and keep credentials in its normal environment/configuration.
+For provider behavior not represented by the factory, pass a constructed native chat model through
+`model=`.
+
 ## Executable Provider Smoke Matrix
 
 The repository includes a double-gated smoke matrix for NVIDIA NIM, OpenRouter, and local Ollama:
