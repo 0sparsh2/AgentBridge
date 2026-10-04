@@ -96,6 +96,30 @@ class FakeEventStreamAgent(FakeNativeAgent):
         yield {"type": "custom", "data": {"guardrail": "passed"}}
 
 
+class FakeAsyncEventStreamAgent(FakeNativeAgent):
+    async def astream_events(self, payload, config=None, version=None):
+        del payload, config
+        assert version == "v3"
+        yield {
+            "type": "messages",
+            "data": (SimpleNamespace(text="async refund update"), {}),
+        }
+        yield {"type": "custom", "data": {"source": "async"}}
+
+
+class FakeContextAgent(FakeNativeAgent):
+    def invoke(self, payload, config=None, *, context=None):
+        self.last_config = config
+        return {
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": f"tenant={context['tenant']}; payload_context={'context' in payload}",
+                }
+            ]
+        }
+
+
 def fake_create_agent(**kwargs):
     return FakeNativeAgent(**kwargs)
 
@@ -200,6 +224,34 @@ def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
     assert result.metadata["native_agent_type"] == "FakeNativeAgent"
 
 
+def test_adapter_passes_runtime_context_through_native_context_channel(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=lambda **kwargs: FakeContextAgent(**kwargs)),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="context_agent",
+            instructions="Use tenant context.",
+            model="openai/gpt-5",
+        ),
+        context_schema=object(),
+    )
+
+    result = Adapter().run(
+        Adapter().compile(agent),
+        RunInput(input="hello", context={"tenant": "support"}),
+    )
+
+    assert result.output == "tenant=support; payload_context=False"
+
+
 def test_adapter_connects_langsmith_context_and_langfuse_callback(monkeypatch) -> None:
     monkeypatch.setitem(
         sys.modules,
@@ -262,6 +314,41 @@ def test_adapter_connects_langsmith_context_and_langfuse_callback(monkeypatch) -
     ]
 
 
+def test_adapter_passes_native_langfuse_trace_options(monkeypatch) -> None:
+    captured = {}
+
+    def callback_handler(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langfuse.langchain",
+        SimpleNamespace(CallbackHandler=callback_handler),
+    )
+    agent = LangChainExtension.with_config(
+        AgentSpec(name="trace_agent", instructions="Reply.", model="agentbridge/offline"),
+        observability={
+            "langfuse": {
+                "enabled": True,
+                "release": "v1",
+                "environment": "test",
+                "session_id": "session-1",
+                "trace_id": "trace-1",
+                "user_id": "user-1",
+            }
+        },
+    )
+    from agentbridge.observability import callbacks_for_config
+
+    callbacks_for_config(agent.backend_config["langchain"])
+    assert captured == {
+        "release": "v1",
+        "environment": "test",
+        "session_id": "session-1",
+        "trace_id": "trace-1",
+        "user_id": "user-1",
+    }
 def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
     monkeypatch.setitem(
         sys.modules,
@@ -448,6 +535,72 @@ def test_adapter_builds_openai_compatible_native_model_from_options(monkeypatch)
     assert result.metadata["extension_config"]["model_options"]["api_key"] == "[redacted]"
 
 
+def test_adapter_builds_local_ollama_model_from_options(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+
+    class FakeChatOllama:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_ollama",
+        SimpleNamespace(ChatOllama=FakeChatOllama),
+    )
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="local_agent",
+            instructions="Reply to the user.",
+            model="ollama/llama3.2",
+        ),
+        model_provider="ollama",
+        model_options={"base_url": "http://localhost:11434", "temperature": 0},
+    )
+
+    compiled = Adapter().compile(agent)
+    native_model = compiled.native_agent.kwargs["model"]
+    assert native_model.kwargs == {
+        "base_url": "http://localhost:11434",
+        "temperature": 0,
+        "model": "llama3.2",
+    }
+
+
+def test_adapter_accepts_any_native_langchain_model_object(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    native_model = object()
+    agent = LangChainExtension.with_config(
+        AgentSpec(
+            name="provider_neutral_agent",
+            instructions="Reply to the user.",
+            model="vendor/custom-model",
+        ),
+        model=native_model,
+    )
+
+    compiled = Adapter().compile(agent)
+
+    assert compiled.native_agent.kwargs["model"] is native_model
+
+
 def test_adapter_summarizes_native_langchain_retrievers(monkeypatch) -> None:
     monkeypatch.setitem(
         sys.modules,
@@ -567,6 +720,38 @@ def test_adapter_streams_langchain_event_stream_shapes(monkeypatch) -> None:
     assert events[2].metadata["source"] == "tools"
     assert events[3].data["content"] == "refund approved"
     assert events[4].data["data"] == {"guardrail": "passed"}
+
+
+def test_adapter_streams_native_async_langchain_events(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=lambda **kwargs: FakeAsyncEventStreamAgent(**kwargs)),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    adapter = Adapter()
+    spec = AgentSpec(
+        name="async_support_agent",
+        instructions="Use async events.",
+        model="openai/gpt-5",
+    )
+
+    async def collect():
+        compiled = adapter.compile(spec)
+        events = []
+        async for event in adapter.astream(compiled, RunInput(input="check A123")):
+            events.append(event)
+        return events
+
+    import asyncio
+
+    events = asyncio.run(collect())
+    assert [event.type for event in events] == ["message", "workflow"]
+    assert events[0].data["content"] == "async refund update"
 
 
 def test_adapter_streams_classic_langchain_stream_updates(monkeypatch) -> None:

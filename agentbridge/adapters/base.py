@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from typing import Any
 
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
@@ -44,3 +44,10 @@ class BackendAdapter:
 
         result = self.run(compiled, run_input)
         yield from result.events
+
+    async def astream(self, compiled: Any, run_input: RunInput) -> AsyncIterator[AgentEvent]:
+        """Stream normalized events asynchronously without blocking the caller."""
+
+        events = await asyncio.to_thread(lambda: list(self.stream(compiled, run_input)))
+        for event in events:
+            yield event

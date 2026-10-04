@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 from pydantic import BaseModel
 
 from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter, resume_agent
 from agentbridge.errors import MissingDependencyError
-from agentbridge.extensions.langgraph import LangGraphExtension
+from agentbridge.extensions.langgraph import LangGraphConfig, LangGraphExtension
+from agentbridge.adapters.langgraph import LangGraphAdapter, LangGraphCompiledAgent
 
 
 def lookup_order(order_id: str) -> str:
@@ -40,6 +43,121 @@ def test_langgraph_adapter_executes_tools_when_available() -> None:
         "tool_result",
         "complete",
     ]
+
+
+def test_langgraph_adapter_accepts_prebuilt_native_graph() -> None:
+    class NativeGraph:
+        def invoke(self, payload, config=None):
+            assert payload["input"] == "A123"
+            assert config is None
+            return {"output": {"status": "approved"}, "route": "native"}
+
+    agent = LangGraphExtension.with_config(
+        AgentSpec(name="native_agent", instructions="Use native graph.", model="openai/gpt-5"),
+        native_graph=NativeGraph(),
+        native_options={"stream_mode": "updates"},
+    )
+    adapter = LangGraphAdapter()
+    compiled = adapter.compile(agent)
+    result = adapter.run(compiled, RunInput(input="A123"))
+
+    assert result.output == {"status": "approved"}
+    assert result.metadata["native_graph"] is True
+    assert result.metadata["native_options"] == {"stream_mode": "updates"}
+
+
+def test_langgraph_adapter_invokes_supplied_native_model() -> None:
+    class FakeModel:
+        def invoke(self, messages):
+            assert messages == [{"role": "user", "content": "A123"}]
+            return {"content": "Native model approved the refund."}
+
+    agent = LangGraphExtension.with_config(
+        AgentSpec(name="model_agent", instructions="Check refunds.", model="vendor/model"),
+        model=FakeModel(),
+    )
+    result = LangGraphAdapter().run(
+        LangGraphAdapter().compile(agent),
+        RunInput(input="A123"),
+    )
+
+    assert result.output["message"] == "Native model approved the refund."
+    assert result.output["model_type"] == "FakeModel"
+    assert result.metadata["native_model"] is True
+
+
+def test_langgraph_extension_preserves_custom_persistence_components() -> None:
+    checkpointer = object()
+    store = object()
+    cache = object()
+    config = LangGraphExtension.config(
+        checkpointer=checkpointer,
+        store=store,
+        cache=cache,
+    )
+    parsed = LangGraphConfig.model_validate(config)
+
+    assert parsed.checkpointer is checkpointer
+    assert parsed.store is store
+    assert parsed.cache is cache
+    assert LangGraphAdapter()._build_checkpointer(parsed) is checkpointer
+
+
+def test_langgraph_adapter_consumes_native_async_graph_stream() -> None:
+    class FakeGraph:
+        async def astream(self, payload, config=None, stream_mode=None, version=None):
+            assert payload["input"] == "A123"
+            assert config is None
+            assert stream_mode == ["updates", "messages", "custom"]
+            assert version == "v2"
+            yield {"agent": {"output": {"status": "approved"}}}
+
+    spec = AgentSpec(name="refund_agent", instructions="Check refunds.", model="openai/gpt-5")
+    compiled = LangGraphCompiledAgent(
+        spec=spec,
+        graph=FakeGraph(),
+        config=LangGraphConfig(),
+    )
+
+    async def collect():
+        return [
+            event
+            async for event in LangGraphAdapter().astream(
+                compiled,
+                RunInput(input="A123"),
+            )
+        ]
+
+    events = asyncio.run(collect())
+    assert events[-1].type == "complete"
+    assert events[-1].data["output"] == {"status": "approved"}
+
+
+def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -> None:
+    class FakeGraph:
+        def stream(self, payload, config=None, **options):
+            assert payload["input"] == "hello"
+            assert config is None
+            assert options["stream_mode"] == ["updates"]
+            assert options["subgraphs"] is True
+            yield (("child",), {"agent": {"output": "from child"}})
+
+    compiled = LangGraphCompiledAgent(
+        spec=AgentSpec(name="stream_agent", instructions="Stream.", model="agentbridge/offline"),
+        graph=FakeGraph(),
+        config=LangGraphConfig(native_options={"stream_mode": ["updates"], "subgraphs": True}),
+    )
+
+    events = list(
+        LangGraphAdapter().stream(
+            compiled,
+            RunInput(input="hello"),
+        )
+    )
+
+    assert events[-1].type == "complete"
+    assert events[-1].data["output"] == "from child"
+    assert any(event.data.get("namespace") == ("child",) for event in events)
 
 
 def test_langgraph_adapter_uses_extension_config_when_available() -> None:
@@ -206,6 +324,58 @@ def test_langgraph_adapter_resumes_checkpointed_interrupt_when_available() -> No
     assert resumed.events[0].data["phase"] == "resumed"
     assert helper_resumed.metadata["resumed"] is True
     assert helper_resumed.output["input"] == "Needs helper approval."
+
+
+def test_langgraph_adapter_exposes_state_history_updates_and_replay() -> None:
+    class FakeGraph:
+        def __init__(self):
+            self.calls = []
+
+        def get_state(self, config):
+            self.calls.append(("get_state", config))
+            return {"values": {"approved": False}, "config": config}
+
+        def get_state_history(self, config):
+            self.calls.append(("get_state_history", config))
+            return iter([{"values": {"approved": False}}])
+
+        def update_state(self, config, values, **kwargs):
+            self.calls.append(("update_state", config, values, kwargs))
+            return {"config": config, "values": values, **kwargs}
+
+        def invoke(self, payload, config):
+            self.calls.append(("invoke", payload, config))
+            return {"output": {"replayed": True}}
+
+    graph = FakeGraph()
+    compiled = LangGraphCompiledAgent(
+        spec=AgentSpec(name="state_agent", instructions="Inspect state.", model="agentbridge/offline"),
+        graph=graph,
+        config=LangGraphConfig(enable_checkpointing=True),
+    )
+    adapter = LangGraphAdapter()
+    run_input = RunInput(input="inspect", session_id="state-session")
+
+    state = adapter.get_state(compiled, run_input, checkpoint_id="cp-1")
+    history = list(adapter.get_state_history(compiled, run_input))
+    updated = adapter.update_state(
+        compiled,
+        run_input,
+        values={"approved": True},
+        as_node="review",
+    )
+    replayed = adapter.replay(compiled, run_input, checkpoint_id="cp-1")
+
+    assert state["values"]["approved"] is False
+    assert history == [{"values": {"approved": False}}]
+    assert updated["values"] == {"approved": True}
+    assert updated["as_node"] == "review"
+    assert replayed.output == {"replayed": True}
+    assert graph.calls[0][1]["configurable"] == {
+        "thread_id": "state-session",
+        "checkpoint_id": "cp-1",
+    }
+    assert graph.calls[-1][2]["configurable"]["checkpoint_id"] == "cp-1"
 
 
 def test_langgraph_adapter_returns_typed_structured_output_when_available() -> None:

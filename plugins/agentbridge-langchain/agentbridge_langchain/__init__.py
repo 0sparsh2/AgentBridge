@@ -5,5 +5,18 @@ from .conformance import NativeConformanceReport, run_native_conformance
 
 __all__ = ["Adapter", "NativeConformanceReport", "run_native_conformance"]
 from .langfuse_api import LangfuseAPIClient
+from .langfuse_evaluation import publish_dataset as publish_langfuse_dataset, publish_report_scores
+from .langfuse_prompts import LangfusePrompt, fetch_prompt
+from .langsmith_api import LangSmithAPIClient, LangSmithControlPlaneClient
+from .remote_graph import RemoteGraphClient
 
-__all__ = ["LangfuseAPIClient"]
+__all__ = [
+    "LangfuseAPIClient",
+    "LangfusePrompt",
+    "LangSmithAPIClient",
+    "LangSmithControlPlaneClient",
+    "RemoteGraphClient",
+    "publish_langfuse_dataset",
+    "publish_report_scores",
+    "fetch_prompt",
+]

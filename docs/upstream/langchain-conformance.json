@@ -39,6 +39,31 @@
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
     },
     {
+      "name": "observability_provider_options",
+      "surfaces": ["LangSmith config", "Langfuse config", "credential-free diagnostics"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "agentcore_bindings",
+      "surfaces": ["AgentCore Memory binding", "AgentCore Gateway binding"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "async_run",
+      "surfaces": ["native ainvoke", "normalized async RunResult"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "async_streaming",
+      "surfaces": ["native astream/astream_events when available", "normalized async AgentEvent", "completion event"],
+      "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
+    },
+    {
+      "name": "remote_graph_streaming",
+      "surfaces": ["LangGraph thread/run API", "SSE event normalization", "RemoteGraphClient"],
+      "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_graph_normalizes_sse_lifecycle_and_result"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

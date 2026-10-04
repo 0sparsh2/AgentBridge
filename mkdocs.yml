@@ -52,8 +52,10 @@ nav:
       - Capability Coverage: capability_coverage.md
       - Scenario Reports: scenario_reports.md
       - Evaluation: evaluation.md
+      - Observability: observability.md
       - Model Routing: model_routing.md
       - LangChain Ecosystem Coverage: langchain_coverage.md
+      - Deep Agents Integration: deepagents.md
       - AgentCore Integration: agentcore.md
       - Version Policy: version_policy.md
   - Engineering:

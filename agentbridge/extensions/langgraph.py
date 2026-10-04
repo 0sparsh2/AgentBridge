@@ -4,20 +4,28 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from agentbridge.extensions.base import FrameworkExtension, UnsupportedExtension
+from agentbridge.extensions.base import FrameworkExtension
 from agentbridge.types import AgentSpec
 
 
 class LangGraphConfig(BaseModel):
     """AgentBridge config for LangGraph-native graph behavior."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     node_name: str = Field(default="agent", min_length=1)
     graph_name: str | None = None
     remote_graph: str | None = None
     deployment_url: str | None = None
     deployment: dict[str, Any] = Field(default_factory=dict)
+    model: Any | None = None
+    native_graph: Any | None = None
+    native_options: dict[str, Any] = Field(default_factory=dict)
+    checkpointer: Any | None = None
+    store: Any | None = None
+    cache: Any | None = None
     agentcore_memory_id: str | None = None
     agentcore_store_namespace: str | None = None
     include_context_in_output: bool = False
@@ -44,6 +52,12 @@ class LangGraphExtension(FrameworkExtension):
         remote_graph: str | None = None,
         deployment_url: str | None = None,
         deployment: dict[str, Any] | None = None,
+        model: Any | None = None,
+        native_graph: Any | None = None,
+        native_options: dict[str, Any] | None = None,
+        checkpointer: Any | None = None,
+        store: Any | None = None,
+        cache: Any | None = None,
         agentcore_memory_id: str | None = None,
         agentcore_store_namespace: str | None = None,
         include_context_in_output: bool = False,
@@ -64,6 +78,12 @@ class LangGraphExtension(FrameworkExtension):
             remote_graph=remote_graph,
             deployment_url=deployment_url,
             deployment=deployment or {},
+            model=model,
+            native_graph=native_graph,
+            native_options=native_options or {},
+            checkpointer=checkpointer,
+            store=store,
+            cache=cache,
             agentcore_memory_id=agentcore_memory_id,
             agentcore_store_namespace=agentcore_store_namespace,
             include_context_in_output=include_context_in_output,
@@ -95,9 +115,30 @@ class LangGraphExtension(FrameworkExtension):
             "message": "Use enable_checkpointing=True in LangGraphExtension.config().",
         }
 
-    def conditional_routing(self) -> None:
-        """Placeholder for future graph routing helpers."""
+    @staticmethod
+    def conditional_routing(
+        *,
+        context_key: str,
+        routes: dict[str, str],
+        default_node: str = "agent",
+    ) -> dict[str, Any]:
+        """Build a validated conditional-routing configuration.
 
-        raise UnsupportedExtension(
-            "LangGraph conditional routing extension is not implemented yet."
+        Route selection reads ``context_key`` from ``RunInput.context``. Values
+        not present in ``routes`` use ``default_node`` through the adapter's
+        ``__default__`` branch.
+        """
+
+        if not context_key.strip():
+            raise ValueError("LangGraph routing context_key must not be empty.")
+        if not routes:
+            raise ValueError("LangGraph routing requires at least one route.")
+        if any(not key.strip() or not node.strip() for key, node in routes.items()):
+            raise ValueError("LangGraph route keys and node names must not be empty.")
+        if not default_node.strip():
+            raise ValueError("LangGraph routing default_node must not be empty.")
+        return LangGraphExtension.config(
+            node_name=default_node,
+            route_on_context_key=context_key,
+            routes=dict(routes),
         )

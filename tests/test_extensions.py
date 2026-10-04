@@ -38,9 +38,23 @@ def test_framework_specific_extension_namespaces_exist() -> None:
     assert LangChainExtension.framework == "langchain"
 
 
-def test_extension_native_placeholders_fail_clearly() -> None:
-    with pytest.raises(UnsupportedExtension, match="conditional routing"):
-        LangGraphExtension().conditional_routing()
+def test_langgraph_conditional_routing_builds_validated_config() -> None:
+    config = LangGraphExtension.conditional_routing(
+        context_key="intent",
+        routes={"refund": "refund_node", "billing": "billing_node"},
+        default_node="fallback",
+    )
+
+    assert config == {
+        "node_name": "fallback",
+        "route_on_context_key": "intent",
+        "routes": {"refund": "refund_node", "billing": "billing_node"},
+    }
+
+
+def test_langgraph_conditional_routing_rejects_empty_routes() -> None:
+    with pytest.raises(ValueError, match="at least one route"):
+        LangGraphExtension.conditional_routing(context_key="intent", routes={})
 
 
 def test_langgraph_extension_builds_serializable_config() -> None:

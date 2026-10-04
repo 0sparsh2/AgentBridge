@@ -27,16 +27,24 @@ raw backend escape hatch, or an explicit diagnostic.
 
 | LangChain area | AgentBridge surface | Current status |
 | --- | --- | --- |
-| LangChain `create_agent`, tools, structured output, middleware, streaming, runtime context | `AgentSpec`, `ToolSpec`, LangChain plugin configuration and normalized events | `extension` |
+| LangChain `create_agent`, tools, structured output, middleware, streaming, runtime context | `AgentSpec`, `ToolSpec`, `LangChainExtension.context_schema`, native `context=` invocation, plugin configuration, and normalized events | `extension` |
 | LangChain human-in-the-loop middleware and checkpointed pauses | Native `HumanInTheLoopMiddleware`, checkpointer pass-through, normalized interrupted workflow event | `extension` |
 | LangChain MCP tools | Native MCP tool objects supplied through `LangChainExtension(mcp_tools=...)`; optional MCP adapter packages remain external | `extension` |
 | Newly added LangChain `create_agent` options | Guarded `LangChainExtension.native_options` pass-through with diagnostics and offline conformance | `native_only` until normalized |
-| LangGraph state graphs, routing, checkpoints, interrupts, resume, stores, retrievers | Built-in LangGraph adapter and `LangGraphConfig` | `extension` |
+| LangGraph state graphs, validated conditional routing, checkpoints, interrupts, resume, state history/time travel, custom checkpointers, stores, caches, retrievers, native model invocation, and native graph escape hatches | Built-in LangGraph adapter, `LangGraphExtension.conditional_routing()`, `get_state`/`get_state_history`/`update_state`/`replay`, explicit persistence fields, `LangGraphConfig.model`, `LangGraphConfig.native_graph`, and guarded `native_options` compile pass-through | `extension` |
 | LangSmith tracing, metadata, tags, run names, sessions, trace context | Shared observability helpers and LangChain/LangGraph config; runtime-config conformance is executable offline | `extension` |
+| Cross-provider trace correlation | Core `observability_metadata()` maps session, user, project, and trace identifiers consistently for LangChain and LangGraph | `extension` |
+| OpenAI-compatible, NVIDIA NIM, OpenRouter, local Ollama, and arbitrary LangChain model routes | LangChain provider factory forwards model options, or accepts any native model object, without moving credentials into core | `extension` |
 | Langfuse LangChain callback integration | Lazy callback integration in the optional LangChain plugin | `extension` |
-| LangSmith datasets, evaluators, prompts, experiments, monitoring, REST API, governance | Evaluation contract, LangSmith dataset/evaluation bridge, and prompt pull/push helpers; remaining hosted APIs stay native | `extension` |
-| Deep Agents, sandboxes, filesystem backends, permissions, skills, interpreters | No dedicated adapter; raw model/tool primitives remain usable | `planned` |
-| LangChain deployment, Agent Server, Studio, Fleet, Managed Deep Agents | No hosted control plane in AgentBridge v0/v1 | `planned` or `unsupported` depending on page |
+| LangSmith assistants, threads, runs, state, interrupts, long-term store, Fleet/Managed Agents, and SSE APIs | Typed lifecycle/search/cancellation/store/agent helpers over dependency-free JSON/SSE transports plus `RemoteGraphClient` resume/state helpers | `extension` |
+| Langfuse traces, OTLP ingestion, observations, scores, metrics, prompts, experiments, datasets, dataset items, and evaluation reports | Typed convenience helpers, `LangfusePrompt`, plus `langfuse_evaluation` bridge over the dependency-free JSON/SSE/raw transport | `extension` |
+| Remote LangGraph/Agent Server runs | `RemoteGraphClient` maps native thread/run SSE events to `AgentEvent` and `RunResult` | `extension` |
+| AgentCore Memory/Gateway bindings | `LangChainExtension.agentcore` plus credential-free conformance and AgentCore plugin contracts | `extension` |
+| Async LangChain execution | Native `ainvoke` path normalized through `arun_agent` | `extension` |
+| Async normalized streaming | Public `astream_agent()` contract, LangChain native `astream`/`astream_events`, and LangGraph native `astream` with fallback | `extension` |
+| LangSmith datasets, evaluators, prompts, experiments, monitoring, feedback, REST API, governance, and deployment control plane | Evaluation contract, LangSmith dataset/evaluation bridge, prompt pull/push helpers, typed feedback/thread/MCP/deployment clients, and generic API transport; remaining hosted APIs stay native | `extension` |
+| Deep Agents, sandboxes, filesystem backends, permissions, skills, interpreters | External `agentbridge-deepagents` plugin maps `create_deep_agent`, native backends, skills, memory, subagents, permissions, HITL, persistence, structured output, and native options | `extension` |
+| LangChain deployment, Agent Server, Studio, Fleet, Managed Deep Agents | Typed LangSmith deployment/revision control-plane operations, remote Agent Server thread/run client, Fleet/Managed Deep Agent CRUD, and generic transport; Studio UI and hosted publishing remain native | `extension` or `native_only` depending on page |
 | LangChain LLM Gateway and provider administration | Model routing remains delegated to LiteLLM-style strings; no LangSmith gateway control plane | `native_only` |
 | LangChain TypeScript documentation | Python SDK scope | `unsupported` for the current SDK |
 
@@ -73,7 +81,8 @@ uv run pytest -q plugins/agentbridge-langchain/tests/test_native_conformance.py
 
 This lane proves translation and normalization for the current native-only surface. It does not
 claim provider, hosted deployment, or remote LangSmith behavior; those require separate credentialed
-smoke lanes.
+smoke lanes. It now also checks native async execution/streaming contracts, AgentCore binding
+preservation, and LangSmith/Langfuse provider option preservation without loading credentials.
 
 Run the explicitly credentialed observability lane:
 
@@ -90,9 +99,11 @@ The first pass is intentionally ordered by value to application developers:
 
 1. Complete LangChain/LangGraph model, tool, middleware, streaming, structured-output, memory, retrieval, and human-in-the-loop option forwarding.
 2. Use the new core `EvaluationExample`/`EvaluationReport` contract for provider-neutral offline evaluation, then add LangSmith dataset/evaluator publishing.
-3. Expand prompt/version and experiment integration while preserving raw LangSmith clients.
-4. Add OpenTelemetry-compatible trace export and first-class Langfuse/LangSmith trace correlation.
-5. Add deployment and Deep Agents plugins only after their hosted/runtime boundaries are defined.
+3. Expand LangSmith prompt/version and experiment integration while preserving raw clients; Langfuse prompt retrieval/version compilation is now executable.
+4. Expand OpenTelemetry-compatible trace export and first-class Langfuse/LangSmith trace correlation.
+5. Add typed remote LangGraph/Agent Server operations beyond thread/run streaming, including
+   assistants, checkpoints, store access, interrupts, and deployment lifecycle APIs.
+6. Expand the Deep Agents plugin with credentialed sandbox/interpreter lanes and hosted deployment checks; the local translation contract is now executable.
 
 This order keeps the core dependency-free while still giving every upstream
 feature a visible place in the roadmap and compatibility review.

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Any
 
 from agentbridge.adapters import BackendAdapter
-from agentbridge.observability import callbacks_for_config, langsmith_context
+from agentbridge.observability import callbacks_for_config, langsmith_context, observability_metadata
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
 
 
@@ -49,13 +49,13 @@ class Adapter(BackendAdapter):
                 "agent.instructions": "Maps AgentSpec instructions to LangChain create_agent system_prompt.",
                 "agent.model": "Normalizes provider/model to provider:model for LangChain provider parsing; provider support is environment dependent.",
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
-                "tools.async": "LangChain supports async runnables, but this adapter currently exposes synchronous run and best-effort stream.",
+                "tools.async": "Preserves LangChain async runnables through native ainvoke/astream when exposed by the compiled agent.",
                 "tools.mcp": "Passes native MCP adapter tools through LangChain create_agent without making langchain-mcp-adapters a core dependency.",
                 "structured_output": "Maps AgentSpec.output_type to LangChain response_format and validates native structured_response.",
                 "state.memory": "Records memory/retriever hints and forwards native checkpointer/store objects when provided; portable memory semantics remain extension-level.",
                 "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
                 "observability.diagnostics": "Summarizes messages, tool lifecycle events, structured responses, runtime config, and extension options.",
-                "streaming.events": "Uses native stream() when available and normalizes event chunks best-effort.",
+                "streaming.events": "Uses native stream/astream_events and normalizes message, tool, update, and custom event chunks.",
             },
         )
 
@@ -112,6 +112,7 @@ class Adapter(BackendAdapter):
             result = compiled_agent.native_agent.invoke(
                 payload,
                 config=runtime_config,
+                **_context_kwargs(run_input),
             )
         output = _final_output(result)
         events = _events_from_result(result, backend=self.backend_name)
@@ -163,6 +164,7 @@ class Adapter(BackendAdapter):
             result = await compiled_agent.native_agent.ainvoke(
                 _input_payload(run_input),
                 config=runtime_config,
+                **_context_kwargs(run_input),
             )
         output = _final_output(result)
         events = _events_from_result(result, backend=self.backend_name)
@@ -190,6 +192,32 @@ class Adapter(BackendAdapter):
             },
             raw=result,
         )
+
+    async def astream(self, compiled: Any, run_input: RunInput) -> AsyncIterator[AgentEvent]:
+        """Consume LangChain's native async event stream when it is available."""
+
+        compiled_agent = _ensure_compiled(compiled)
+        if _uses_offline_model(compiled_agent):
+            result = await self.arun(compiled_agent, run_input)
+            for event in result.events:
+                yield event
+            return
+
+        native_agent = compiled_agent.native_agent
+        if not hasattr(native_agent, "astream") and not hasattr(native_agent, "astream_events"):
+            async for event in super().astream(compiled_agent, run_input):
+                yield event
+            return
+
+        yielded = False
+        async for chunk in _native_astream(compiled_agent, run_input):
+            yielded = True
+            for event in _normalize_native_events(chunk, backend=self.backend_name):
+                yield event
+        if not yielded:
+            result = await self.arun(compiled_agent, run_input)
+            for event in result.events:
+                yield event
 
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         compiled_agent = _ensure_compiled(compiled)
@@ -283,6 +311,16 @@ def _model_for_spec(spec: AgentSpec, config: dict[str, Any] | None = None) -> An
                 ) from exc
             model_options.setdefault("model", _model_name(spec.model))
             return chat_openai(**model_options)
+        if provider == "ollama":
+            try:
+                chat_ollama = import_module("langchain_ollama").ChatOllama
+            except ImportError as exc:
+                raise ImportError(
+                    "Ollama model options require langchain-ollama. "
+                    "Install `agentbridge-langchain[ollama]`."
+                ) from exc
+            model_options.setdefault("model", _model_name(spec.model))
+            return chat_ollama(**model_options)
         raise ValueError(f"Unsupported LangChain model_provider for model_options: {provider!r}")
     return _normalize_model(spec.model)
 
@@ -442,12 +480,15 @@ def _normalize_model(model: str) -> str:
 
 
 def _input_payload(run_input: RunInput) -> dict[str, Any]:
-    payload: dict[str, Any] = {
+    return {
         "messages": [{"role": "user", "content": run_input.input}],
     }
-    if run_input.context:
-        payload["context"] = run_input.context
-    return payload
+
+
+def _context_kwargs(run_input: RunInput) -> dict[str, Any]:
+    """Pass LangChain runtime context through its native invocation channel."""
+
+    return {"context": run_input.context} if run_input.context else {}
 
 
 def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> dict[str, Any]:
@@ -455,21 +496,13 @@ def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> di
     callbacks = callbacks_for_config(compiled.config)
     if callbacks:
         config["callbacks"] = callbacks
-    metadata = dict(compiled.config.get("metadata", {}))
-    metadata.update(run_input.metadata)
+    metadata = observability_metadata(
+        compiled.config,
+        metadata=run_input.metadata,
+        session_id=run_input.session_id,
+    )
     observability = compiled.config.get("observability", {})
-    langfuse = observability.get("langfuse", {})
-    if langfuse.get("enabled") and (langfuse.get("session_id") or run_input.session_id):
-        metadata["langfuse_session_id"] = langfuse.get("session_id") or run_input.session_id
-    if langfuse.get("enabled"):
-        for config_key, metadata_key in (
-            ("user_id", "langfuse_user_id"),
-            ("trace_id", "langfuse_trace_id"),
-        ):
-            if langfuse.get(config_key):
-                metadata[metadata_key] = langfuse[config_key]
     if run_input.session_id:
-        metadata["session_id"] = run_input.session_id
         config["configurable"] = {"thread_id": run_input.session_id}
     tags = list(observability.get("tags", []))
     if tags:
@@ -494,6 +527,7 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
                     payload,
                     config=runtime_config,
                     version="v3",
+                    **_context_kwargs(run_input),
                 )
                 return
             except TypeError:
@@ -505,9 +539,53 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
                 config=runtime_config,
                 stream_mode=["messages", "updates", "custom"],
                 version="v2",
+                **_context_kwargs(run_input),
             )
         except TypeError:
-            yield from native_agent.stream(payload, config=runtime_config)
+            yield from native_agent.stream(
+                payload,
+                config=runtime_config,
+                **_context_kwargs(run_input),
+            )
+
+
+async def _native_astream(compiled: CompiledLangChainAgent, run_input: RunInput) -> AsyncIterator[Any]:
+    payload = _input_payload(run_input)
+    runtime_config = _runtime_config(compiled, run_input)
+    native_agent = compiled.native_agent
+
+    with langsmith_context(compiled.config):
+        if hasattr(native_agent, "astream_events"):
+            try:
+                async for event in native_agent.astream_events(
+                    payload,
+                    config=runtime_config,
+                    version="v3",
+                    **_context_kwargs(run_input),
+                ):
+                    yield event
+                return
+            except TypeError:
+                pass
+
+        if hasattr(native_agent, "astream"):
+            try:
+                async for chunk in native_agent.astream(
+                    payload,
+                    config=runtime_config,
+                    stream_mode=["messages", "updates", "custom"],
+                    version="v2",
+                    **_context_kwargs(run_input),
+                ):
+                    yield chunk
+                return
+            except TypeError:
+                async for chunk in native_agent.astream(
+                    payload,
+                    config=runtime_config,
+                    **_context_kwargs(run_input),
+                ):
+                    yield chunk
 
 
 def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
 from agentbridge.adapters.base import BackendAdapter
 from agentbridge.errors import MissingDependencyError
 from agentbridge.extensions.langgraph import LangGraphConfig
-from agentbridge.observability import callbacks_for_config, langsmith_context
+from agentbridge.observability import callbacks_for_config, langsmith_context, observability_metadata
 from agentbridge.tool_execution import execute_sync_tools
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
 
@@ -56,15 +56,17 @@ class LangGraphAdapter(BackendAdapter):
                 "agui.events": "partial",
             },
             notes={
-                "workflow.graph": "LangGraph is the strongest v0 target for explicit state graphs.",
+                "workflow.graph": "Uses a generated graph by default or accepts a prebuilt native graph through native_graph.",
                 "human_approval": "Interrupt state is reported when configured and checkpointed runs can resume through resume_agent().",
-                "agent.model": "Current adapter demonstrates graph execution without calling a model.",
+                "agent.model": "Uses a supplied native model object when configured; otherwise retains deterministic graph output.",
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
                 "structured_output": "Deterministically validates graph output against AgentSpec.output_type/output_schema; use backend_config.custom_output_args for fixture data.",
-                "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True).",
+                "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True) or forward native compile options.",
+                "state.time_travel": "Exposes native get_state, get_state_history, update_state, and checkpoint replay helpers.",
                 "workflow.routing": "Enable via LangGraphExtension.config(route_on_context_key=..., routes=...).",
                 "observability.diagnostics": "Summarizes route, checkpointing, interrupts, tools, and normalized event counts.",
                 "observability.tracing": "Forwards callbacks, tags, metadata, and optional LangSmith/Langfuse configuration through LangGraph runtime config.",
+                "observability.raw": "Preserves native_graph and forwards native_options at graph compile time.",
             },
         )
 
@@ -75,6 +77,9 @@ class LangGraphAdapter(BackendAdapter):
             raise MissingDependencyError(self.backend_name, "langgraph", "langgraph") from exc
 
         config = LangGraphConfig.model_validate(spec.backend_config.get("langgraph", {}))
+
+        if config.native_graph is not None:
+            return LangGraphCompiledAgent(spec=spec, graph=config.native_graph, config=config)
 
         def run_node(state: AgentState, *, route_name: str) -> AgentState:
             run_input = RunInput(input=state["input"], context=state.get("context", {}))
@@ -88,6 +93,9 @@ class LangGraphAdapter(BackendAdapter):
                 ],
                 "message": f"{spec.name} ({spec.model}) completed LangGraph execution.",
             }
+            if config.model is not None:
+                output["message"] = _native_model_message(config.model, state["input"])
+                output["model_type"] = type(config.model).__name__
             if config.include_context_in_output:
                 output["context"] = state.get("context", {})
             output = _structured_output_for_spec(
@@ -134,11 +142,15 @@ class LangGraphAdapter(BackendAdapter):
             if node_name != config.node_name:
                 graph.add_edge(node_name, END)
         checkpointer = self._build_checkpointer(config)
+        compile_options = dict(config.native_options)
+        compile_options.setdefault("checkpointer", checkpointer)
+        compile_options.setdefault("store", config.store)
+        compile_options.setdefault("cache", config.cache)
+        compile_options.setdefault("interrupt_before", config.interrupt_before)
+        compile_options.setdefault("interrupt_after", config.interrupt_after)
+        compile_options.setdefault("name", config.graph_name)
         compiled_graph = graph.compile(
-            checkpointer=checkpointer,
-            interrupt_before=config.interrupt_before,
-            interrupt_after=config.interrupt_after,
-            name=config.graph_name,
+            **compile_options,
         )
         return LangGraphCompiledAgent(spec=spec, graph=compiled_graph, config=config)
 
@@ -173,6 +185,12 @@ class LangGraphAdapter(BackendAdapter):
             "deployment": _deployment_summary(compiled.config),
             "agentcore_memory_id": compiled.config.agentcore_memory_id,
             "agentcore_store_namespace": compiled.config.agentcore_store_namespace,
+            "native_graph": compiled.config.native_graph is not None,
+            "native_options": _safe_summary(compiled.config.native_options),
+            "native_model": compiled.config.model is not None,
+            "custom_checkpointer": compiled.config.checkpointer is not None,
+            "custom_store": compiled.config.store is not None,
+            "custom_cache": compiled.config.cache is not None,
             "run_diagnostics": self._run_diagnostics(raw, events, compiled, interrupt_state),
         }
         if interrupt_state:
@@ -210,6 +228,12 @@ class LangGraphAdapter(BackendAdapter):
             "checkpointing": compiled.config.enable_checkpointing,
             "route": raw.get("route", compiled.config.node_name),
             "resumed": True,
+            "native_graph": compiled.config.native_graph is not None,
+            "native_options": _safe_summary(compiled.config.native_options),
+            "native_model": compiled.config.model is not None,
+            "custom_checkpointer": compiled.config.checkpointer is not None,
+            "custom_store": compiled.config.store is not None,
+            "custom_cache": compiled.config.cache is not None,
             "run_diagnostics": self._run_diagnostics(
                 raw,
                 events,
@@ -230,7 +254,88 @@ class LangGraphAdapter(BackendAdapter):
             raw=raw,
         )
 
+    def get_state(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        checkpoint_id: str | None = None,
+    ) -> Any:
+        """Read the native checkpoint snapshot for a session."""
+
+        method = getattr(compiled.graph, "get_state", None)
+        if not callable(method):
+            raise TypeError("The compiled LangGraph does not expose get_state().")
+        return method(self._checkpoint_config(compiled, run_input, checkpoint_id=checkpoint_id))
+
+    def get_state_history(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+    ) -> Any:
+        """Return the native checkpoint history for a session."""
+
+        method = getattr(compiled.graph, "get_state_history", None)
+        if not callable(method):
+            raise TypeError("The compiled LangGraph does not expose get_state_history().")
+        return method(self._checkpoint_config(compiled, run_input))
+
+    def update_state(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        values: Any,
+        as_node: str | None = None,
+    ) -> Any:
+        """Apply a native checkpoint state update without hiding its payload."""
+
+        method = getattr(compiled.graph, "update_state", None)
+        if not callable(method):
+            raise TypeError("The compiled LangGraph does not expose update_state().")
+        config = self._checkpoint_config(compiled, run_input)
+        if as_node is None:
+            return method(config, values)
+        return method(config, values, as_node=as_node)
+
+    def replay(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        checkpoint_id: str,
+    ) -> RunResult:
+        """Replay a graph from a historical checkpoint using native semantics."""
+
+        config = self._checkpoint_config(compiled, run_input, checkpoint_id=checkpoint_id)
+        with langsmith_context(self._observability_config(compiled)):
+            raw = compiled.graph.invoke(None, config=config)
+        raw = raw or {}
+        output = raw.get("output", raw) if isinstance(raw, dict) else raw
+        events = self._events_from_raw(raw if isinstance(raw, dict) else {"output": raw}, output)
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            metadata={
+                "node_name": compiled.config.node_name,
+                "checkpointing": True,
+                "replayed": True,
+                "checkpoint_id": checkpoint_id,
+                "native_graph": compiled.config.native_graph is not None,
+                "run_diagnostics": self._run_diagnostics(
+                    raw if isinstance(raw, dict) else {"output": raw},
+                    events,
+                    compiled,
+                    None,
+                ),
+            },
+            raw=raw,
+        )
+
     def _build_checkpointer(self, config: LangGraphConfig) -> Any | None:
+        if config.checkpointer is not None:
+            return config.checkpointer
         if not config.enable_checkpointing:
             return None
         try:
@@ -246,17 +351,21 @@ class LangGraphAdapter(BackendAdapter):
     ) -> dict[str, Any] | None:
         config = self._observability_config(compiled)
         invoke_config: dict[str, Any] = {}
-        if compiled.config.enable_checkpointing:
+        if compiled.config.enable_checkpointing or compiled.config.checkpointer is not None:
             invoke_config["configurable"] = {
                 "thread_id": run_input.session_id or compiled.spec.name
             }
         callbacks = callbacks_for_config(config)
         if callbacks:
             invoke_config["callbacks"] = callbacks
-        metadata = dict(compiled.config.metadata)
-        metadata.update(run_input.metadata)
-        if run_input.session_id:
-            metadata["session_id"] = run_input.session_id
+        metadata = observability_metadata(
+            {
+                "metadata": compiled.config.metadata,
+                "observability": compiled.config.observability,
+            },
+            metadata=run_input.metadata,
+            session_id=run_input.session_id,
+        )
         if metadata:
             invoke_config["metadata"] = metadata
         observability = compiled.config.observability
@@ -265,6 +374,23 @@ class LangGraphAdapter(BackendAdapter):
         if observability.get("run_name"):
             invoke_config["run_name"] = observability["run_name"]
         return invoke_config or None
+
+    def _checkpoint_config(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        checkpoint_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Build a state API config without dropping observability metadata."""
+
+        config = self._invoke_config(compiled, run_input) or {}
+        configurable = dict(config.get("configurable", {}))
+        configurable.setdefault("thread_id", run_input.session_id or compiled.spec.name)
+        if checkpoint_id is not None:
+            configurable["checkpoint_id"] = checkpoint_id
+        config["configurable"] = configurable
+        return config
 
     def _observability_config(self, compiled: LangGraphCompiledAgent) -> dict[str, Any]:
         return {
@@ -346,8 +472,117 @@ class LangGraphAdapter(BackendAdapter):
                     "node": route_targets.get(selected_route),
                 },
             )
-        result = self.run(compiled, run_input)
-        yield from result.events
+        native_stream = getattr(compiled.graph, "stream", None)
+        if not callable(native_stream):
+            result = self.run(compiled, run_input)
+            yield from result.events
+            return
+
+        payload = {
+            "input": run_input.input,
+            "context": run_input.context,
+            "output": "",
+            "tool_outputs": [],
+            "route": "",
+        }
+        invoke_config = self._invoke_config(compiled, run_input)
+        yielded = False
+        last_output: Any = None
+        with langsmith_context(self._observability_config(compiled)):
+            try:
+                stream = native_stream(
+                    payload,
+                    config=invoke_config,
+                    **self._stream_options(compiled),
+                )
+            except TypeError:
+                stream = native_stream(payload, config=invoke_config)
+            for chunk in stream:
+                yielded = True
+                events, output = _events_from_native_graph_chunk(chunk, self.backend_name)
+                if output is not None:
+                    last_output = output
+                yield from events
+        if not yielded:
+            result = self.run(compiled, run_input)
+            yield from result.events
+            return
+        yield AgentEvent(
+            type="complete",
+            backend=self.backend_name,
+            data={"output": last_output},
+        )
+
+    async def astream(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+    ) -> AsyncIterator[AgentEvent]:
+        """Consume LangGraph's native async stream when supported by the graph."""
+
+        native_astream = getattr(compiled.graph, "astream", None)
+        if not callable(native_astream):
+            async for event in super().astream(compiled, run_input):
+                yield event
+            return
+
+        payload = {
+            "input": run_input.input,
+            "context": run_input.context,
+            "output": "",
+            "tool_outputs": [],
+            "route": "",
+        }
+        invoke_config = self._invoke_config(compiled, run_input)
+        yielded = False
+        last_output: Any = None
+        with langsmith_context(self._observability_config(compiled)):
+            try:
+                stream = native_astream(
+                    payload,
+                    config=invoke_config,
+                    **self._stream_options(compiled),
+                )
+                async for chunk in stream:
+                    yielded = True
+                    events, output = _events_from_native_graph_chunk(chunk, self.backend_name)
+                    if output is not None:
+                        last_output = output
+                    for event in events:
+                        yield event
+            except TypeError:
+                stream = native_astream(payload, config=invoke_config)
+                async for chunk in stream:
+                    yielded = True
+                    events, output = _events_from_native_graph_chunk(chunk, self.backend_name)
+                    if output is not None:
+                        last_output = output
+                    for event in events:
+                        yield event
+
+        if not yielded:
+            result = await super().arun(compiled, run_input)
+            for event in result.events:
+                yield event
+            return
+        yield AgentEvent(
+            type="complete",
+            backend=self.backend_name,
+            data={"output": last_output},
+        )
+
+    def _stream_options(self, compiled: LangGraphCompiledAgent) -> dict[str, Any]:
+        """Forward supported native stream options while keeping stable defaults."""
+
+        native_options = compiled.config.native_options
+        options: dict[str, Any] = {
+            "stream_mode": native_options.get("stream_mode", ["updates", "messages", "custom"]),
+            "version": native_options.get("version", "v2"),
+        }
+        for name in ("subgraphs", "print_mode", "output_keys", "durability"):
+            if name in native_options:
+                options[name] = native_options[name]
+        return options
 
     def _events_from_raw(
         self,
@@ -426,6 +661,12 @@ class LangGraphAdapter(BackendAdapter):
             "deployment": _deployment_summary(compiled.config),
             "agentcore_memory_id": compiled.config.agentcore_memory_id,
             "agentcore_store_namespace": compiled.config.agentcore_store_namespace,
+            "native_graph": compiled.config.native_graph is not None,
+            "native_options": _safe_summary(compiled.config.native_options),
+            "native_model": compiled.config.model is not None,
+            "custom_checkpointer": compiled.config.checkpointer is not None,
+            "custom_store": compiled.config.store is not None,
+            "custom_cache": compiled.config.cache is not None,
             "checkpointing": compiled.config.enable_checkpointing,
             "interrupted": interrupt_state is not None,
             "resumed": resumed,
@@ -437,6 +678,100 @@ class LangGraphAdapter(BackendAdapter):
             "structured_output": compiled.spec.output_type is not None
             or compiled.spec.output_schema is not None,
         }
+
+
+def _events_from_native_graph_chunk(
+    chunk: Any,
+    backend: str,
+) -> tuple[list[AgentEvent], Any | None]:
+    """Normalize LangGraph updates/messages without requiring a second graph run."""
+
+    namespace: Any = None
+    if isinstance(chunk, tuple) and len(chunk) == 2 and isinstance(chunk[1], dict):
+        namespace, chunk = chunk
+    if not isinstance(chunk, dict):
+        return [
+            AgentEvent(
+                type="workflow",
+                backend=backend,
+                data={
+                    "value": chunk,
+                    "native_type": type(chunk).__name__,
+                    **({"namespace": namespace} if namespace is not None else {}),
+                },
+            )
+        ], None
+
+    events: list[AgentEvent] = []
+    output = None
+    for source, update in chunk.items():
+        if source in {"messages", "__root__"} and isinstance(update, (list, tuple)):
+            for message in update:
+                content = message.get("content") if isinstance(message, dict) else getattr(message, "content", message)
+                events.append(
+                    AgentEvent(
+                        type="message",
+                        backend=backend,
+                        data={
+                            "content": content,
+                            "source": str(source),
+                            **({"namespace": namespace} if namespace is not None else {}),
+                        },
+                    )
+                )
+            continue
+        if not isinstance(update, dict):
+            events.append(
+                AgentEvent(
+                    type="workflow",
+                    backend=backend,
+                    data={
+                        "source": str(source),
+                        "value": update,
+                        **({"namespace": namespace} if namespace is not None else {}),
+                    },
+                )
+            )
+            continue
+        if update.get("output") is not None:
+            output = update["output"]
+            events.append(
+                AgentEvent(
+                    type="message",
+                    backend=backend,
+                    data={
+                        "role": "assistant",
+                        "content": output,
+                        "source": str(source),
+                        **({"namespace": namespace} if namespace is not None else {}),
+                    },
+                )
+            )
+        for record in update.get("tool_outputs", []) or []:
+            events.append(
+                AgentEvent(
+                    type="tool_result",
+                    backend=backend,
+                    data={
+                        "name": record.get("name"),
+                        "result": record.get("result"),
+                        **({"namespace": namespace} if namespace is not None else {}),
+                    },
+                )
+            )
+        events.append(
+            AgentEvent(
+                type="workflow",
+                backend=backend,
+                data={
+                    "phase": "update",
+                    "source": str(source),
+                    "update": update,
+                    **({"namespace": namespace} if namespace is not None else {}),
+                },
+            )
+        )
+    return events, output
 
 
 def _structured_output_for_spec(
@@ -472,6 +807,48 @@ def _deployment_summary(config: LangGraphConfig) -> dict[str, Any]:
     if config.deployment_url:
         summary["deployment_url"] = config.deployment_url
     return summary
+
+
+def _safe_summary(value: Any) -> Any:
+    """Summarize native objects without leaking reprs or secrets into diagnostics."""
+
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, dict):
+        return {str(key): _safe_summary(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [_safe_summary(item) for item in value]
+    return {"type": type(value).__name__}
+
+
+def _native_model_message(model: Any, user_input: str) -> str:
+    """Invoke a supplied LangChain-compatible model without importing a provider package."""
+
+    invoke = getattr(model, "invoke", None)
+    if not callable(invoke):
+        raise TypeError("LangGraph native model must expose invoke().")
+    response = invoke([{"role": "user", "content": user_input}])
+    if isinstance(response, str):
+        return response
+    content = getattr(response, "content", None)
+    if content is not None:
+        return _content_text(content)
+    if isinstance(response, dict) and "content" in response:
+        return _content_text(response["content"])
+    return str(response)
+
+
+def _content_text(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(
+            str(item.get("text", item.get("content", item)))
+            if isinstance(item, dict)
+            else str(item)
+            for item in content
+        )
+    return str(content)
 
 
 def _value_for_schema(

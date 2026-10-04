@@ -1,5 +1,5 @@
 """AgentBridge Deep Agents adapter plugin."""
 
-from .adapter import Adapter
+from .adapter import Adapter, CompiledDeepAgent
 
-__all__ = ["Adapter"]
+__all__ = ["Adapter", "CompiledDeepAgent"]

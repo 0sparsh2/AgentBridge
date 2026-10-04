@@ -1,7 +1,7 @@
 {
   "source": "https://docs.langchain.com/llms.txt",
-  "snapshot_page_count": 1663,
-  "page_count": 1663,
+  "snapshot_page_count": 1678,
+  "page_count": 1678,
   "pages": [
     {
       "url": "https://docs.langchain.com/api-reference/agent-connections-v2/create-connection.md",
@@ -638,6 +638,15 @@
       "title": "Set up Agent Auth",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/agent-environments.md",
+      "title": "Agent environments",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
       "status": "native_only",
       "owner": "langsmith-api",
       "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
@@ -1291,6 +1300,15 @@
       "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
     },
     {
+      "url": "https://docs.langchain.com/langsmith/agents.md",
+      "title": "Agents",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/alerts.md",
       "title": "Alerts in LangSmith",
       "category": "langsmith",
@@ -1487,6 +1505,15 @@
       "status": "extension",
       "owner": "evaluation",
       "action": "Use EvaluationExample/EvaluationReport locally or the optional LangSmith publisher; add provider-specific fields when required."
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/build-an-agent.md",
+      "title": "Build an agent in the UI",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-architecture.md",
@@ -1885,6 +1912,15 @@
       "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
     },
     {
+      "url": "https://docs.langchain.com/langsmith/create-an-agent.md",
+      "title": "Create an agent",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/create-few-shot-evaluators.md",
       "title": "How to improve your evaluator with few-shot examples",
       "category": "langsmith",
@@ -2204,6 +2240,15 @@
       "title": "Deploy with SvelteKit",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy/get-started.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/deploy-to-agent-environment.md",
+      "title": "Deploy to an agent environment",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
       "status": "native_only",
       "owner": "langsmith-api",
       "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
@@ -3397,6 +3442,15 @@
       "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
     },
     {
+      "url": "https://docs.langchain.com/langsmith/langsmith-setup-overview.md",
+      "title": "LangSmith setup",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/llm-as-judge-sdk.md",
       "title": "How to define an LLM-as-a-judge evaluator",
       "category": "langsmith",
@@ -3622,6 +3676,15 @@
       "action": "Use AgentBridge metadata/events plus the optional provider integration; add a focused adapter test when the page describes a new option."
     },
     {
+      "url": "https://docs.langchain.com/langsmith/log-traces-to-agent.md",
+      "title": "Log traces to an agent",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md",
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use AgentBridge metadata/events plus the optional provider integration; add a focused adapter test when the page describes a new option."
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/log-traces-to-project.md",
       "title": "Log traces to a specific project",
       "category": "langsmith",
@@ -3766,6 +3829,15 @@
       "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
     },
     {
+      "url": "https://docs.langchain.com/langsmith/migrate-to-agent-based-workspaces.md",
+      "title": "How agent-based workspaces differ",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/model-configurations.md",
       "title": "Manage model configurations",
       "category": "langsmith",
@@ -3827,6 +3899,15 @@
       "status": "extension",
       "owner": "evaluation",
       "action": "Use EvaluationExample/EvaluationReport locally or the optional LangSmith publisher; add provider-specific fields when required."
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/navigate-agents.md",
+      "title": "Navigate agents",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmith client/API transport for hosted operations; do not model hosted organization behavior as portable AgentBridge semantics."
     },
     {
       "url": "https://docs.langchain.com/langsmith/nest-traces.md",
@@ -4848,6 +4929,15 @@
     {
       "url": "https://docs.langchain.com/langsmith/self-host-scale.md",
       "title": "Configure LangSmith for scale",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
+      "status": "unsupported",
+      "owner": "sdk-boundary",
+      "action": "Hosted billing, identity, infrastructure, and organization operations belong to LangSmith deployment, not the AgentBridge runtime SDK."
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-slack.md",
+      "title": "Connect self-hosted LangSmith to Slack",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md",
       "status": "unsupported",
@@ -6684,6 +6774,15 @@
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/examples/create-examples.md",
       "title": "Create examples",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
+      "status": "native_only",
+      "owner": "langsmith-api",
+      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/smith-api/examples/delete-an-example.md",
+      "title": "Delete an example",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
       "status": "native_only",
@@ -10624,6 +10723,15 @@
       "action": "Use AgentBridge metadata/events plus the optional provider integration; add a focused adapter test when the page describes a new option."
     },
     {
+      "url": "https://docs.langchain.com/langsmith/trace-replicas.md",
+      "title": "Write traces to multiple destinations with replicas",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md",
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use AgentBridge metadata/events plus the optional provider integration; add a focused adapter test when the page describes a new option."
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/trace-voice-fundamentals.md",
       "title": "Voice tracing fundamentals",
       "category": "langsmith",
@@ -12316,8 +12424,17 @@
       "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed."
     },
     {
-      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp.md",
-      "title": "Model Context Protocol (MCP)",
+      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/auth.md",
+      "title": "Authentication",
+      "category": "langchain",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
+      "status": "unsupported",
+      "owner": "python-sdk",
+      "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed."
+    },
+    {
+      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/connections.md",
+      "title": "Connections",
       "category": "langchain",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "unsupported",
@@ -12328,7 +12445,16 @@
       "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/index.md",
       "title": "Model Context Protocol (MCP)",
       "category": "langchain",
-      "source_index": "https://docs.langchain.com/llms.txt",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
+      "status": "unsupported",
+      "owner": "python-sdk",
+      "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed."
+    },
+    {
+      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/tools.md",
+      "title": "Tools",
+      "category": "langchain",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "unsupported",
       "owner": "python-sdk",
       "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed."
@@ -12362,7 +12488,7 @@
     },
     {
       "url": "https://docs.langchain.com/oss/javascript/langchain/middleware/overview.md",
-      "title": "Overview",
+      "title": "Middleware overview",
       "category": "langchain",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "unsupported",
@@ -12939,6 +13065,15 @@
     {
       "url": "https://docs.langchain.com/oss/javascript/learn.md",
       "title": "Learn",
+      "category": "open_source_other",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
+      "status": "unsupported",
+      "owner": "python-sdk",
+      "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed."
+    },
+    {
+      "url": "https://docs.langchain.com/oss/javascript/migrate/langchain-mcp-adapters.md",
+      "title": "Migrate to @langchain/mcp-adapters 2.0",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md",
       "status": "unsupported",
@@ -14225,7 +14360,7 @@
     },
     {
       "url": "https://docs.langchain.com/oss/python/langchain/middleware/overview.md",
-      "title": "Overview",
+      "title": "Middleware overview",
       "category": "langchain",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md",
       "status": "extension",

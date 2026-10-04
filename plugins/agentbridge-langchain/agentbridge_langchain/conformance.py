@@ -7,6 +7,7 @@ the native LangChain objects in the execution path.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from pydantic import BaseModel
@@ -55,6 +56,10 @@ def run_native_conformance() -> NativeConformanceReport:
         _capture("middleware_memory_retrieval", _check_native_state_options),
         _capture("human_in_the_loop", _check_human_in_the_loop),
         _capture("observability_runtime_config", _check_observability_config),
+        _capture("observability_provider_options", _check_observability_provider_options),
+        _capture("agentcore_bindings", _check_agentcore_bindings),
+        _capture("async_run", _check_async_run),
+        _capture("async_streaming", _check_async_streaming),
         _capture("native_options_escape_hatch", _check_native_options),
     ]
     return NativeConformanceReport(checks=checks)
@@ -201,6 +206,75 @@ def _check_native_options() -> str:
     if compiled.native_agent.debug is not True:
         raise AssertionError("native_options did not reach create_agent")
     return "guarded native_options pass-through passed"
+
+
+def _check_observability_provider_options() -> str:
+    extension = LangChainExtension.with_config(
+        AgentSpec(
+            name="langchain_provider_observability",
+            instructions="Reply to the user.",
+            model="agentbridge/offline",
+        ),
+        observability={
+            "langsmith": {"enabled": True, "project_name": "conformance"},
+            "langfuse": {"enabled": True, "user_id": "conformance-user"},
+        },
+    )
+    config = Adapter().compile(extension).config
+    observability = config["observability"]
+    if observability["langsmith"]["enabled"] is not True or observability["langfuse"]["enabled"] is not True:
+        raise AssertionError(f"provider observability options were not preserved: {observability}")
+    return "LangSmith and Langfuse provider options were preserved without credentials"
+
+
+def _check_agentcore_bindings() -> str:
+    extension = LangChainExtension.with_config(
+        AgentSpec(
+            name="langchain_agentcore_bindings",
+            instructions="Reply to the user.",
+            model="agentbridge/offline",
+        ),
+        agentcore={"memory_id": "memory-conformance", "gateway_url": "https://gateway.example"},
+    )
+    result = Adapter().run(Adapter().compile(extension), RunInput(input="hello"))
+    bindings = result.metadata["extension_summary"]["agentcore"]
+    if bindings["memory_id"] != "memory-conformance":
+        raise AssertionError("AgentCore Memory binding was not preserved")
+    return "AgentCore Memory and Gateway bindings were preserved"
+
+
+def _check_async_run() -> str:
+    spec = AgentSpec(
+        name="langchain_native_async",
+        instructions="Reply to the user.",
+        model="agentbridge/offline",
+    )
+    result = asyncio.run(Adapter().arun(Adapter().compile(spec), RunInput(input="hello")))
+    if result.backend != "langchain" or result.events[-1].type != "complete":
+        raise AssertionError("async LangChain execution was not normalized")
+    return "native async invocation returned normalized output and completion"
+
+
+def _check_async_streaming() -> str:
+    spec = AgentSpec(
+        name="langchain_native_async_stream",
+        instructions="Reply to the user.",
+        model="agentbridge/offline",
+    )
+
+    async def collect() -> list[str]:
+        events: list[str] = []
+        async for event in Adapter().astream(
+            Adapter().compile(spec),
+            RunInput(input="hello"),
+        ):
+            events.append(event.type)
+        return events
+
+    event_types = asyncio.run(collect())
+    if not event_types or event_types[-1] != "complete":
+        raise AssertionError(f"async stream did not complete: {event_types}")
+    return "native async stream contract and normalized completion passed"
 
 
 def _capture(name: str, callback: Any) -> NativeConformanceCheck:

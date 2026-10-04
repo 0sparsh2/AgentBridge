@@ -10,6 +10,7 @@ Adapters translate `AgentSpec` into backend-native runtime objects and normalize
 | `langgraph` | Core optional extra | `pip install -e ".[langgraph]"` | Verified locally | Durable stateful orchestration and graph-shaped flows. |
 | `pydantic_ai` | Core optional extra | `pip install -e ".[pydantic-ai]"` | Verified locally | Typed Python-native agents and structured output pathfinding. |
 | `crewai` | External plugin scaffold | `plugins/agentbridge-crewai` | Blocked | High-level role/task/crew prototyping once dependency resolution is isolated. |
+| `deepagents` | External plugin | `plugins/agentbridge-deepagents[runtime]` | Contract tested | LangChain Deep Agents filesystem, sandbox, skills, memory, subagents, permissions, HITL, and persistence surfaces. |
 | `agentcore` | External plugin | `plugins/agentbridge-agentcore[aws]` | Contract verified | Invoke deployed AgentCore Runtime and preserve Memory, Gateway, Identity, observability, and protocol bindings. |
 
 ## Distribution Types
@@ -31,6 +32,26 @@ LangChain, and Google ADK.
 but the real framework dependency is blocked or not yet safely verified in this environment. CrewAI
 is currently here because the targeted dependency set conflicts with this repo's current Python and
 LangChain/LangSmith dependency path.
+
+## `deepagents`
+
+Deep Agents is an external LangChain ecosystem plugin because its filesystem, sandbox, interpreter,
+and deployment dependencies are intentionally not part of the core install. Install the runtime only
+when this adapter is needed:
+
+```bash
+pip install -e "plugins/agentbridge-deepagents[runtime]"
+```
+
+The adapter maps the portable instructions, model, tools, context, output type, metadata, session,
+and normalized events while preserving native Deep Agents options through
+`agent.backend_config["deepagents"]`. The following options are forwarded without a second
+AgentBridge abstraction: `middleware`, `subagents`, `skills`, `memory`, `permissions`, `backend`,
+`checkpointer`, `store`, `interrupt_on`, `response_format`, `context_schema`, and
+`general_purpose_subagent`. Additional compatible options can be supplied through `native_options`.
+
+See [Deep Agents Integration](deepagents.md) for the supported version, examples, and the boundary
+between contract-tested translation and live sandbox/provider behavior.
 
 ## Built-In Adapter Rules
 
@@ -133,6 +154,16 @@ result = run_agent(
     framework="langgraph",
     input="Check order A123",
     session_id="customer-123",
+)
+```
+
+For a reusable validated routing configuration, use:
+
+```python
+routing = LangGraphExtension.conditional_routing(
+    context_key="intent",
+    routes={"refund": "refund_node", "billing": "billing_node"},
+    default_node="refund_node",
 )
 ```
 

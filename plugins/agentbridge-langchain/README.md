@@ -17,19 +17,34 @@ AgentBridge adapter plugin for `langchain`.
 - Structured output through native LangChain `response_format` and typed `structured_response`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
+- Runtime context schemas receive `RunInput.context` through LangChain's native `context=`
+  invocation channel instead of being mixed into message state.
 - Native `HumanInTheLoopMiddleware` pauses are surfaced as normalized workflow interrupt events and
   preserve the native checkpoint state for the caller's approval/resume flow.
 - Native MCP adapter tools can be supplied with `LangChainExtension(mcp_tools=[...])` and are
   forwarded unchanged to `create_agent`; `langchain-mcp-adapters` remains optional.
 - OpenAI-compatible native models can use `model_provider="openai"` and `model_options={...}`
   for NVIDIA NIM, OpenRouter, or internal gateways; install the optional `openai` extra.
+- Local Ollama models can use `model_provider="ollama"` and `model_options={...}`; install the
+  optional `ollama` extra. A custom `base_url` can be passed through unchanged.
+- Any other LangChain provider can pass its already-constructed native chat model through
+  `LangChainExtension.with_config(agent, model=native_model)`, keeping provider-specific packages
+  and features outside the core install path.
 - A guarded `native_options` escape hatch for newly released LangChain `create_agent` options;
   AgentSpec-owned identity/model/tool fields cannot be overridden.
 - LangSmith tracing context and Langfuse callback integration through one AgentBridge observability config.
 - LangSmith dataset publishing and hosted evaluation through an optional integration module.
-- Langfuse callback wiring plus a dependency-free JSON/SSE API transport for ingestion and export endpoints.
+- Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
+- Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
+- Langfuse OTLP trace ingestion, Observations v2, Scores v3, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
+- Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.
+- Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
+- Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
+- Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
+  native runtime exposes `ainvoke`, `astream`, or `astream_events`, the adapter uses those methods;
+  otherwise it retains the dependency-free fallback contract.
 
 ## Install
 
@@ -61,6 +76,26 @@ interrupts, resumability, state routing, or production orchestration are the cor
 LangChain agents are built on LangGraph internally, but AgentBridge keeps these adapters separate so
 teams can choose between direct app compatibility and explicit graph control.
 
+For an existing compiled LangGraph, preserve it directly instead of rebuilding it:
+
+```python
+agent = LangGraphExtension.with_config(
+    agent,
+    native_graph=compiled_graph,
+    native_options={"stream_mode": "updates"},
+)
+```
+
+`native_graph` keeps the framework's own topology, nodes, checkpointers, stores, and middleware
+intact. For generated graphs, pass `checkpointer=`, `store=`, and `cache=` directly through
+`LangGraphExtension.config()`. `native_options` is recorded in diagnostics and is available for
+compile-time options that AgentBridge has not normalized yet.
+
+Checkpointed graphs also expose native state inspection and time travel through the adapter:
+`get_state()`, `get_state_history()`, `update_state()`, and `replay(checkpoint_id=...)`. These
+helpers preserve the backend checkpoint payloads while AgentBridge supplies the session and
+observability configuration.
+
 When `LangChainExtension.config(callbacks=..., metadata=...)` is used, the adapter passes those
 values into LangChain's native runtime config and includes a serializable `runtime_config` summary in
 `RunResult.metadata`.
@@ -89,6 +124,8 @@ LangSmith and Langfuse credentials remain environment/provider concerns. Install
 integration dependencies with `pip install 'agentbridge-langchain[observability]'`. AgentBridge
 forwards native callbacks and metadata, adds Langfuse's `CallbackHandler` when enabled, and wraps
 the invocation/stream in LangSmith's native tracing context. No API keys are stored in `AgentSpec`.
+Langfuse callback options such as `release`, `version`, `environment`, `session_id`, `user_id`, and
+`trace_id` are forwarded when supported by the installed SDK, with a fallback for older SDK lines.
 
 LangSmith smoke coverage is available but disabled by default to avoid accidental network calls:
 
@@ -163,8 +200,19 @@ health = client.request_json("GET", "/api/public/health")
 ```
 
 The transport preserves arbitrary endpoint payloads and keeps Langfuse credentials in the
-environment. Use the native Langfuse SDK callback for framework traces and this client for API
-operations that are not yet normalized.
+environment. Use `ingest_otlp()` for current OTLP/HTTP trace export, and use the native Langfuse
+SDK callback for framework traces. `request_json()` remains available for API operations that are
+not yet normalized.
+
+Fetch and compile managed prompts through the same client:
+
+```python
+from agentbridge_langchain.langfuse_prompts import fetch_prompt
+
+prompt = fetch_prompt(client, "refund-policy", label="production")
+compiled = prompt.compile(customer_tier="gold")
+langchain_template = prompt.get_langchain_prompt()
+```
 
 LangSmith deployment and control-plane API pages are exposed through an optional generic transport:
 
@@ -177,9 +225,52 @@ events = client.stream_events("POST", "/threads/THREAD_ID/runs/stream", body={})
 ```
 
 The client supports arbitrary JSON endpoints and newline-delimited SSE responses, including
-query parameters and raw payloads. It is intentionally native-only: endpoint-specific schemas,
+query parameters and raw payloads. `call()`/`acall()` provide one entry point for any current or
+future LangSmith endpoint. It is intentionally native-only: endpoint-specific schemas,
 hosted lifecycle behavior, and credentials remain LangSmith concerns rather than being faked as
 portable AgentBridge semantics.
+
+For deployment automation, use the typed control-plane client. It keeps the workspace identity
+explicit and covers deployment creation, updates, deletion, revision listing/creation/status,
+and free-deployment quota checks:
+
+```python
+from agentbridge_langchain import LangSmithControlPlaneClient
+
+control_plane = LangSmithControlPlaneClient(tenant_id="workspace-id")
+deployment = control_plane.create_deployment(body={"name": "refunds"})
+revisions = control_plane.list_revisions(deployment["id"])
+```
+
+Set `LANGSMITH_API_KEY`, `LANGSMITH_TENANT_ID`, and optionally
+`LANGSMITH_CONTROL_PLANE_URL` for hosted or self-hosted control-plane environments.
+
+For a deployed LangGraph or Agent Server graph, use the normalized remote client:
+
+```python
+from agentbridge_langchain import RemoteGraphClient
+
+remote = RemoteGraphClient(client)
+result = remote.run(
+    thread_id="thread-123",
+    assistant_id="agent",
+    input={"messages": [{"role": "user", "content": "Check order A123"}]},
+)
+```
+
+The native thread/run API remains available through `LangSmithAPIClient` for endpoints that need
+provider-specific payloads.
+
+The same client exposes assistant lifecycle, thread search/history/interrupts, run inspection and
+cancellation, run feedback, long-term store operations, thread-state helpers, Fleet/Managed Deep
+Agent CRUD, managed-agent thread metadata, and registered MCP-server lifecycle operations for
+common LangGraph and LangSmith workflows while retaining `request_json()`/`call()` for the complete
+native API surface. Use `path_prefix="/v1/deepagents"` for Managed Deep Agents; Fleet agents use
+the default `/v1/fleet` prefix.
+
+Remote state and approval flows are available through `RemoteGraphClient.state()`,
+`RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing
+is available through `publish_langfuse_dataset()` and `publish_report_scores()`.
 
 For an option that AgentBridge has not normalized yet, pass it explicitly:
 

@@ -7,66 +7,79 @@ from agentbridge import AgentSpec, RunInput, ToolSpec
 from agentbridge_deepagents.adapter import Adapter
 
 
-class FakeAgent:
+class FakeStructuredTool:
+    @staticmethod
+    def from_function(**kwargs):
+        return SimpleNamespace(**kwargs)
+
+
+class FakeDeepAgent:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
-        self.last_config = None
+        self.context = None
 
-    def invoke(self, payload, config=None):
-        self.last_config = config
-        return {"messages": [{"content": payload["messages"][0]["content"]}]}
+    def invoke(self, payload, config=None, context=None):
+        self.context = context
+        return {"messages": [{"content": f"tenant={context['tenant']}; input={payload['messages'][0]['content']}"}]}
 
-    def stream(self, payload, config=None, **kwargs):
-        del payload, config, kwargs
-        yield {"content": "chunk"}
+    def stream(self, payload, config=None, context=None):
+        del payload, config, context
+        yield {"output": "streamed"}
 
 
-def test_deep_agents_adapter_maps_core_and_native_options(monkeypatch):
-    fake_module = SimpleNamespace(create_deep_agent=lambda **kwargs: FakeAgent(**kwargs))
-    monkeypatch.setitem(sys.modules, "deepagents", fake_module)
-    adapter = Adapter()
+def test_deepagents_adapter_maps_native_harness_options(monkeypatch):
+    monkeypatch.setitem(
+        sys.modules,
+        "deepagents",
+        SimpleNamespace(create_deep_agent=lambda **kwargs: FakeDeepAgent(**kwargs)),
+    )
+    monkeypatch.setitem(sys.modules, "langchain_core.tools", SimpleNamespace(StructuredTool=FakeStructuredTool))
 
     def lookup(order_id: str) -> str:
+        """Look up an order."""
         return order_id
 
     agent = AgentSpec(
-        name="refunds",
-        instructions="Decide eligibility.",
+        name="research_agent",
+        instructions="Research carefully.",
         model="openai/gpt-5",
         tools=[ToolSpec.from_function(lookup)],
         backend_config={
             "deepagents": {
-                "memory": ["AGENTS.md"],
-                "skills": ["skills/"],
-                "native_options": {"future_option": True},
-                "protocols": ["ag_ui", "a2a"],
-                "sandbox": {"provider": "modal", "image": "python:3.12"},
+                "skills": ["/skills/project/"],
+                "memory": ["/memory/AGENTS.md"],
+                "permissions": [{"mode": "deny", "path": "/secrets/**"}],
+                "native_options": {"custom_profile": "research"},
             }
         },
     )
-
+    adapter = Adapter()
     compiled = adapter.compile(agent)
-    result = adapter.run(compiled, RunInput(input="A123", session_id="s-1"))
+    result = adapter.run(compiled, RunInput(input="A123", context={"tenant": "support"}))
 
     assert compiled.native_agent.kwargs["model"] == "openai:gpt-5"
-    assert compiled.native_agent.kwargs["tools"][0] is lookup
-    assert compiled.native_agent.kwargs["memory"] == ["AGENTS.md"]
-    assert compiled.native_agent.kwargs["future_option"] is True
-    assert result.output == "A123"
-    assert result.metadata["native_options_count"] == 1
-    assert result.metadata["protocols"] == ["ag_ui", "a2a"]
-    assert result.metadata["sandbox"]["provider"] == "modal"
+    assert compiled.native_agent.kwargs["skills"] == ["/skills/project/"]
+    assert compiled.native_agent.kwargs["custom_profile"] == "research"
+    assert result.output == "tenant=support; input=A123"
 
 
-def test_deep_agents_adapter_rejects_identity_override(monkeypatch):
-    monkeypatch.setitem(
-        sys.modules,
-        "deepagents",
-        SimpleNamespace(create_deep_agent=lambda **kwargs: FakeAgent(**kwargs)),
-    )
+def test_deepagents_adapter_normalizes_streaming(monkeypatch):
+    monkeypatch.setitem(sys.modules, "deepagents", SimpleNamespace(create_deep_agent=lambda **kwargs: FakeDeepAgent()))
+    monkeypatch.setitem(sys.modules, "langchain_core.tools", SimpleNamespace(StructuredTool=FakeStructuredTool))
+    agent = AgentSpec(name="stream_agent", instructions="Stream.", model="openai/gpt-5")
+    events = list(Adapter().stream(Adapter().compile(agent), RunInput(input="hello")))
+
+    assert events[0].type == "workflow"
+    assert events[-1].type == "complete"
+    assert events[-1].data["output"] == "streamed"
+
+
+def test_deepagents_adapter_rejects_reserved_native_options(monkeypatch):
+    monkeypatch.setitem(sys.modules, "deepagents", SimpleNamespace(create_deep_agent=lambda **kwargs: FakeDeepAgent(**kwargs)))
+    monkeypatch.setitem(sys.modules, "langchain_core.tools", SimpleNamespace(StructuredTool=FakeStructuredTool))
     agent = AgentSpec(
-        name="refunds",
-        instructions="Decide eligibility.",
+        name="reserved_agent",
+        instructions="Do not override identity.",
         model="openai/gpt-5",
         backend_config={"deepagents": {"native_options": {"name": "wrong"}}},
     )

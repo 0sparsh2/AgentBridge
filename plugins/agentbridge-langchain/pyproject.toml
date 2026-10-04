@@ -28,6 +28,9 @@ observability = [
 openai = [
   "langchain-openai>=0.3,<2",
 ]
+ollama = [
+  "langchain-ollama>=0.2,<2",
+]
 mcp = [
   "langchain-mcp-adapters>=0.1,<1",
 ]

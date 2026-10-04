@@ -16,6 +16,7 @@ class LangChainConfig(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     agent_type: str | None = None
+    model: Any | None = None
     model_provider: str | None = None
     model_options: dict[str, Any] = Field(default_factory=dict)
     prompt_template: str | None = None
@@ -48,6 +49,7 @@ class LangChainExtension(FrameworkExtension):
     def config(
         *,
         agent_type: str | None = None,
+        model: Any | None = None,
         model_provider: str | None = None,
         model_options: dict[str, Any] | None = None,
         prompt_template: str | None = None,
@@ -74,6 +76,7 @@ class LangChainExtension(FrameworkExtension):
 
         return LangChainConfig(
             agent_type=agent_type,
+            model=model,
             model_provider=model_provider,
             model_options=model_options or {},
             prompt_template=prompt_template,

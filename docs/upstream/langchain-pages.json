@@ -1,7 +1,7 @@
 {
   "source": "https://docs.langchain.com/llms.txt",
   "index_count": 13,
-  "page_count": 1663,
+  "page_count": 1678,
   "indexes": [
     "https://docs.langchain.com/_llms/agent-development-lifecycle.md",
     "https://docs.langchain.com/_llms/agent-development-lifecycle/build.md",
@@ -445,6 +445,12 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/agent-environments.md",
+      "title": "Agent environments",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/agent-server-api/a2a/a2a-json-rpc.md",
       "title": "A2A JSON-RPC",
       "category": "langsmith",
@@ -877,6 +883,12 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/agents.md",
+      "title": "Agents",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/alerts.md",
       "title": "Alerts in LangSmith",
       "category": "langsmith",
@@ -1007,6 +1019,12 @@
       "title": "Automatically run evaluators on experiments",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/build-an-agent.md",
+      "title": "Build an agent in the UI",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/byoc-architecture.md",
@@ -1273,6 +1291,12 @@
       "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/create-an-agent.md",
+      "title": "Create an agent",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/create-few-shot-evaluators.md",
       "title": "How to improve your evaluator with few-shot examples",
       "category": "langsmith",
@@ -1487,6 +1511,12 @@
       "title": "Deploy with SvelteKit",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/deploy/get-started.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/deploy-to-agent-environment.md",
+      "title": "Deploy to an agent environment",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/deploy-to-cloud-overview.md",
@@ -2281,6 +2311,12 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/langsmith-setup-overview.md",
+      "title": "LangSmith setup",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/llm-as-judge-sdk.md",
       "title": "How to define an LLM-as-a-judge evaluator",
       "category": "langsmith",
@@ -2431,6 +2467,12 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/log-traces-to-agent.md",
+      "title": "Log traces to an agent",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/log-traces-to-project.md",
       "title": "Log traces to a specific project",
       "category": "langsmith",
@@ -2527,6 +2569,12 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/migrate-to-agent-based-workspaces.md",
+      "title": "How agent-based workspaces differ",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/model-configurations.md",
       "title": "Manage model configurations",
       "category": "langsmith",
@@ -2567,6 +2615,12 @@
       "title": "How to return multiple scores in one evaluator",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/navigate-agents.md",
+      "title": "Navigate agents",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
     {
       "url": "https://docs.langchain.com/langsmith/nest-traces.md",
@@ -3249,6 +3303,12 @@
     {
       "url": "https://docs.langchain.com/langsmith/self-host-scale.md",
       "title": "Configure LangSmith for scale",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/self-host-slack.md",
+      "title": "Connect self-hosted LangSmith to Slack",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/products-and-setup/lang-smith-setup.md"
     },
@@ -4473,6 +4533,12 @@
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/examples/create-examples.md",
       "title": "Create examples",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md"
+    },
+    {
+      "url": "https://docs.langchain.com/langsmith/smith-api/examples/delete-an-example.md",
+      "title": "Delete an example",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md"
     },
@@ -7099,6 +7165,12 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md"
     },
     {
+      "url": "https://docs.langchain.com/langsmith/trace-replicas.md",
+      "title": "Write traces to multiple destinations with replicas",
+      "category": "langsmith",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor.md"
+    },
+    {
       "url": "https://docs.langchain.com/langsmith/trace-voice-fundamentals.md",
       "title": "Voice tracing fundamentals",
       "category": "langsmith",
@@ -8227,8 +8299,14 @@
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
     },
     {
-      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp.md",
-      "title": "Model Context Protocol (MCP)",
+      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/auth.md",
+      "title": "Authentication",
+      "category": "langchain",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
+    },
+    {
+      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/connections.md",
+      "title": "Connections",
       "category": "langchain",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
     },
@@ -8236,7 +8314,13 @@
       "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/index.md",
       "title": "Model Context Protocol (MCP)",
       "category": "langchain",
-      "source_index": "https://docs.langchain.com/llms.txt"
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
+    },
+    {
+      "url": "https://docs.langchain.com/oss/javascript/langchain/mcp/tools.md",
+      "title": "Tools",
+      "category": "langchain",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
     },
     {
       "url": "https://docs.langchain.com/oss/javascript/langchain/messages.md",
@@ -8258,7 +8342,7 @@
     },
     {
       "url": "https://docs.langchain.com/oss/javascript/langchain/middleware/overview.md",
-      "title": "Overview",
+      "title": "Middleware overview",
       "category": "langchain",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
     },
@@ -8643,6 +8727,12 @@
     {
       "url": "https://docs.langchain.com/oss/javascript/learn.md",
       "title": "Learn",
+      "category": "open_source_other",
+      "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
+    },
+    {
+      "url": "https://docs.langchain.com/oss/javascript/migrate/langchain-mcp-adapters.md",
+      "title": "Migrate to @langchain/mcp-adapters 2.0",
       "category": "open_source_other",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/type-script.md"
     },
@@ -9500,7 +9590,7 @@
     },
     {
       "url": "https://docs.langchain.com/oss/python/langchain/middleware/overview.md",
-      "title": "Overview",
+      "title": "Middleware overview",
       "category": "langchain",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/build/python.md"
     },

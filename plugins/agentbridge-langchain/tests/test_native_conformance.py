@@ -16,6 +16,10 @@ def test_langchain_native_conformance_report_passes_offline() -> None:
         "middleware_memory_retrieval",
         "human_in_the_loop",
         "observability_runtime_config",
+        "observability_provider_options",
+        "agentcore_bindings",
+        "async_run",
+        "async_streaming",
         "native_options_escape_hatch",
     }
 

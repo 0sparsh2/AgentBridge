@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+import asyncio
 
-from agentbridge_langchain.langsmith_api import LangSmithAPIClient
+from agentbridge_langchain.langsmith_api import LangSmithAPIClient, LangSmithControlPlaneClient
 
 
 def test_langsmith_api_client_preserves_arbitrary_json_endpoint():
@@ -28,12 +29,48 @@ def test_langsmith_api_client_preserves_arbitrary_json_endpoint():
 
 def test_langsmith_api_client_parses_sse_data_lines():
     def transport(method, url, headers, body):
-        del method, url, headers, body
+        del url, headers, body
+        if method == "GET":
+            return 200, {"content-type": "application/json"}, b'{"ok":true}'
         return 200, {"content-type": "text/event-stream"}, b'data: {"event":"update"}\n\ndata: [DONE]\n'
 
     client = LangSmithAPIClient(api_key="secret", transport=transport)
 
     assert list(client.stream_events("POST", "v1/runs/stream")) == [{"event": "update"}]
+
+
+def test_langsmith_universal_call_covers_json_sse_and_async_endpoints():
+    def transport(method, url, headers, body):
+        del method, url, headers, body
+        return 200, {"content-type": "text/event-stream"}, b'data: {"event":"update"}\n\ndata: [DONE]\n'
+
+    client = LangSmithAPIClient(api_key="secret", transport=transport)
+    assert list(client.call("POST", "/custom/stream", stream=True)) == [{"event": "update"}]
+
+    async def collect():
+        events = await client.acall("POST", "/custom/stream", stream=True)
+        return [event async for event in events]
+
+    assert asyncio.run(collect()) == [{"event": "update"}]
+
+
+def test_langsmith_api_client_supports_async_json_and_sse_facades():
+    def transport(method, url, headers, body):
+        del url, headers, body
+        if method == "GET":
+            return 200, {"content-type": "application/json"}, b'{"ok":true}'
+        return 200, {"content-type": "text/event-stream"}, b'data: {"event":"update"}\n\ndata: [DONE]\n'
+
+    client = LangSmithAPIClient(api_key="secret", transport=transport)
+
+    async def collect():
+        response = await client.arequest_json("GET", "/v1/threads")
+        events = [event async for event in client.astream_events("POST", "/v1/runs/stream")]
+        return response, events
+
+    response, events = asyncio.run(collect())
+    assert response == {"ok": True}
+    assert events == [{"event": "update"}]
 
 
 def test_langsmith_thread_helpers_preserve_native_api_shapes():
@@ -53,3 +90,166 @@ def test_langsmith_thread_helpers_preserve_native_api_shapes():
         {"event": "message"}
     ]
     assert calls[0][2] == b'{"metadata": {"team": "support"}}'
+
+
+def test_langsmith_assistant_run_and_state_helpers_preserve_native_shapes():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", transport=transport)
+    assert client.create_assistant(graph_id="agent", config={"model": "offline"}) == {"ok": True}
+    assert client.update_assistant("assistant-1", config={"prompt": "hello"}) == {"ok": True}
+    assert client.create_thread_run("thread-1", assistant_id="assistant-1", input={"x": 1}) == {"ok": True}
+    assert client.get_thread_state("thread-1", checkpoint_id="cp-1") == {"ok": True}
+    assert client.update_thread_state("thread-1", values={"approved": True}, as_node="review") == {"ok": True}
+    assert calls[0][0] == "POST"
+    assert calls[0][1].endswith("/assistants")
+    assert calls[-1][2] == b'{"values": {"approved": true}, "as_node": "review"}'
+
+
+def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.search_threads(body={"metadata": {"team": "support"}})
+    client.count_threads()
+    client.delete_thread("thread-1")
+    client.thread_history("thread-1")
+    client.resolve_interrupt("thread-1")
+    client.get_assistant("assistant-1")
+    client.delete_assistant("assistant-1")
+    client.search_assistants()
+    client.set_latest_assistant_version("assistant-1", 2)
+    client.get_run("thread-1", "run-1")
+    client.cancel_run("thread-1", "run-1")
+    client.delete_run("thread-1", "run-1")
+    client.search_runs()
+    client.store_put(namespace=["support"], key="customer-1", value={"tier": "gold"})
+    client.store_get(namespace=["support"], key="customer-1")
+    client.store_search(namespace_prefix=["support"])
+    client.store_delete(namespace=["support"], key="customer-1")
+
+    assert calls[0] == (
+        "POST",
+        "https://example.test/threads/search",
+        b'{"metadata": {"team": "support"}}',
+    )
+    assert calls[-1][0:2] == (
+        "DELETE",
+        "https://example.test/store/items?namespace=support&key=customer-1",
+    )
+
+
+def test_langsmith_agent_helpers_support_fleet_and_managed_deep_agents():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.list_agents(query={"page_size": 10, "audience": "tenant"})
+    client.get_agent("fleet-1", include_files=True)
+    client.create_agent(body={"name": "refunds"})
+    client.update_agent("fleet-1", body={"description": "Refund assistant"})
+    client.delete_agent("fleet-1")
+    client.list_agents(path_prefix="/v1/deepagents")
+
+    assert calls[0][1].endswith("/v1/fleet/agents?page_size=10&audience=tenant")
+    assert calls[1][1].endswith("/v1/fleet/agents/fleet-1?include_files=true")
+    assert calls[2][0:2] == ("POST", "https://example.test/v1/fleet/agents")
+    assert calls[5][1] == "https://example.test/v1/deepagents/agents"
+
+
+def test_langsmith_feedback_fleet_thread_and_mcp_helpers_preserve_native_shapes():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.create_feedback(
+        run_id="run-1",
+        key="user-rating",
+        score=1,
+        comment="Helpful",
+        source_info={"origin": "app"},
+    )
+    client.list_feedback(query={"run_id": "run-1"})
+    client.get_feedback("feedback-1")
+    client.update_feedback("feedback-1", body={"comment": "Updated"})
+    client.delete_feedback("feedback-1")
+    client.list_fleet_threads(query={"page_size": 10})
+    client.get_fleet_thread("thread-1")
+    client.update_fleet_thread("thread-1", body={"title": "Refunds"})
+    client.delete_fleet_thread("thread-1")
+    client.list_mcp_servers()
+    client.create_mcp_server(body={"name": "search", "url": "https://mcp.example.test"})
+    client.get_mcp_server("mcp-1")
+    client.update_mcp_server("mcp-1", body={"name": "search-v2"})
+    client.delete_mcp_server("mcp-1")
+
+    assert calls[0] == (
+        "POST",
+        "https://example.test/api/v1/feedback",
+        b'{"run_id": "run-1", "key": "user-rating", "score": 1, "comment": "Helpful", "source_info": {"origin": "app"}}',
+    )
+    assert calls[1][1].endswith("/api/v1/feedback?run_id=run-1")
+    assert calls[5][1].endswith("/v1/fleet/threads?page_size=10")
+    assert calls[9][1] == "https://example.test/v1/deepagents/mcp-servers"
+
+
+def test_langsmith_control_plane_client_covers_deployment_and_revision_lifecycle():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else b'{"ok": true}'
+
+    client = LangSmithControlPlaneClient(
+        api_key="secret",
+        tenant_id="workspace-1",
+        base_url="https://control.example.test",
+        transport=transport,
+    )
+    client.list_deployments(name_contains="refund")
+    client.create_deployment(body={"name": "refunds"})
+    client.get_deployment("deployment-1")
+    client.patch_deployment("deployment-1", body={"source_config": {"build_on_push": True}})
+    client.list_revisions("deployment-1")
+    client.get_revision("deployment-1", "revision-1")
+    client.create_deployment_revision("deployment-1", body={"config": {}})
+    client.get_free_deployment_count()
+    assert client.delete_deployment("deployment-1") is None
+
+    assert calls[0][0:2] == (
+        "GET",
+        "https://control.example.test/v2/deployments?name_contains=refund",
+    )
+    assert all(call[2]["X-Api-Key"] == "secret" for call in calls)
+    assert all(call[2]["X-Tenant-Id"] == "workspace-1" for call in calls)
+    assert calls[1][0:2] == ("POST", "https://control.example.test/v2/deployments")
+    assert calls[6][1].endswith("/v2/deployments/deployment-1/revisions")
+
+
+def test_langsmith_control_plane_requires_workspace_identity():
+    try:
+        LangSmithControlPlaneClient(api_key="secret", base_url="https://example.test")
+    except ValueError as exc:
+        assert "LANGSMITH_TENANT_ID" in str(exc)
+    else:
+        raise AssertionError("control-plane client should require a tenant id")

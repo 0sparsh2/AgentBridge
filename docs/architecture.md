@@ -49,7 +49,7 @@ flowchart TD
     spec["AgentSpec"]
     resolve["Resolve BackendAdapter"]
     compile["BackendAdapter.compile(spec)"]
-    execute["run() or stream()"]
+    execute["run(), arun(), stream(), or astream()"]
     normalize["Normalize result/events"]
     output["RunResult / AgentEvent"]
 
@@ -180,6 +180,7 @@ This lets AgentBridge expose a simple API without hiding the unique strengths of
 - Translate `ToolSpec` into backend-native tools.
 - Normalize final outputs into `RunResult`.
 - Normalize streaming behavior into `AgentEvent`.
+- Preserve native graph/runnable escape hatches when a framework exposes capabilities beyond the normalized contract.
 - Keep raw backend objects available for users who need escape hatches.
 - Publish backend capability metadata so users can inspect fit before running or migrating.
 

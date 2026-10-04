@@ -39,7 +39,8 @@ Current backend status:
 | `crewai` | External plugin scaffold | Blocked | Lives in `plugins/agentbridge-crewai` because current dependency resolution is not core-friendly. |
 | `openai_agents` | External plugin | Partial | Maps AgentSpec/ToolSpec to OpenAI Agents SDK Agent/Runner on the compatible `0.20.x` line with structured output, handoff/guardrail/MCP/Runner option pass-through, approval interruption diagnostics, app-owned approval stores, backend-neutral `ApprovalQueue` resume payload helpers, and guardrail result summaries; latest `0.22.x` is blocked by an `openai` dependency major-version conflict. |
 | `strands` | External plugin | Partial | Maps AgentSpec/ToolSpec to Strands Agent/tools on `strands-agents==1.55.1`; native Agent options, MCP client/tool-provider pass-through with a local MCP stdio fixture, native intervention/guardrail trace fixture coverage, hook/intervention/guardrail lifecycle event normalization, run diagnostics, tracing summaries, and structured deployment metadata are covered; live AWS deployment remains extension-level. |
-| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, run diagnostics, native retriever/checkpointer/store examples, LangSmith tracing context, and Langfuse callback integration are covered. |
+| `langchain` | External plugin | Partial | Maps AgentSpec/ToolSpec to direct LangChain `create_agent`/`StructuredTool` on `langchain==1.4.0`; structured output, richer stream events, run diagnostics, native retriever/checkpointer/store examples, LangSmith tracing context, Langfuse callback integration, and provider/native-model routes are covered. |
+| `deepagents` | External plugin | Contract tested | Maps AgentSpec/ToolSpec to `deepagents>=0.7,<1`; preserves filesystem and sandbox backends, skills, memory, subagents, permissions, HITL, persistence, structured output, streaming, and native options without adding the heavy dependency to core. |
 | `google_adk` | External plugin | Partial | Maps AgentSpec/ToolSpec to ADK Agent/FunctionTool/Runner on `google-adk==2.9.0`; structured output, run diagnostics, opt-in session/memory/artifact service snapshots, eval runner bindings, and structured deployment metadata are contract-tested, while eval execution and deployment publishing remain extension-level. |
 | `agentcore` | External plugin | Contract verified | Invokes deployed Amazon Bedrock AgentCore Runtime and preserves Memory, Gateway, Identity, observability, A2A, and AG-UI bindings through `plugins/agentbridge-agentcore`. |
 
@@ -277,7 +278,7 @@ Published packages should register the adapter in `pyproject.toml`:
 custom = "my_package.adapter:Adapter"
 ```
 
-See [docs/plugin_authoring.md](docs/plugin_authoring.md) for the full plugin contract and [plugins/agentbridge-crewai](plugins/agentbridge-crewai) for the CrewAI scaffold.
+See [docs/plugin_authoring.md](docs/plugin_authoring.md) for the full plugin contract, [plugins/agentbridge-crewai](plugins/agentbridge-crewai) for the CrewAI scaffold, and [plugins/agentbridge-deepagents](plugins/agentbridge-deepagents) for the Deep Agents adapter.
 
 To create a new adapter plugin skeleton:
 
@@ -320,6 +321,7 @@ agentbridge/adapters/        Built-in adapter interface and implementations
 docs/                        Requirements, architecture, research, and design docs
 examples/                    Runnable examples and manifests
 plugins/agentbridge-crewai/  External CrewAI adapter scaffold
+plugins/agentbridge-deepagents/ External LangChain Deep Agents adapter
 plugins/agentbridge-*/       External adapter plugins for heavier framework integrations
 tests/                       Unit and adapter contract tests
 .github/                     CI, issue templates, and PR template

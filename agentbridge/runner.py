@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 
 from agentbridge.registry import get_adapter
 from agentbridge.types import AgentEvent, AgentSpec, RunInput, RunResult
@@ -84,3 +84,19 @@ def stream_agent(
     adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
     compiled = adapter.compile(agent)
     yield from adapter.stream(compiled, _coerce_run_input(input, **run_input_kwargs))
+
+
+async def astream_agent(
+    agent: AgentSpec,
+    *,
+    backend: str | None = None,
+    framework: str | None = None,
+    input: str | RunInput,
+    **run_input_kwargs: object,
+) -> AsyncIterator[AgentEvent]:
+    """Compile and asynchronously stream normalized adapter events."""
+
+    adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
+    compiled = adapter.compile(agent)
+    async for event in adapter.astream(compiled, _coerce_run_input(input, **run_input_kwargs)):
+        yield event

@@ -6,6 +6,36 @@ from contextlib import nullcontext
 from typing import Any
 
 
+def observability_metadata(
+    config: dict[str, Any],
+    *,
+    metadata: dict[str, Any] | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Build provider-neutral trace metadata with LangSmith/Langfuse correlation."""
+
+    result = dict(config.get("metadata", {}))
+    result.update(metadata or {})
+    observability = config.get("observability", {})
+    langfuse = observability.get("langfuse", {})
+    langsmith = observability.get("langsmith", {})
+    if session_id:
+        result["session_id"] = session_id
+    if langfuse.get("enabled"):
+        if langfuse.get("session_id") or session_id:
+            result["langfuse_session_id"] = langfuse.get("session_id") or session_id
+        if langfuse.get("user_id"):
+            result["langfuse_user_id"] = langfuse["user_id"]
+        if langfuse.get("trace_id"):
+            result["langfuse_trace_id"] = langfuse["trace_id"]
+    if langsmith.get("enabled"):
+        if langsmith.get("project_name"):
+            result["langsmith_project"] = langsmith["project_name"]
+        if langsmith.get("trace_id"):
+            result["langsmith_trace_id"] = langsmith["trace_id"]
+    return result
+
+
 def callbacks_for_config(config: dict[str, Any]) -> list[Any]:
     """Return user callbacks plus enabled optional provider callbacks."""
 
@@ -19,7 +49,27 @@ def callbacks_for_config(config: dict[str, Any]) -> list[Any]:
                 "Langfuse observability is enabled but langfuse is not installed. "
                 "Install the relevant adapter with its observability extra."
             ) from exc
-        callbacks.append(CallbackHandler())
+        callback_options = {
+            key: langfuse[key]
+            for key in (
+                "public_key",
+                "secret_key",
+                "host",
+                "release",
+                "version",
+                "environment",
+                "session_id",
+                "user_id",
+                "trace_id",
+                "debug",
+            )
+            if langfuse.get(key) is not None
+        }
+        try:
+            callbacks.append(CallbackHandler(**callback_options))
+        except TypeError:
+            # Older Langfuse SDK releases accepted only environment-driven options.
+            callbacks.append(CallbackHandler())
     return callbacks
 
 
