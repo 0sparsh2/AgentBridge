@@ -125,7 +125,8 @@ AgentBridge adapter plugin for `langchain`.
 - Async Langfuse lifecycle facades cover prompt versions, typed scores, datasets, and dataset-item
   upserts using the same current v2/v3 paths as synchronous helpers.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
-  `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
+  `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks, with
+  `stream_options` and `stream_events_version` pass-through for native overrides.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
   native runtime exposes `ainvoke`, `astream`, or `astream_events`, the adapter uses those methods;
   otherwise it retains the dependency-free fallback contract.
@@ -168,14 +169,14 @@ For an existing compiled LangGraph, preserve it directly instead of rebuilding i
 agent = LangGraphExtension.with_config(
     agent,
     native_graph=compiled_graph,
-    native_options={"stream_mode": "updates"},
+    stream_options={"stream_mode": "updates", "version": "v2"},
 )
 ```
 
 `native_graph` keeps the framework's own topology, nodes, checkpointers, stores, and middleware
 intact. For generated graphs, pass `checkpointer=`, `store=`, and `cache=` directly through
-`LangGraphExtension.config()`. `native_options` is recorded in diagnostics and is available for
-compile-time options that AgentBridge has not normalized yet.
+`LangGraphExtension.config()`. `stream_options` controls native graph streaming, while
+`native_options` remains the escape hatch for compile-time and newer runtime options.
 
 Checkpointed graphs also expose native state inspection and time travel through the adapter:
 `get_state()`, `get_state_history()`, `update_state()`, and `replay(checkpoint_id=...)`. These

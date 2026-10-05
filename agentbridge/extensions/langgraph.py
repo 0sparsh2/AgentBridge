@@ -23,6 +23,7 @@ class LangGraphConfig(BaseModel):
     model: Any | None = None
     native_graph: Any | None = None
     native_options: dict[str, Any] = Field(default_factory=dict)
+    stream_options: dict[str, Any] = Field(default_factory=dict)
     runtime_config: dict[str, Any] = Field(default_factory=dict)
     checkpointer: Any | None = None
     store: Any | None = None
@@ -56,6 +57,7 @@ class LangGraphExtension(FrameworkExtension):
         model: Any | None = None,
         native_graph: Any | None = None,
         native_options: dict[str, Any] | None = None,
+        stream_options: dict[str, Any] | None = None,
         runtime_config: dict[str, Any] | None = None,
         checkpointer: Any | None = None,
         store: Any | None = None,
@@ -83,6 +85,7 @@ class LangGraphExtension(FrameworkExtension):
             model=model,
             native_graph=native_graph,
             native_options=native_options or {},
+            stream_options=stream_options or {},
             runtime_config=runtime_config or {},
             checkpointer=checkpointer,
             store=store,

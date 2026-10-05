@@ -74,6 +74,7 @@ class LangGraphAdapter(BackendAdapter):
                 "observability.tracing": "Forwards callbacks, tags, metadata, and optional LangSmith/Langfuse configuration through LangGraph runtime config.",
                 "observability.runtime_config": "Forwards native RunnableConfig controls such as configurable, max_concurrency, recursion_limit, and run_id.",
                 "observability.raw": "Preserves native_graph and forwards native_options at graph compile time.",
+                "streaming.events": "Forwards typed stream_options plus native stream controls and normalizes sync/async events.",
             },
         )
 
@@ -951,7 +952,8 @@ class LangGraphAdapter(BackendAdapter):
     def _stream_options(self, compiled: LangGraphCompiledAgent) -> dict[str, Any]:
         """Forward supported native stream options while keeping stable defaults."""
 
-        native_options = compiled.config.native_options
+        native_options = dict(compiled.config.stream_options)
+        native_options.update(compiled.config.native_options)
         options: dict[str, Any] = {
             "stream_mode": native_options.get("stream_mode", ["updates", "messages", "custom"]),
             "version": native_options.get("version", "v2"),

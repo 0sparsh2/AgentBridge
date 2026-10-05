@@ -365,7 +365,10 @@ def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -
     compiled = LangGraphCompiledAgent(
         spec=AgentSpec(name="stream_agent", instructions="Stream.", model="agentbridge/offline"),
         graph=FakeGraph(),
-        config=LangGraphConfig(native_options={"stream_mode": ["updates"], "subgraphs": True}),
+        config=LangGraphConfig(
+            stream_options={"stream_mode": ["updates"]},
+            native_options={"subgraphs": True},
+        ),
     )
 
     events = list(
