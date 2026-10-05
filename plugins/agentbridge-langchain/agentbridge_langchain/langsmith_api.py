@@ -339,6 +339,61 @@ class LangSmithAPIClient:
             return self.stream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
         return self.request_json("POST", f"/threads/{thread_id}/runs", body=body)
 
+    def create_background_run(self, *, body: Mapping[str, Any]) -> Any:
+        """Start a stateless run and return without waiting for its output."""
+
+        return self.request_json("POST", "/runs", body=dict(body))
+
+    def create_run_wait(self, *, body: Mapping[str, Any]) -> Any:
+        """Start a stateless run and wait for its final output."""
+
+        return self.request_json("POST", "/runs/wait", body=dict(body))
+
+    def create_run_stream(self, *, body: Mapping[str, Any]) -> Iterator[dict[str, Any]]:
+        """Start a stateless run and stream its native SSE output."""
+
+        return self.stream_events("POST", "/runs/stream", body=dict(body))
+
+    def create_run_batch(self, *, body: Mapping[str, Any]) -> Any:
+        """Submit a native batch of stateless runs."""
+
+        return self.request_json("POST", "/runs/batch", body=dict(body))
+
+    def create_cron(self, *, body: Mapping[str, Any]) -> Any:
+        """Schedule stateless runs on a new thread for each execution."""
+
+        return self.request_json("POST", "/runs/crons", body=dict(body))
+
+    def create_thread_cron(self, thread_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Schedule runs against an existing thread."""
+
+        return self.request_json("POST", f"/threads/{thread_id}/runs/crons", body=dict(body))
+
+    def search_crons(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Search scheduled cron jobs using native filter fields."""
+
+        return self.request_json("POST", "/runs/crons/search", body=dict(body or {}))
+
+    def count_crons(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Count scheduled cron jobs matching native filters."""
+
+        return self.request_json("POST", "/runs/crons/count", body=dict(body or {}))
+
+    def get_cron(self, cron_id: str) -> Any:
+        """Fetch one scheduled cron job."""
+
+        return self.request_json("GET", f"/runs/crons/{cron_id}")
+
+    def update_cron(self, cron_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Update a scheduled cron job."""
+
+        return self.request_json("PATCH", f"/runs/crons/{cron_id}", body=dict(body))
+
+    def delete_cron(self, cron_id: str) -> Any:
+        """Delete a scheduled cron job."""
+
+        return self.request_json("DELETE", f"/runs/crons/{cron_id}")
+
     def get_thread_state(self, thread_id: str, *, checkpoint_id: str | None = None) -> Any:
         """Read the current remote graph state, optionally at a checkpoint."""
 

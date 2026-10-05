@@ -144,6 +144,39 @@ def test_langsmith_assistant_introspection_and_thread_run_lifecycle_paths():
     assert calls[10][1].endswith("/threads/thread-1/runs/run-1/join")
 
 
+def test_langsmith_stateless_runs_and_cron_lifecycle_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if url.endswith("/runs/stream"):
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"update"}\n\ndata: [DONE]\n'
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    body = {"assistant_id": "agent", "input": {"messages": []}, "context": {"tenant": "support"}}
+    client.create_background_run(body=body)
+    client.create_run_wait(body=body)
+    assert list(client.create_run_stream(body=body)) == [{"event": "update"}]
+    client.create_run_batch(body={"runs": [body]})
+    client.create_cron(body={"schedule": "0 * * * *", **body})
+    client.create_thread_cron("thread-1", body={"schedule": "@hourly", **body})
+    client.search_crons(body={"assistant_id": "agent"})
+    client.count_crons()
+    client.get_cron("cron-1")
+    client.update_cron("cron-1", body={"enabled": False})
+    assert client.delete_cron("cron-1") is None
+
+    assert calls[0][1].endswith("/runs")
+    assert calls[1][1].endswith("/runs/wait")
+    assert calls[2][1].endswith("/runs/stream")
+    assert calls[4][1].endswith("/runs/crons")
+    assert calls[5][1].endswith("/threads/thread-1/runs/crons")
+    assert calls[-1][1].endswith("/runs/crons/cron-1")
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

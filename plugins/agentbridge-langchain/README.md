@@ -274,6 +274,13 @@ and `iter_fleet_threads()` helpers follow native `next_cursor` pagination, and
 `list_trigger_templates()` exposes Fleet trigger schemas. Use `path_prefix="/v1/deepagents"` for
 Managed Deep Agents; Fleet agents use the default `/v1/fleet` prefix.
 
+Stateless/background execution is available through `create_background_run()`, blocking execution
+through `create_run_wait()`, native SSE through `create_run_stream()`, and batch submission through
+`create_run_batch()`. Scheduled execution is covered by `create_cron()`,
+`create_thread_cron()`, `search_crons()`, `count_crons()`, `get_cron()`, `update_cron()`, and
+`delete_cron()`; native request bodies are preserved so fields such as context, durability,
+stream modes, webhooks, interrupts, and completion policy are not discarded.
+
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
 `RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing
 is available through `publish_langfuse_dataset()` and `publish_report_scores()`.
