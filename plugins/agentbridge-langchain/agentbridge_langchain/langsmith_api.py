@@ -1414,6 +1414,197 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
         if not self.tenant_id:
             raise ValueError("LANGSMITH_TENANT_ID or tenant_id is required for control-plane calls.")
 
+    async def alist_deployments(self, *, name_contains: str | None = None) -> Any:
+        """Async list for deployments in the selected workspace."""
+
+        query = {"name_contains": name_contains} if name_contains else None
+        return await self.arequest_json("GET", "/v2/deployments", query=query)
+
+    async def acreate_deployment(self, *, body: Mapping[str, Any]) -> Any:
+        """Async create for a deployment and its initial revision."""
+
+        return await self.arequest_json("POST", "/v2/deployments", body=dict(body))
+
+    async def aget_deployment(self, deployment_id: str) -> Any:
+        """Async fetch for deployment metadata."""
+
+        return await self.arequest_json("GET", f"/v2/deployments/{deployment_id}")
+
+    async def apatch_deployment(self, deployment_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async update for deployment configuration."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"/v2/deployments/{deployment_id}",
+            body=dict(body),
+        )
+
+    async def adelete_deployment(self, deployment_id: str) -> Any:
+        """Async deletion for one deployment."""
+
+        return await self.arequest_json("DELETE", f"/v2/deployments/{deployment_id}")
+
+    async def adelete_deployments(self, deployment_ids: list[str]) -> Any:
+        """Async bulk deletion for deployments."""
+
+        return await self.arequest_json(
+            "DELETE",
+            "/v2/deployments",
+            query={"deployment_ids": deployment_ids},
+        )
+
+    async def alist_revisions(self, deployment_id: str) -> Any:
+        """Async list for deployment revisions."""
+
+        return await self.arequest_json("GET", f"/v2/deployments/{deployment_id}/revisions")
+
+    async def aget_revision(self, deployment_id: str, revision_id: str) -> Any:
+        """Async fetch for one deployment revision."""
+
+        return await self.arequest_json(
+            "GET",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}",
+        )
+
+    async def acreate_deployment_revision(
+        self,
+        deployment_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Async create for a deployment revision."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/v2/deployments/{deployment_id}/revisions",
+            body=dict(body),
+        )
+
+    async def aredeploy_revision(self, deployment_id: str, revision_id: str) -> Any:
+        """Async redeploy for an existing revision."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}/redeploy",
+        )
+
+    async def ainterrupt_deployment_revision(self, deployment_id: str, revision_id: str) -> Any:
+        """Async interruption for an in-progress revision."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}/interruption",
+        )
+
+    async def alist_deployment_logs(
+        self,
+        deployment_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list for deployment log batches."""
+
+        return await self.arequest_json("GET", f"/v2/deployments/{deployment_id}/logs", query=query)
+
+    async def alist_revision_logs(
+        self,
+        deployment_id: str,
+        revision_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list for revision logs."""
+
+        return await self.arequest_json(
+            "GET",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}/logs",
+            query=query,
+        )
+
+    async def alist_deployment_log_entries(
+        self,
+        *,
+        deployment_id: str,
+        revision_id: str | None = None,
+        log_type: str = "DEPLOY",
+        start_time: str | None = None,
+        end_time: str | None = None,
+        sort_order: str | None = None,
+    ) -> Any:
+        """Async list for individual deployment log entries."""
+
+        query = {
+            key: value
+            for key, value in {
+                "deployment_id": deployment_id,
+                "revision_id": revision_id,
+                "log_type": log_type,
+                "start_time": start_time,
+                "end_time": end_time,
+                "sort_order": sort_order,
+            }.items()
+            if value is not None
+        }
+        return await self.arequest_json("GET", "/v2/deployment-logs", query=query)
+
+    async def apatch_deployment_resource_tiers(
+        self,
+        deployment_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Async update for deployment resource tiers."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"/v2/deployments/{deployment_id}/resource-tiers",
+            body=dict(body),
+        )
+
+    async def apatch_deployment_tier(
+        self,
+        deployment_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Async update for the deployment tier."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"/v2/deployments/{deployment_id}/deployment-tier",
+            body=dict(body),
+        )
+
+    async def aget_free_deployment_count(self) -> Any:
+        """Async fetch for the workspace free deployment count."""
+
+        return await self.arequest_json("GET", "/v2/deployments/free-count")
+
+    async def acreate_listener(self, *, body: Mapping[str, Any]) -> Any:
+        """Async create for a LangSmith v2 listener."""
+
+        return await self.arequest_json("POST", "/v2/listeners", body=dict(body))
+
+    async def alist_listeners(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async list for LangSmith v2 listeners."""
+
+        return await self.arequest_json("GET", "/v2/listeners", query=query)
+
+    async def aget_listener(self, listener_id: str) -> Any:
+        """Async fetch for one LangSmith v2 listener."""
+
+        return await self.arequest_json("GET", f"/v2/listeners/{listener_id}")
+
+    async def apatch_listener(self, listener_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async update for one LangSmith v2 listener."""
+
+        return await self.arequest_json("PATCH", f"/v2/listeners/{listener_id}", body=dict(body))
+
+    async def adelete_listener(self, listener_id: str) -> Any:
+        """Async deletion for one LangSmith v2 listener."""
+
+        return await self.arequest_json("DELETE", f"/v2/listeners/{listener_id}")
+
     def list_deployments(self, *, name_contains: str | None = None) -> Any:
         """List deployments in the selected LangSmith workspace."""
 

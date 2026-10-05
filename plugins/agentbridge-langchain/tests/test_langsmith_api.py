@@ -691,6 +691,59 @@ def test_langsmith_control_plane_client_covers_deployment_and_revision_lifecycle
     assert "deployment_ids=deployment-2" in delete_many[1]
 
 
+def test_langsmith_control_plane_async_lifecycle_preserves_tenant_and_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithControlPlaneClient(
+        api_key="secret",
+        tenant_id="workspace-1",
+        base_url="https://control.example.test",
+        transport=transport,
+    )
+
+    async def collect():
+        values = [
+            await client.alist_deployments(name_contains="refund"),
+            await client.acreate_deployment(body={"name": "refunds"}),
+            await client.aget_deployment("deployment-1"),
+            await client.apatch_deployment("deployment-1", body={"enabled": True}),
+            await client.alist_revisions("deployment-1"),
+            await client.aget_revision("deployment-1", "revision-1"),
+            await client.acreate_deployment_revision("deployment-1", body={"config": {}}),
+            await client.aredeploy_revision("deployment-1", "revision-1"),
+            await client.ainterrupt_deployment_revision("deployment-1", "revision-1"),
+            await client.alist_deployment_logs("deployment-1", query={"limit": 10}),
+            await client.alist_revision_logs("deployment-1", "revision-1", query={"limit": 10}),
+            await client.alist_deployment_log_entries(
+                deployment_id="deployment-1", revision_id="revision-1", log_type="BUILD"
+            ),
+            await client.apatch_deployment_resource_tiers("deployment-1", body={"cpu": 2}),
+            await client.apatch_deployment_tier("deployment-1", body={"tier": "professional"}),
+            await client.aget_free_deployment_count(),
+            await client.acreate_listener(body={"name": "refunds"}),
+            await client.alist_listeners(query={"limit": 10}),
+            await client.aget_listener("listener-1"),
+            await client.apatch_listener("listener-1", body={"enabled": False}),
+            await client.adelete_listener("listener-1"),
+            await client.adelete_deployment("deployment-1"),
+            await client.adelete_deployments(["deployment-1", "deployment-2"]),
+        ]
+        return values
+
+    values = asyncio.run(collect())
+    assert all(value in ({"ok": True}, None) for value in values)
+    assert all(call[2]["X-Tenant-Id"] == "workspace-1" for call in calls)
+    assert calls[0][1].endswith("/v2/deployments?name_contains=refund")
+    assert any(call[1].endswith("/v2/deployment-logs?deployment_id=deployment-1&revision_id=revision-1&log_type=BUILD") for call in calls)
+    assert calls[-1][1].endswith("/v2/deployments?deployment_ids=deployment-1&deployment_ids=deployment-2")
+
+
 def test_langsmith_control_plane_requires_workspace_identity():
     try:
         LangSmithControlPlaneClient(api_key="secret", base_url="https://example.test")
