@@ -37,6 +37,9 @@ AgentBridge adapter plugin for `langchain`.
 - Any other LangChain provider can pass its already-constructed native chat model through
   `LangChainExtension.with_config(agent, model=native_model)`, keeping provider-specific packages
   and features outside the core install path.
+- Native model resilience is available through `model_retry={...}` and
+  `model_fallbacks=[native_model, ...]`; AgentBridge applies LangChain `with_retry()` before
+  `with_fallbacks()` and rejects ambiguous string fallback entries.
 - A guarded `native_options` escape hatch for newly released LangChain `create_agent` options;
   AgentSpec-owned identity/model/tool fields cannot be overridden.
 - LangSmith tracing context and Langfuse callback integration through one AgentBridge observability config.

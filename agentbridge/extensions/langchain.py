@@ -19,6 +19,8 @@ class LangChainConfig(BaseModel):
     model: Any | None = None
     model_provider: str | None = None
     model_options: dict[str, Any] = Field(default_factory=dict)
+    model_fallbacks: list[Any] = Field(default_factory=list)
+    model_retry: dict[str, Any] = Field(default_factory=dict)
     prompt_template: str | None = None
     middleware: list[Any] = Field(default_factory=list)
     callbacks: list[Any] = Field(default_factory=list)
@@ -53,6 +55,8 @@ class LangChainExtension(FrameworkExtension):
         model: Any | None = None,
         model_provider: str | None = None,
         model_options: dict[str, Any] | None = None,
+        model_fallbacks: list[Any] | None = None,
+        model_retry: dict[str, Any] | None = None,
         prompt_template: str | None = None,
         middleware: list[Any] | None = None,
         callbacks: list[Any] | None = None,
@@ -81,6 +85,8 @@ class LangChainExtension(FrameworkExtension):
             model=model,
             model_provider=model_provider,
             model_options=model_options or {},
+            model_fallbacks=model_fallbacks or [],
+            model_retry=model_retry or {},
             prompt_template=prompt_template,
             middleware=middleware or [],
             callbacks=callbacks or [],

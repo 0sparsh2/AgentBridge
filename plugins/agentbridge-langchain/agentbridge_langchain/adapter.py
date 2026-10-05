@@ -34,6 +34,7 @@ class Adapter(BackendAdapter):
             features={
                 "agent.instructions": "full",
                 "agent.model": "partial",
+                "model.resilience": "extension",
                 "tools.sync": "full",
                 "tools.async": "partial",
                 "tools.mcp": "extension",
@@ -48,6 +49,7 @@ class Adapter(BackendAdapter):
             notes={
                 "agent.instructions": "Maps AgentSpec instructions to LangChain create_agent system_prompt.",
                 "agent.model": "Normalizes provider/model to provider:model for LangChain provider parsing; provider support is environment dependent.",
+                "model.resilience": "Applies native with_retry() before with_fallbacks() to supplied LangChain model objects.",
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
                 "tools.async": "Preserves LangChain async runnables through native ainvoke/astream when exposed by the compiled agent.",
                 "tools.mcp": "Passes native MCP adapter tools through LangChain create_agent without making langchain-mcp-adapters a core dependency.",
@@ -71,8 +73,10 @@ class Adapter(BackendAdapter):
             _to_langchain_retriever_tool(structured_tool, retriever, index)
             for index, retriever in enumerate(config.get("retriever_tools") or [])
         )
+        model = config.get("model") or _model_for_spec(spec, config)
+        model = _apply_model_resilience(model, config)
         agent_kwargs: dict[str, Any] = {
-            "model": config.get("model") or _model_for_spec(spec, config),
+            "model": model,
             "tools": native_tools,
             "system_prompt": config.get("prompt_template") or spec.instructions,
             "name": spec.name,
@@ -389,6 +393,27 @@ def _model_for_spec(spec: AgentSpec, config: dict[str, Any] | None = None) -> An
             return provider_class(**model_options)
         raise ValueError(f"Unsupported LangChain model_provider for model_options: {provider!r}")
     return _normalize_model(spec.model)
+
+
+def _apply_model_resilience(model: Any, config: dict[str, Any]) -> Any:
+    """Apply native LangChain retry/fallback wrappers without hiding failures."""
+
+    retry_options = dict(config.get("model_retry") or {})
+    if retry_options:
+        with_retry = getattr(model, "with_retry", None)
+        if not callable(with_retry):
+            raise TypeError("LangChain model_retry requires a model exposing with_retry().")
+        model = with_retry(**retry_options)
+
+    fallbacks = list(config.get("model_fallbacks") or [])
+    if fallbacks:
+        if any(isinstance(fallback, str) for fallback in fallbacks):
+            raise TypeError("LangChain model_fallbacks must contain native model objects, not strings.")
+        with_fallbacks = getattr(model, "with_fallbacks", None)
+        if not callable(with_fallbacks):
+            raise TypeError("LangChain model_fallbacks requires a model exposing with_fallbacks().")
+        model = with_fallbacks(fallbacks)
+    return model
 
 
 def _provider_from_model(model: str) -> str:

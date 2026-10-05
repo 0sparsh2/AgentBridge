@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import sys
 from types import SimpleNamespace
 
+import pytest
 from pydantic import BaseModel
 
 from agentbridge import AgentSpec, RunInput, ToolSpec
@@ -167,6 +168,69 @@ def test_adapter_uses_native_sync_and_async_batch(monkeypatch) -> None:
         "native langchain: two",
     ]
     assert all(result.events[-1].type == "complete" for result in results + async_results)
+
+
+def test_adapter_applies_native_model_retry_before_fallbacks(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+
+    class ResilientModel:
+        def __init__(self):
+            self.calls = []
+
+        def with_retry(self, **options):
+            self.calls.append(("retry", options))
+            return self
+
+        def with_fallbacks(self, fallbacks):
+            self.calls.append(("fallbacks", fallbacks))
+            return self
+
+    model = ResilientModel()
+    fallback = object()
+    spec = LangChainExtension.with_config(
+        AgentSpec(name="resilient_agent", instructions="Reply.", model="vendor/model"),
+        model=model,
+        model_retry={"stop_after_attempt": 3},
+        model_fallbacks=[fallback],
+    )
+
+    compiled = Adapter().compile(spec)
+
+    assert compiled.native_agent.kwargs["model"] is model
+    assert model.calls == [
+        ("retry", {"stop_after_attempt": 3}),
+        ("fallbacks", [fallback]),
+    ]
+
+
+def test_adapter_rejects_string_model_fallbacks(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    spec = LangChainExtension.with_config(
+        AgentSpec(name="invalid_fallback", instructions="Reply.", model="vendor/model"),
+        model=object(),
+        model_fallbacks=["openai:gpt-5"],
+    )
+
+    with pytest.raises(TypeError, match="native model objects"):
+        Adapter().compile(spec)
 
 
 def test_adapter_compiles_and_runs_native_agent(monkeypatch) -> None:
