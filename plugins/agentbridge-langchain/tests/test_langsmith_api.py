@@ -530,6 +530,53 @@ def test_langsmith_platform_tool_registry_helpers_preserve_id_and_handle_paths()
     assert calls[3][1].endswith("/api/v1/platform/tools/refund_lookup")
 
 
+def test_langsmith_async_auth_tools_and_store_helpers_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        connection = await client.acreate_agent_connection(
+            "agent-1", body={"provider": "github", "scopes": ["repo"]}
+        )
+        connections = await client.alist_agent_connections("agent-1")
+        await client.aremove_agent_connection("agent-1", "connection-1")
+        tool = await client.acreate_tool(body={"handle": "refund_lookup"})
+        await client.alist_tools(query={"limit": 10})
+        await client.aget_tool_by_id("tool-1")
+        await client.aget_tool_by_handle("refund_lookup")
+        await client.aupdate_tool_by_id("tool-1", body={"enabled": True})
+        await client.aupdate_tool_by_handle("refund_lookup", body={"enabled": False})
+        await client.adelete_tool_by_id("tool-1")
+        await client.adelete_tool_by_handle("refund_lookup")
+        stored = await client.astore_put(namespace=["support"], key="customer-1", value={"tier": "gold"})
+        fetched = await client.astore_get(namespace=["support"], key="customer-1")
+        searched = await client.astore_search(namespace_prefix=["support"], query={"limit": 5})
+        await client.astore_delete(namespace=["support"], key="customer-1")
+        return connection, connections, tool, stored, fetched, searched
+
+    values = asyncio.run(collect())
+    assert values == ({"ok": True},) * 6
+    assert calls[0][1].endswith("/v2/auth/agents/agent-1/connections")
+    assert calls[3][1].endswith("/api/v1/platform/tools")
+    assert calls[4][1].endswith("/api/v1/platform/tools?limit=10")
+    assert calls[11][1].endswith("/store/items")
+    assert json.loads(calls[11][2]) == {
+        "namespace": ["support"],
+        "key": "customer-1",
+        "value": {"tier": "gold"},
+    }
+    assert calls[13][1].endswith("/store/items/search")
+    assert json.loads(calls[13][2]) == {"namespace_prefix": ["support"], "limit": 5}
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

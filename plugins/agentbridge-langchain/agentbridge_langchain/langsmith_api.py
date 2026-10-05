@@ -542,6 +542,119 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/api/v1/feedback/{feedback_id}")
 
+    async def acreate_agent_connection(
+        self,
+        agent_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Async create for an Agent Auth connection."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/v2/auth/agents/{agent_id}/connections",
+            body=dict(body),
+        )
+
+    async def alist_agent_connections(self, agent_id: str) -> Any:
+        """Async list for Agent Auth connections."""
+
+        return await self.arequest_json("GET", f"/v2/auth/agents/{agent_id}/connections")
+
+    async def aremove_agent_connection(self, agent_id: str, connection_id: str) -> Any:
+        """Async removal for one Agent Auth connection."""
+
+        return await self.arequest_json(
+            "DELETE",
+            f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
+        )
+
+    async def acreate_tool(self, *, body: Mapping[str, Any]) -> Any:
+        """Async create for a workspace platform tool."""
+
+        return await self.arequest_json("POST", "/api/v1/platform/tools", body=dict(body))
+
+    async def alist_tools(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async list for workspace platform tools."""
+
+        return await self.arequest_json("GET", "/api/v1/platform/tools", query=query)
+
+    async def aget_tool_by_id(self, tool_id: str) -> Any:
+        """Async fetch for a workspace tool by UUID."""
+
+        return await self.arequest_json("GET", f"/api/v1/platform/tools/id/{tool_id}")
+
+    async def aget_tool_by_handle(self, handle: str) -> Any:
+        """Async fetch for a workspace tool by handle."""
+
+        return await self.arequest_json("GET", f"/api/v1/platform/tools/{handle}")
+
+    async def aupdate_tool_by_id(self, tool_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async patch for a workspace tool by UUID."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"/api/v1/platform/tools/id/{tool_id}",
+            body=dict(body),
+        )
+
+    async def aupdate_tool_by_handle(self, handle: str, *, body: Mapping[str, Any]) -> Any:
+        """Async patch for a workspace tool by handle."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"/api/v1/platform/tools/{handle}",
+            body=dict(body),
+        )
+
+    async def adelete_tool_by_id(self, tool_id: str) -> Any:
+        """Async deletion for a workspace tool by UUID."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/platform/tools/id/{tool_id}")
+
+    async def adelete_tool_by_handle(self, handle: str) -> Any:
+        """Async deletion for a workspace tool by handle."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/platform/tools/{handle}")
+
+    async def astore_put(self, *, namespace: list[str], key: str, value: Any) -> Any:
+        """Async write for a long-term memory item."""
+
+        return await self.arequest_json(
+            "PUT",
+            "/store/items",
+            body={"namespace": namespace, "key": key, "value": value},
+        )
+
+    async def astore_get(self, *, namespace: list[str], key: str) -> Any:
+        """Async retrieve for a long-term memory item."""
+
+        return await self.arequest_json(
+            "GET",
+            "/store/items",
+            query={"namespace": namespace, "key": key},
+        )
+
+    async def astore_search(
+        self,
+        *,
+        namespace_prefix: list[str],
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async search for long-term memory items."""
+
+        body = {"namespace_prefix": namespace_prefix, **dict(query or {})}
+        return await self.arequest_json("POST", "/store/items/search", body=body)
+
+    async def astore_delete(self, *, namespace: list[str], key: str) -> Any:
+        """Async deletion for a long-term memory item."""
+
+        return await self.arequest_json(
+            "DELETE",
+            "/store/items",
+            query={"namespace": namespace, "key": key},
+        )
+
     async def acreate_run_wait(self, *, body: Mapping[str, Any]) -> Any:
         """Async stateless run that waits for final output."""
 
