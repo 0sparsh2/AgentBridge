@@ -207,6 +207,56 @@ class LangSmithAPIClient:
             body={"metadata": dict(metadata or {})},
         )
 
+    async def adelete_thread(self, thread_id: str) -> Any:
+        """Async deletion for a deployment thread."""
+
+        return await self.arequest_json("DELETE", f"/threads/{thread_id}")
+
+    async def athread_history(self, thread_id: str, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async read for a deployment thread history."""
+
+        return await self.arequest_json("POST", f"/threads/{thread_id}/history", body=dict(body or {}))
+
+    async def aget_thread_history(self, thread_id: str, *, limit: int | None = None) -> Any:
+        """Async GET convenience read for thread history."""
+
+        return await self.arequest_json("GET", f"/threads/{thread_id}/history", query={"limit": limit})
+
+    async def ajoin_thread_stream(
+        self,
+        thread_id: str,
+        *,
+        stream_modes: str | list[str] | None = None,
+        last_event_id: str | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async subscribe to the SSE stream for all runs on a thread."""
+
+        query: dict[str, Any] = {}
+        if stream_modes is not None:
+            query["stream_modes"] = stream_modes
+        headers = {"Last-Event-ID": last_event_id} if last_event_id is not None else None
+        async for event in self.astream_events(
+            "GET",
+            f"/threads/{thread_id}/stream",
+            query=query,
+            headers=headers,
+        ):
+            yield event
+
+    async def aresolve_interrupt(self, thread_id: str) -> Any:
+        """Async resolve for a paused human-in-the-loop thread."""
+
+        return await self.arequest_json("POST", f"/threads/{thread_id}/resolve-interrupt")
+
+    async def aprune_threads(self, *, thread_ids: list[str], strategy: str) -> Any:
+        """Async prune for thread checkpoints or threads."""
+
+        return await self.arequest_json(
+            "POST",
+            "/threads/prune",
+            body={"thread_ids": thread_ids, "strategy": strategy},
+        )
+
     async def asearch_threads(self, *, body: Mapping[str, Any] | None = None) -> Any:
         """Async thread search using native Agent Server filters."""
 
@@ -326,6 +376,31 @@ class LangSmithAPIClient:
             f"/threads/{thread_id}/state",
             query={"checkpoint_id": checkpoint_id},
         )
+
+    async def aget_thread_state_at_checkpoint(
+        self,
+        thread_id: str,
+        checkpoint_id: str,
+        *,
+        subgraphs: bool | None = None,
+    ) -> Any:
+        """Async read for state at a specific checkpoint."""
+
+        return await self.arequest_json(
+            "GET",
+            f"/threads/{thread_id}/state/{checkpoint_id}",
+            query={"subgraphs": subgraphs},
+        )
+
+    async def aget_thread_state_at_checkpoint_body(
+        self,
+        thread_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Async checkpoint-state read using the native POST payload."""
+
+        return await self.arequest_json("POST", f"/threads/{thread_id}/state/checkpoint", body=dict(body))
 
     async def aupdate_thread_state(
         self,
@@ -846,6 +921,31 @@ class LangSmithAPIClient:
         """Async stateless run that returns without waiting."""
 
         return await self.arequest_json("POST", "/runs", body=dict(body))
+
+    async def asearch_runs(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async search for deployment runs."""
+
+        return await self.arequest_json("POST", "/runs/search", body=dict(body or {}))
+
+    async def ahealth_check(self, *, check_db: bool = False) -> Any:
+        """Async Agent Server health check."""
+
+        return await self.arequest_json("GET", "/ok", query={"check_db": int(check_db)})
+
+    async def aserver_info(self) -> Any:
+        """Async fetch for Agent Server version and feature metadata."""
+
+        return await self.arequest_json("GET", "/info")
+
+    async def aapi_documentation(self) -> Any:
+        """Async fetch for Agent Server API documentation."""
+
+        return await self.arequest_json("GET", "/docs")
+
+    async def asystem_metrics(self, *, format: str = "prometheus") -> Any:
+        """Async fetch for Agent Server metrics."""
+
+        return await self.arequest_json("GET", "/metrics", query={"format": format})
 
     async def acancel_run(self, thread_id: str, run_id: str) -> Any:
         """Async request to cancel one active deployment run."""

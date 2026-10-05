@@ -111,6 +111,56 @@ def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     assert calls[-1][1].endswith("/api/v1/feedback")
 
 
+def test_langsmith_async_thread_checkpoint_and_system_helpers_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        if headers.get("Accept") == "text/event-stream":
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"run"}\n\ndata: [DONE]\n'
+        if url.endswith("/metrics?format=prometheus"):
+            return 200, {"content-type": "text/plain"}, b"agent_runs_total 1\n"
+        if url.endswith("/docs"):
+            return 200, {"content-type": "text/html"}, b"<html>docs</html>"
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        history = await client.athread_history("thread-1", body={"limit": 1})
+        history_get = await client.aget_thread_history("thread-1", limit=2)
+        stream = [
+            event
+            async for event in client.ajoin_thread_stream(
+                "thread-1", stream_modes=["lifecycle"], last_event_id="7"
+            )
+        ]
+        resolved = await client.aresolve_interrupt("thread-1")
+        pruned = await client.aprune_threads(thread_ids=["thread-1"], strategy="keep_latest")
+        checkpoint = await client.aget_thread_state_at_checkpoint("thread-1", "checkpoint-1", subgraphs=True)
+        checkpoint_body = await client.aget_thread_state_at_checkpoint_body(
+            "thread-1", body={"checkpoint": {"checkpoint_id": "checkpoint-1"}}
+        )
+        searched = await client.asearch_runs(body={"assistant_id": "agent"})
+        health = await client.ahealth_check(check_db=True)
+        info = await client.aserver_info()
+        docs = await client.aapi_documentation()
+        metrics = await client.asystem_metrics()
+        return history, history_get, stream, resolved, pruned, checkpoint, checkpoint_body, searched, health, info, docs, metrics
+
+    values = asyncio.run(collect())
+    assert all(value == {"ok": True} for value in values[:2] + values[3:10])
+    assert values[2] == [{"event": "run"}]
+    assert values[10] == b"<html>docs</html>"
+    assert values[11] == b"agent_runs_total 1\n"
+    assert calls[0][1].endswith("/threads/thread-1/history")
+    assert calls[1][1].endswith("/threads/thread-1/history?limit=2")
+    assert calls[2][1].endswith("/threads/thread-1/stream?stream_modes=lifecycle")
+    assert calls[2][2]["Last-Event-ID"] == "7"
+    assert any(url.endswith("/threads/thread-1/state/checkpoint-1?subgraphs=True") for _, url, _, _ in calls)
+    assert any(url.endswith("/ok?check_db=1") for _, url, _, _ in calls)
+
+
 def test_langsmith_async_assistant_and_run_lifecycle_preserves_native_paths():
     calls = []
 

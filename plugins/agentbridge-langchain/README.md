@@ -66,8 +66,9 @@ AgentBridge adapter plugin for `langchain`.
 - Async LangSmith data-plane facades cover dataset and example CRUD, cursor iteration, and full
   feedback retrieval/update/deletion alongside the existing feedback creation helper.
 - Async LangSmith typed facades cover assistant CRUD/introspection/version selection, thread
-  creation/search/state updates/copying, thread-run inspection/join/cancellation, stateless runs,
-  feedback, A2A JSON-RPC, MCP, cron scheduling, and the existing SSE stream facade. The control
+  creation/search/history/state/checkpoint updates/copying, thread-run inspection/join/cancellation,
+  interrupt resolution, pruning, stateless runs, health/info/docs/metrics, feedback, A2A JSON-RPC, MCP,
+  cron scheduling, and the existing SSE stream facade. The control
   plane client also exposes async deployment/revision, logs, tier, and listener lifecycles while
   retaining the workspace tenant header.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
