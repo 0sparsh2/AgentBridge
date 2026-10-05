@@ -1305,11 +1305,39 @@ class LangSmithAPIClient:
         score: float | None = None,
         value: Any | None = None,
         comment: str | None = None,
+        trace_id: str | None = None,
+        correction: Any | None = None,
+        source_info: Mapping[str, Any] | None = None,
+        feedback_id: str | None = None,
+        source_run_id: str | None = None,
+        feedback_group_id: str | None = None,
+        comparative_experiment_id: str | None = None,
+        session_id: str | None = None,
+        extra: Mapping[str, Any] | None = None,
+        error: bool | None = None,
+        feedback_source_type: str | None = None,
+        extend_trace_retention: bool | None = None,
     ) -> Any:
-        """Async attach of user or evaluator feedback to a run."""
+        """Async attach feedback while preserving native LangSmith fields."""
 
         body: dict[str, Any] = {"run_id": run_id, "key": key}
-        optional = {"score": score, "value": value, "comment": comment}
+        optional = {
+            "score": score,
+            "value": value,
+            "comment": comment,
+            "trace_id": trace_id,
+            "correction": correction,
+            "source_info": dict(source_info) if source_info is not None else None,
+            "id": feedback_id,
+            "source_run_id": source_run_id,
+            "feedback_group_id": feedback_group_id,
+            "comparative_experiment_id": comparative_experiment_id,
+            "session_id": session_id,
+            "extra": dict(extra) if extra is not None else None,
+            "error": error,
+            "feedback_source_type": feedback_source_type,
+            "extend_trace_retention": extend_trace_retention,
+        }
         body.update({name: item for name, item in optional.items() if item is not None})
         return await self.arequest_json("POST", "/api/v1/feedback", body=body)
 
@@ -2078,8 +2106,18 @@ class LangSmithAPIClient:
         comment: str | None = None,
         correction: Any | None = None,
         source_info: Mapping[str, Any] | None = None,
+        trace_id: str | None = None,
+        feedback_id: str | None = None,
+        source_run_id: str | None = None,
+        feedback_group_id: str | None = None,
+        comparative_experiment_id: str | None = None,
+        session_id: str | None = None,
+        extra: Mapping[str, Any] | None = None,
+        error: bool | None = None,
+        feedback_source_type: str | None = None,
+        extend_trace_retention: bool | None = None,
     ) -> Any:
-        """Attach user or evaluator feedback to a LangSmith run."""
+        """Attach feedback while preserving native LangSmith fields."""
 
         body: dict[str, Any] = {"run_id": run_id, "key": key}
         optional = {
@@ -2088,6 +2126,16 @@ class LangSmithAPIClient:
             "comment": comment,
             "correction": correction,
             "source_info": dict(source_info) if source_info is not None else None,
+            "trace_id": trace_id,
+            "id": feedback_id,
+            "source_run_id": source_run_id,
+            "feedback_group_id": feedback_group_id,
+            "comparative_experiment_id": comparative_experiment_id,
+            "session_id": session_id,
+            "extra": dict(extra) if extra is not None else None,
+            "error": error,
+            "feedback_source_type": feedback_source_type,
+            "extend_trace_retention": extend_trace_retention,
         }
         body.update({name: item for name, item in optional.items() if item is not None})
         return self.request_json("POST", "/api/v1/feedback", body=body)

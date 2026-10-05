@@ -393,6 +393,55 @@ def test_langsmith_feedback_config_and_presigned_token_lifecycle_preserves_paths
     assert calls[5][1].endswith("/api/v1/feedback/tokens?run_id=run-1&limit=5")
 
 
+def test_langsmith_feedback_creation_preserves_native_correlation_and_governance_fields():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, url
+        calls.append(json.loads(body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", transport=transport)
+    fields = {
+        "trace_id": "trace-1",
+        "correction": {"answer": "approved"},
+        "feedback_id": "feedback-1",
+        "source_run_id": "evaluator-run-1",
+        "feedback_group_id": "group-1",
+        "comparative_experiment_id": "experiment-1",
+        "session_id": "session-1",
+        "extra": {"channel": "web"},
+        "error": False,
+        "feedback_source_type": "model",
+        "extend_trace_retention": True,
+        "source_info": {"reviewer": "human"},
+    }
+    client.create_feedback(run_id="run-1", key="quality", score=0.9, **fields)
+
+    async def create_async():
+        await client.acreate_feedback(run_id="run-1", key="quality", score=0.9, **fields)
+
+    asyncio.run(create_async())
+    assert calls[0] == calls[1]
+    assert calls[0] == {
+        "run_id": "run-1",
+        "key": "quality",
+        "score": 0.9,
+        "trace_id": "trace-1",
+        "correction": {"answer": "approved"},
+        "id": "feedback-1",
+        "source_run_id": "evaluator-run-1",
+        "feedback_group_id": "group-1",
+        "comparative_experiment_id": "experiment-1",
+        "session_id": "session-1",
+        "extra": {"channel": "web"},
+        "error": False,
+        "feedback_source_type": "model",
+        "extend_trace_retention": True,
+        "source_info": {"reviewer": "human"},
+    }
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 

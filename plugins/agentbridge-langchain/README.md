@@ -65,6 +65,8 @@ AgentBridge adapter plugin for `langchain`.
 - LangSmith feedback configuration CRUD and presigned browser feedback-token creation/listing are
   available through typed sync and async helpers; deprecated composite feedback formulas remain
   intentionally native-only.
+- LangSmith feedback creation now preserves native trace/session correlation, evaluator/source
+  metadata, corrections, grouping, comparative experiments, retention, and error fields.
 - Async LangSmith governance helpers cover Agent Auth connections, platform tool registry CRUD by
   ID or handle, and long-term store put/get/search/delete operations.
 - Async Fleet and Deep Agents helpers cover agent/thread CRUD, cursor iteration, MCP-server
