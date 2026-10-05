@@ -279,7 +279,9 @@ through `create_run_wait()`, native SSE through `create_run_stream()`, and batch
 `create_run_batch()`. Scheduled execution is covered by `create_cron()`,
 `create_thread_cron()`, `search_crons()`, `count_crons()`, `get_cron()`, `update_cron()`, and
 `delete_cron()`; native request bodies are preserved so fields such as context, durability,
-stream modes, webhooks, interrupts, and completion policy are not discarded.
+stream modes, webhooks, interrupts, and completion policy are not discarded. Agent-to-Agent
+JSON-RPC and stateless MCP transport are available through `a2a_json_rpc()`, `a2a_stream()`,
+`mcp_get()`, `mcp_post()`, and `mcp_terminate()`.
 
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
 `RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing

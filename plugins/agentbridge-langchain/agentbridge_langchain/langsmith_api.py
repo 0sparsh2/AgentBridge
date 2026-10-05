@@ -359,6 +359,47 @@ class LangSmithAPIClient:
 
         return self.request_json("POST", "/runs/batch", body=dict(body))
 
+    def a2a_json_rpc(
+        self,
+        assistant_id: str,
+        *,
+        body: Mapping[str, Any],
+        accept: str = "application/json",
+    ) -> Any:
+        """Send a JSON-RPC request to a LangSmith Agent-to-Agent endpoint."""
+
+        return self.request_json(
+            "POST",
+            f"/a2a/{assistant_id}",
+            body=dict(body),
+            headers={"Accept": accept},
+        )
+
+    def a2a_stream(self, assistant_id: str, *, body: Mapping[str, Any]) -> Iterator[dict[str, Any]]:
+        """Stream JSON-RPC events from a LangSmith Agent-to-Agent endpoint."""
+
+        return self.stream_events("POST", f"/a2a/{assistant_id}", body=dict(body))
+
+    def mcp_get(self) -> Any:
+        """Open the stateless streamable-HTTP MCP endpoint."""
+
+        return self.request_json("GET", "/mcp/")
+
+    def mcp_post(
+        self,
+        *,
+        body: Mapping[str, Any],
+        accept: str = "application/json",
+    ) -> Any:
+        """Send a JSON-RPC request to the stateless MCP endpoint."""
+
+        return self.request_json("POST", "/mcp/", body=dict(body), headers={"Accept": accept})
+
+    def mcp_terminate(self) -> Any:
+        """Terminate an MCP session when the deployment exposes session state."""
+
+        return self.request_json("DELETE", "/mcp/")
+
     def create_cron(self, *, body: Mapping[str, Any]) -> Any:
         """Schedule stateless runs on a new thread for each execution."""
 

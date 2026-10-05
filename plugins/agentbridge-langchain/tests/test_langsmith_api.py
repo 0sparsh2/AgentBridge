@@ -177,6 +177,47 @@ def test_langsmith_stateless_runs_and_cron_lifecycle_paths():
     assert calls[-1][1].endswith("/runs/crons/cron-1")
 
 
+def test_langsmith_protocol_helpers_preserve_a2a_and_mcp_native_shapes():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        if method == "DELETE":
+            return 204, {}, b""
+        return 200, {"content-type": "application/json"}, b'{"jsonrpc":"2.0","result":{}}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    rpc = {"jsonrpc": "2.0", "id": 1, "method": "message/send", "params": {"message": {}}}
+    assert client.a2a_json_rpc("assistant-1", body=rpc) == {"jsonrpc": "2.0", "result": {}}
+    assert client.mcp_get() == {"jsonrpc": "2.0", "result": {}}
+    assert client.mcp_post(body={"jsonrpc": "2.0", "id": 2, "method": "initialize"}) == {
+        "jsonrpc": "2.0",
+        "result": {},
+    }
+    assert client.mcp_terminate() is None
+
+    assert calls[0][0:2] == ("POST", "https://example.test/a2a/assistant-1")
+    assert calls[0][2]["Accept"] == "application/json"
+    assert json.loads(calls[0][3]) == rpc
+    assert calls[1][0:2] == ("GET", "https://example.test/mcp/")
+    assert calls[2][2]["Accept"] == "application/json"
+    assert calls[3][0:2] == ("DELETE", "https://example.test/mcp/")
+
+
+def test_langsmith_protocol_helpers_stream_a2a_json_rpc_events():
+    def transport(method, url, headers, body):
+        assert method == "POST"
+        assert url.endswith("/a2a/assistant-1")
+        assert headers["Accept"] == "text/event-stream"
+        assert json.loads(body)["method"] == "message/stream"
+        return 200, {"content-type": "text/event-stream"}, b'data: {"event":"task"}\n\ndata: [DONE]\n'
+
+    client = LangSmithAPIClient(api_key="secret", transport=transport)
+    assert list(client.a2a_stream("assistant-1", body={"method": "message/stream"})) == [
+        {"event": "task"}
+    ]
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 
