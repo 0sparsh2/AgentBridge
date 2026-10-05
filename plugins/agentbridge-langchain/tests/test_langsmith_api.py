@@ -248,6 +248,55 @@ def test_langsmith_agent_server_thread_and_system_helpers_preserve_native_paths(
     assert calls[5][1].endswith("/metrics?format=prometheus")
 
 
+def test_langsmith_dataset_and_example_helpers_preserve_native_shapes():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if "/datasets?" in url and "cursor=next" in url:
+            payload = {"datasets": [{"id": "dataset-2"}]}
+        elif "/datasets?" in url:
+            payload = {"datasets": [{"id": "dataset-1"}], "next_cursor": "next"}
+        else:
+            payload = {"ok": True}
+        return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    assert client.create_dataset(
+        name="refunds",
+        description="Refund cases",
+        data_type="kv",
+        metadata={"team": "support"},
+    ) == {"ok": True}
+    assert client.create_example(
+        dataset_id="dataset-1",
+        inputs={"question": "double charged"},
+        outputs={"eligible": True},
+        metadata={"source": "fixture"},
+        example_id="example-1",
+        name="Double charge",
+    ) == {"ok": True}
+    assert list(client.iter_datasets(query={"name": "refunds"})) == [
+        {"id": "dataset-1"},
+        {"id": "dataset-2"},
+    ]
+    assert client.get_dataset("dataset-1") == {"ok": True}
+    assert client.update_dataset("dataset-1", body={"description": "Updated"}) == {"ok": True}
+    assert client.delete_dataset("dataset-1") == {"ok": True}
+    assert client.list_examples(query={"dataset_id": "dataset-1"}) == {"ok": True}
+    assert client.get_example("example-1") == {"ok": True}
+    assert client.update_example("example-1", body={"metadata": {"reviewed": True}}) == {"ok": True}
+    assert client.delete_example("example-1") == {"ok": True}
+
+    create_body = json.loads(calls[0][2])
+    example_body = json.loads(calls[1][2])
+    assert create_body["metadata"] == {"team": "support"}
+    assert example_body["outputs"] == {"eligible": True}
+    assert calls[2][1].endswith("/datasets?name=refunds")
+    assert calls[3][1].endswith("/datasets?name=refunds&cursor=next")
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

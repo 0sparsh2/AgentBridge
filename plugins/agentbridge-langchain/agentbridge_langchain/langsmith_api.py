@@ -571,6 +571,129 @@ class LangSmithAPIClient:
 
         return self.request_json("DELETE", f"/threads/{thread_id}/runs/{run_id}")
 
+    def create_dataset(
+        self,
+        *,
+        name: str,
+        description: str | None = None,
+        data_type: str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Create a LangSmith dataset without requiring the LangSmith SDK."""
+
+        body: dict[str, Any] = {"name": name}
+        optional = {
+            "description": description,
+            "data_type": data_type,
+            "metadata": dict(metadata) if metadata is not None else None,
+        }
+        body.update({key: value for key, value in optional.items() if value is not None})
+        return self.request_json("POST", "/api/v1/datasets", body=body)
+
+    def list_datasets(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List datasets with native filter, pagination, and sorting fields."""
+
+        return self.request_json("GET", "/api/v1/datasets", query=query)
+
+    def iter_datasets(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate cursor-paginated datasets without dropping caller filters."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_datasets(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            items = page.get("datasets", page.get("items", [])) or []
+            for item in items:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor") or page.get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    def get_dataset(self, dataset_id: str) -> Any:
+        """Fetch one dataset by ID."""
+
+        return self.request_json("GET", f"/api/v1/datasets/{dataset_id}")
+
+    def update_dataset(self, dataset_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Update dataset metadata using native patch fields."""
+
+        return self.request_json("PATCH", f"/api/v1/datasets/{dataset_id}", body=dict(body))
+
+    def delete_dataset(self, dataset_id: str) -> Any:
+        """Delete one dataset and its examples."""
+
+        return self.request_json("DELETE", f"/api/v1/datasets/{dataset_id}")
+
+    def create_example(
+        self,
+        *,
+        dataset_id: str,
+        inputs: Mapping[str, Any],
+        outputs: Mapping[str, Any] | None = None,
+        metadata: Mapping[str, Any] | None = None,
+        example_id: str | None = None,
+        name: str | None = None,
+    ) -> Any:
+        """Create one dataset example with optional reference output and metadata."""
+
+        body: dict[str, Any] = {"dataset_id": dataset_id, "inputs": dict(inputs)}
+        optional = {
+            "outputs": dict(outputs) if outputs is not None else None,
+            "metadata": dict(metadata) if metadata is not None else None,
+            "id": example_id,
+            "name": name,
+        }
+        body.update({key: value for key, value in optional.items() if value is not None})
+        return self.request_json("POST", "/api/v1/examples", body=body)
+
+    def list_examples(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List dataset examples with native query fields."""
+
+        return self.request_json("GET", "/api/v1/examples", query=query)
+
+    def iter_examples(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate cursor-paginated examples without dropping dataset filters."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_examples(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            items = page.get("examples", page.get("items", [])) or []
+            for item in items:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor") or page.get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    def get_example(self, example_id: str) -> Any:
+        """Fetch one dataset example by ID."""
+
+        return self.request_json("GET", f"/api/v1/examples/{example_id}")
+
+    def update_example(self, example_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Update an example's inputs, outputs, or metadata."""
+
+        return self.request_json("PATCH", f"/api/v1/examples/{example_id}", body=dict(body))
+
+    def delete_example(self, example_id: str) -> Any:
+        """Delete one dataset example."""
+
+        return self.request_json("DELETE", f"/api/v1/examples/{example_id}")
+
     def search_runs(self, *, body: Mapping[str, Any] | None = None) -> Any:
         """Search deployment runs using the native request body."""
 
