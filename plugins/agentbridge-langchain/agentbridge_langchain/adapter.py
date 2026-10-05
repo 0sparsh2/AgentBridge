@@ -602,7 +602,7 @@ def _context_kwargs(run_input: RunInput) -> dict[str, Any]:
 
 
 def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> dict[str, Any]:
-    config: dict[str, Any] = {}
+    config: dict[str, Any] = dict(compiled.config.get("runtime_config") or {})
     callbacks = callbacks_for_config(compiled.config)
     if callbacks:
         config["callbacks"] = callbacks
@@ -613,7 +613,9 @@ def _runtime_config(compiled: CompiledLangChainAgent, run_input: RunInput) -> di
     )
     observability = compiled.config.get("observability", {})
     if run_input.session_id:
-        config["configurable"] = {"thread_id": run_input.session_id}
+        configurable = dict(config.get("configurable") or {})
+        configurable["thread_id"] = run_input.session_id
+        config["configurable"] = configurable
     tags = list(observability.get("tags", []))
     if tags:
         config["tags"] = tags
@@ -732,6 +734,7 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         "mcp_tools_count": len(config.get("mcp_tools") or []),
         "applied_native_options": applied_native_options,
         "native_options_count": len(config.get("native_options") or {}),
+        "runtime_config": _safe_summary(config.get("runtime_config") or {}),
     }
     if config.get("observability"):
         summary["observability"] = _safe_summary(config["observability"])

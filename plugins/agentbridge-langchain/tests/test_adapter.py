@@ -305,6 +305,12 @@ def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
             model="openai/gpt-5",
         ),
         callbacks=["langsmith"],
+        runtime_config={
+            "configurable": {"tenant": "acme"},
+            "max_concurrency": 4,
+            "recursion_limit": 25,
+            "run_id": "run-1",
+        },
         metadata={"owner": "support"},
     )
 
@@ -320,12 +326,15 @@ def test_adapter_preserves_runtime_config_metadata(monkeypatch) -> None:
 
     assert compiled.native_agent.last_config == {
         "callbacks": ["langsmith"],
-        "configurable": {"thread_id": "thread-1"},
+        "configurable": {"tenant": "acme", "thread_id": "thread-1"},
+        "max_concurrency": 4,
         "metadata": {
             "owner": "support",
             "request_id": "req-1",
             "session_id": "thread-1",
         },
+        "recursion_limit": 25,
+        "run_id": "run-1",
     }
     assert result.metadata["runtime_config"] == compiled.native_agent.last_config
     assert result.metadata["run_diagnostics"]["runtime_config"] == compiled.native_agent.last_config
@@ -537,6 +546,7 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
             "debug",
         ],
         "native_options_count": 1,
+        "runtime_config": {},
         "mcp_tools_count": 0,
         "retriever_tools_count": 0,
     }

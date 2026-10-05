@@ -37,6 +37,7 @@ class LangChainConfig(BaseModel):
     context_schema: Any | None = None
     transformers: list[Any] = Field(default_factory=list)
     debug: bool | None = None
+    runtime_config: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
     observability: dict[str, Any] = Field(default_factory=dict)
     agentcore: dict[str, Any] = Field(default_factory=dict)
@@ -73,6 +74,7 @@ class LangChainExtension(FrameworkExtension):
         context_schema: Any | None = None,
         transformers: list[Any] | None = None,
         debug: bool | None = None,
+        runtime_config: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
         observability: dict[str, Any] | None = None,
         agentcore: dict[str, Any] | None = None,
@@ -103,6 +105,7 @@ class LangChainExtension(FrameworkExtension):
             context_schema=context_schema,
             transformers=transformers or [],
             debug=debug,
+            runtime_config=runtime_config or {},
             metadata=metadata or {},
             observability=observability or {},
             agentcore=agentcore or {},
