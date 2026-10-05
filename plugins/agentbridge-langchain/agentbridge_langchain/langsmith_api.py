@@ -237,6 +237,11 @@ class LangSmithAPIClient:
 
         return self.request_json("POST", f"/threads/{thread_id}/history", body=dict(body or {}))
 
+    def get_thread_history(self, thread_id: str, *, limit: int | None = None) -> Any:
+        """Read thread history through the native GET convenience endpoint."""
+
+        return self.request_json("GET", f"/threads/{thread_id}/history", query={"limit": limit})
+
     def join_thread_stream(
         self,
         thread_id: str,

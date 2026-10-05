@@ -296,6 +296,7 @@ def test_langsmith_thread_pruning_and_checkpoint_state_helpers_preserve_native_p
 
     client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
     client.prune_threads(thread_ids=["thread-1"], strategy="keep_latest")
+    client.get_thread_history("thread-1", limit=2)
     client.get_thread_state_at_checkpoint("thread-1", "checkpoint-1", subgraphs=True)
     client.get_thread_state_at_checkpoint_body(
         "thread-1",
@@ -304,8 +305,9 @@ def test_langsmith_thread_pruning_and_checkpoint_state_helpers_preserve_native_p
 
     assert calls[0][0:2] == ("POST", "https://example.test/threads/prune")
     assert json.loads(calls[0][2]) == {"thread_ids": ["thread-1"], "strategy": "keep_latest"}
-    assert calls[1][1].endswith("/threads/thread-1/state/checkpoint-1?subgraphs=True")
-    assert calls[2][1].endswith("/threads/thread-1/state/checkpoint")
+    assert calls[1][1].endswith("/threads/thread-1/history?limit=2")
+    assert calls[2][1].endswith("/threads/thread-1/state/checkpoint-1?subgraphs=True")
+    assert calls[3][1].endswith("/threads/thread-1/state/checkpoint")
 
 
 def test_langsmith_agent_helpers_support_fleet_and_managed_deep_agents():
