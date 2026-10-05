@@ -72,6 +72,7 @@ class LangGraphAdapter(BackendAdapter):
                 "workflow.routing": "Enable via LangGraphExtension.config(route_on_context_key=..., routes=...).",
                 "observability.diagnostics": "Summarizes route, checkpointing, interrupts, tools, and normalized event counts.",
                 "observability.tracing": "Forwards callbacks, tags, metadata, and optional LangSmith/Langfuse configuration through LangGraph runtime config.",
+                "observability.runtime_config": "Forwards native RunnableConfig controls such as configurable, max_concurrency, recursion_limit, and run_id.",
                 "observability.raw": "Preserves native_graph and forwards native_options at graph compile time.",
             },
         )
@@ -721,11 +722,11 @@ class LangGraphAdapter(BackendAdapter):
         run_input: RunInput,
     ) -> dict[str, Any] | None:
         config = self._observability_config(compiled)
-        invoke_config: dict[str, Any] = {}
+        invoke_config: dict[str, Any] = dict(compiled.config.runtime_config)
         if compiled.config.enable_checkpointing or compiled.config.checkpointer is not None:
-            invoke_config["configurable"] = {
-                "thread_id": run_input.session_id or compiled.spec.name
-            }
+            configurable = dict(invoke_config.get("configurable", {}))
+            configurable["thread_id"] = run_input.session_id or compiled.spec.name
+            invoke_config["configurable"] = configurable
         callbacks = callbacks_for_config(config)
         if callbacks:
             invoke_config["callbacks"] = callbacks

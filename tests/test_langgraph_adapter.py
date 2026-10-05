@@ -140,6 +140,38 @@ def test_langgraph_adapter_passes_runtime_context_to_native_graph() -> None:
     assert result.output == {"tenant": "support"}
 
 
+def test_langgraph_adapter_preserves_native_runtime_config_and_session_identity() -> None:
+    class NativeGraph:
+        def invoke(self, payload, config=None):
+            assert payload["input"] == "A123"
+            assert config == {
+                "configurable": {"tenant": "acme", "thread_id": "session-1"},
+                "max_concurrency": 2,
+                "metadata": {"session_id": "session-1"},
+                "recursion_limit": 20,
+                "run_id": "run-1",
+            }
+            return {"output": {"status": "approved"}}
+
+    agent = LangGraphExtension.with_config(
+        AgentSpec(name="runtime_agent", instructions="Use runtime config.", model="openai/gpt-5"),
+        native_graph=NativeGraph(),
+        runtime_config={
+            "configurable": {"tenant": "acme"},
+            "max_concurrency": 2,
+            "recursion_limit": 20,
+            "run_id": "run-1",
+        },
+        enable_checkpointing=True,
+    )
+    result = LangGraphAdapter().run(
+        LangGraphAdapter().compile(agent),
+        RunInput(input="A123", session_id="session-1"),
+    )
+
+    assert result.output == {"status": "approved"}
+
+
 def test_langgraph_adapter_invokes_supplied_native_model() -> None:
     class FakeModel:
         def invoke(self, messages):
