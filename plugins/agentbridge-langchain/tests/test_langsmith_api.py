@@ -239,6 +239,43 @@ def test_langsmith_dataset_versions_splits_and_sharing_preserve_native_paths():
     assert calls[6][0:2] == ("DELETE", "https://example.test/api/v1/datasets/dataset-1/share")
 
 
+def test_langsmith_bulk_examples_shared_reads_and_openai_export_preserve_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    assert client.delete_examples(["example-1", "example-2"]) is None
+    client.delete_examples(["example-1"], hard_delete=True)
+    client.list_shared_examples("share-1", example_ids=["example-1"], limit=2)
+    client.read_dataset_openai_finetuning("dataset-1")
+
+    async def collect():
+        return (
+            await client.adelete_examples(["example-1", "example-2"]),
+            await client.adelete_examples(["example-1"], hard_delete=True),
+            await client.alist_shared_examples("share-1", example_ids=["example-1"], limit=2),
+            await client.aread_dataset_openai_finetuning("dataset-1"),
+        )
+
+    assert asyncio.run(collect()) == (None, {"ok": True}, {"ok": True}, {"ok": True})
+    assert calls[0][1].endswith(
+        "/api/v1/examples?example_ids=example-1&example_ids=example-2"
+    )
+    assert calls[1] == (
+        "POST",
+        "https://example.test/api/v1/platform/datasets/examples/delete",
+        {"example_ids": ["example-1"], "hard_delete": True},
+    )
+    assert calls[2][1].endswith("/api/v1/public/share-1/examples?id=example-1&limit=2")
+    assert calls[3][1].endswith("/api/v1/datasets/dataset-1/openai_ft")
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 

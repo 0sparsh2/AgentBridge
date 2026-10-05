@@ -53,6 +53,9 @@ AgentBridge adapter plugin for `langchain`.
   typed sync and async API-client helpers, preserving native comparison and sharing payloads.
 - LangSmith dataset version reads/diffs, split listing/updates, and public share/unshare lifecycle
   are also available through typed sync and async helpers.
+- LangSmith bulk example deletion, public shared-example reads, and OpenAI fine-tuning dataset
+  export are available through typed sync and async helpers; attachment-heavy multipart uploads
+  remain available through the generic transport escape hatch.
 - LangSmith Agent Auth connection create/list/remove operations through the dependency-free API
   client, preserving native connection payloads and agent-scoped paths.
 - LangSmith Fleet Agent Auth connection-token list/update/revoke operations are available through

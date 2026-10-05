@@ -730,6 +730,47 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/api/v1/examples/{example_id}")
 
+    async def adelete_examples(
+        self,
+        example_ids: list[str],
+        *,
+        hard_delete: bool = False,
+    ) -> Any:
+        """Async delete multiple examples, optionally using the hard-delete endpoint."""
+
+        if hard_delete:
+            return await self.arequest_json(
+                "POST",
+                "/api/v1/platform/datasets/examples/delete",
+                body={"example_ids": list(example_ids), "hard_delete": True},
+            )
+        return await self.arequest_json(
+            "DELETE", "/api/v1/examples", query={"example_ids": list(example_ids)}
+        )
+
+    async def alist_shared_examples(
+        self,
+        share_token: str,
+        *,
+        example_ids: list[str] | None = None,
+        limit: int | None = None,
+    ) -> Any:
+        """Async list examples from a public dataset share."""
+
+        query: dict[str, Any] = {}
+        if example_ids is not None:
+            query["id"] = list(example_ids)
+        if limit is not None:
+            query["limit"] = limit
+        return await self.arequest_json(
+            "GET", f"/api/v1/public/{share_token}/examples", query=query or None
+        )
+
+    async def aread_dataset_openai_finetuning(self, dataset_id: str) -> Any:
+        """Async download a dataset in OpenAI fine-tuning JSONL format."""
+
+        return await self.arequest_json("GET", f"/api/v1/datasets/{dataset_id}/openai_ft")
+
     async def alist_feedback(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async list for LangSmith feedback records."""
 
@@ -1835,6 +1876,42 @@ class LangSmithAPIClient:
         """Delete one dataset example."""
 
         return self.request_json("DELETE", f"/api/v1/examples/{example_id}")
+
+    def delete_examples(self, example_ids: list[str], *, hard_delete: bool = False) -> Any:
+        """Delete multiple examples, optionally using the hard-delete endpoint."""
+
+        if hard_delete:
+            return self.request_json(
+                "POST",
+                "/api/v1/platform/datasets/examples/delete",
+                body={"example_ids": list(example_ids), "hard_delete": True},
+            )
+        return self.request_json(
+            "DELETE", "/api/v1/examples", query={"example_ids": list(example_ids)}
+        )
+
+    def list_shared_examples(
+        self,
+        share_token: str,
+        *,
+        example_ids: list[str] | None = None,
+        limit: int | None = None,
+    ) -> Any:
+        """List examples from a public dataset share."""
+
+        query: dict[str, Any] = {}
+        if example_ids is not None:
+            query["id"] = list(example_ids)
+        if limit is not None:
+            query["limit"] = limit
+        return self.request_json(
+            "GET", f"/api/v1/public/{share_token}/examples", query=query or None
+        )
+
+    def read_dataset_openai_finetuning(self, dataset_id: str) -> Any:
+        """Download a dataset in OpenAI fine-tuning JSONL format."""
+
+        return self.request_json("GET", f"/api/v1/datasets/{dataset_id}/openai_ft")
 
     def search_runs(self, *, body: Mapping[str, Any] | None = None) -> Any:
         """Search deployment runs using the native request body."""
