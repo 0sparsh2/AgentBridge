@@ -218,6 +218,15 @@ class LangSmithAPIClient:
 
         return self.request_json("POST", "/threads/count", body=dict(body or {}))
 
+    def prune_threads(self, *, thread_ids: list[str], strategy: str) -> Any:
+        """Prune thread checkpoints or delete threads using the native strategy."""
+
+        return self.request_json(
+            "POST",
+            "/threads/prune",
+            body={"thread_ids": thread_ids, "strategy": strategy},
+        )
+
     def delete_thread(self, thread_id: str) -> Any:
         """Delete a deployment thread."""
 
@@ -483,6 +492,31 @@ class LangSmithAPIClient:
             f"/threads/{thread_id}/state",
             query={"checkpoint_id": checkpoint_id},
         )
+
+    def get_thread_state_at_checkpoint(
+        self,
+        thread_id: str,
+        checkpoint_id: str,
+        *,
+        subgraphs: bool | None = None,
+    ) -> Any:
+        """Read a thread's state at a specific checkpoint."""
+
+        return self.request_json(
+            "GET",
+            f"/threads/{thread_id}/state/{checkpoint_id}",
+            query={"subgraphs": subgraphs},
+        )
+
+    def get_thread_state_at_checkpoint_body(
+        self,
+        thread_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Read checkpoint state using the native POST checkpoint payload."""
+
+        return self.request_json("POST", f"/threads/{thread_id}/state/checkpoint", body=dict(body))
 
     def update_thread_state(self, thread_id: str, *, values: Any, as_node: str | None = None) -> Any:
         """Update remote graph state using native state-update fields."""

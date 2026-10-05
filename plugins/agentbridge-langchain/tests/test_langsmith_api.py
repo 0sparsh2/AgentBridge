@@ -286,6 +286,28 @@ def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store(
     )
 
 
+def test_langsmith_thread_pruning_and_checkpoint_state_helpers_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.prune_threads(thread_ids=["thread-1"], strategy="keep_latest")
+    client.get_thread_state_at_checkpoint("thread-1", "checkpoint-1", subgraphs=True)
+    client.get_thread_state_at_checkpoint_body(
+        "thread-1",
+        body={"checkpoint": {"checkpoint_id": "checkpoint-1"}, "subgraphs": False},
+    )
+
+    assert calls[0][0:2] == ("POST", "https://example.test/threads/prune")
+    assert json.loads(calls[0][2]) == {"thread_ids": ["thread-1"], "strategy": "keep_latest"}
+    assert calls[1][1].endswith("/threads/thread-1/state/checkpoint-1?subgraphs=True")
+    assert calls[2][1].endswith("/threads/thread-1/state/checkpoint")
+
+
 def test_langsmith_agent_helpers_support_fleet_and_managed_deep_agents():
     calls = []
 
