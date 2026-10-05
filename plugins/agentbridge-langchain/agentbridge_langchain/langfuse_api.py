@@ -197,6 +197,84 @@ class LangfuseAPIClient:
             headers={"x-langfuse-ingestion-version": ingestion_version},
         )
 
+    async def alist_observations(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query facade for Langfuse Observations API v2."""
+
+        return await self.arequest_json("GET", "/api/public/v2/observations", query=query)
+
+    async def aget_observation(
+        self,
+        observation_id: str,
+        *,
+        from_start_time: str,
+        to_start_time: str,
+        fields: str | None = None,
+    ) -> Any:
+        """Async current-v4 observation lookup preserving the filtered page shape."""
+
+        filter_value = json.dumps(
+            [{"type": "string", "column": "id", "operator": "=", "value": observation_id}],
+            separators=(",", ":"),
+        )
+        return await self.alist_observations(
+            query={
+                "filter": filter_value,
+                "fromStartTime": from_start_time,
+                "toStartTime": to_start_time,
+                "fields": fields,
+            }
+        )
+
+    async def alist_scores_v3(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query facade for typed Langfuse Scores API v3."""
+
+        return await self.arequest_json("GET", "/api/public/v3/scores", query=query)
+
+    async def aget_score(self, score_id: str, *, fields: str | None = None) -> Any:
+        """Async current-v4 score lookup."""
+
+        return await self.alist_scores_v3(query={"id": score_id, "fields": fields})
+
+    async def alist_experiments(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query facade for hosted experiment runs."""
+
+        return await self.arequest_json("GET", "/api/public/experiments", query=query)
+
+    async def alist_experiment_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query facade for experiment inputs, outputs, and scores."""
+
+        return await self.arequest_json("GET", "/api/public/experiment-items", query=query)
+
+    async def alist_datasets(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query facade for Langfuse Dataset API v2."""
+
+        return await self.arequest_json("GET", "/api/public/v2/datasets", query=query)
+
+    async def alist_dataset_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query facade for versioned dataset items."""
+
+        return await self.arequest_json("GET", "/api/public/dataset-items", query=query)
+
+    async def aiter_observations(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for Observations API v2."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_observations(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     async def astream_events(
         self,
         method: str,

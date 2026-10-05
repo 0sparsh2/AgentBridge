@@ -94,6 +94,46 @@ def test_langfuse_api_client_supports_async_json_and_sse_facades():
     assert otlp.startswith(b"data:")
 
 
+def test_langfuse_async_typed_queries_preserve_current_paths_and_cursors():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        if "/observations" in url and "cursor=next" not in url:
+            payload = {"data": [{"id": "observation-1"}], "meta": {"cursor": "next"}}
+        elif "/observations" in url:
+            payload = {"data": [{"id": "observation-2"}], "meta": {}}
+        else:
+            payload = {"data": []}
+        return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    async def collect():
+        observation = await client.alist_observations(query={"limit": 2})
+        lookup = await client.aget_observation(
+            "observation-1",
+            from_start_time="2026-01-01T00:00:00Z",
+            to_start_time="2026-01-02T00:00:00Z",
+        )
+        score = await client.alist_scores_v3(query={"dataType": "NUMERIC"})
+        experiment = await client.alist_experiments(query={"limit": 2})
+        items = await client.alist_dataset_items(query={"datasetName": "refunds"})
+        observations = [item async for item in client.aiter_observations(query={"limit": 1})]
+        return observation, lookup, score, experiment, items, observations
+
+    observation, lookup, score, experiment, items, observations = asyncio.run(collect())
+    assert observation["data"] == [{"id": "observation-1"}]
+    assert lookup["data"] == [{"id": "observation-1"}]
+    assert score == {"data": []}
+    assert experiment == {"data": []}
+    assert items == {"data": []}
+    assert observations == [{"id": "observation-1"}, {"id": "observation-2"}]
+    assert calls[0].endswith("/api/public/v2/observations?limit=2")
+    assert calls[2].endswith("/api/public/v3/scores?dataType=NUMERIC")
+
+
 def test_langfuse_trace_and_dataset_helpers_preserve_native_shapes():
     calls = []
 

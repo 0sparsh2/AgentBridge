@@ -74,6 +74,8 @@ AgentBridge adapter plugin for `langchain`.
   or version filters between pages.
 - Cursor-safe `iter_datasets()` and `iter_prompts()` support complete Langfuse evaluation and
   prompt-management exports without dropping caller filters.
+- Async Langfuse query facades cover observations, scores, experiments, datasets, and dataset items;
+  `aiter_observations()` preserves the current cursor contract.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
