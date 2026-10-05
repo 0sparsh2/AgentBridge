@@ -59,6 +59,8 @@ AgentBridge adapter plugin for `langchain`.
   handle, allowing AgentBridge tool definitions to be synchronized without the LangSmith SDK.
 - `publish_dataset()` supports both the optional native LangSmith SDK and the dependency-free
   `LangSmithAPIClient` dataset/example transport.
+- Async LangSmith data-plane facades cover dataset and example CRUD, cursor iteration, and full
+  feedback retrieval/update/deletion alongside the existing feedback creation helper.
 - Async LangSmith typed facades cover assistant CRUD/introspection/version selection, thread
   creation/search/state updates/copying, thread-run inspection/join/cancellation, stateless runs,
   feedback, A2A JSON-RPC, MCP, cron scheduling, and the existing SSE stream facade. The control

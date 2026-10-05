@@ -401,6 +401,147 @@ class LangSmithAPIClient:
             body=dict(body or {}),
         )
 
+    async def acreate_dataset(
+        self,
+        *,
+        name: str,
+        description: str | None = None,
+        data_type: str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async create for a LangSmith dataset."""
+
+        body: dict[str, Any] = {"name": name}
+        optional = {
+            "description": description,
+            "data_type": data_type,
+            "metadata": dict(metadata) if metadata is not None else None,
+        }
+        body.update({key: value for key, value in optional.items() if value is not None})
+        return await self.arequest_json("POST", "/api/v1/datasets", body=body)
+
+    async def alist_datasets(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async list for LangSmith datasets."""
+
+        return await self.arequest_json("GET", "/api/v1/datasets", query=query)
+
+    async def aiter_datasets(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for LangSmith datasets."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_datasets(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("datasets", page.get("items", [])) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor") or page.get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    async def aget_dataset(self, dataset_id: str) -> Any:
+        """Async fetch for one LangSmith dataset."""
+
+        return await self.arequest_json("GET", f"/api/v1/datasets/{dataset_id}")
+
+    async def aupdate_dataset(self, dataset_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async update for dataset metadata."""
+
+        return await self.arequest_json("PATCH", f"/api/v1/datasets/{dataset_id}", body=dict(body))
+
+    async def adelete_dataset(self, dataset_id: str) -> Any:
+        """Async deletion for one dataset and its examples."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/datasets/{dataset_id}")
+
+    async def acreate_example(
+        self,
+        *,
+        dataset_id: str,
+        inputs: Mapping[str, Any],
+        outputs: Mapping[str, Any] | None = None,
+        metadata: Mapping[str, Any] | None = None,
+        example_id: str | None = None,
+        name: str | None = None,
+    ) -> Any:
+        """Async create for one LangSmith dataset example."""
+
+        body: dict[str, Any] = {"dataset_id": dataset_id, "inputs": dict(inputs)}
+        optional = {
+            "outputs": dict(outputs) if outputs is not None else None,
+            "metadata": dict(metadata) if metadata is not None else None,
+            "id": example_id,
+            "name": name,
+        }
+        body.update({key: value for key, value in optional.items() if value is not None})
+        return await self.arequest_json("POST", "/api/v1/examples", body=body)
+
+    async def alist_examples(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async list for LangSmith dataset examples."""
+
+        return await self.arequest_json("GET", "/api/v1/examples", query=query)
+
+    async def aiter_examples(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for LangSmith examples."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_examples(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("examples", page.get("items", [])) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor") or page.get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    async def aget_example(self, example_id: str) -> Any:
+        """Async fetch for one LangSmith dataset example."""
+
+        return await self.arequest_json("GET", f"/api/v1/examples/{example_id}")
+
+    async def aupdate_example(self, example_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async update for one dataset example."""
+
+        return await self.arequest_json("PATCH", f"/api/v1/examples/{example_id}", body=dict(body))
+
+    async def adelete_example(self, example_id: str) -> Any:
+        """Async deletion for one dataset example."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/examples/{example_id}")
+
+    async def alist_feedback(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async list for LangSmith feedback records."""
+
+        return await self.arequest_json("GET", "/api/v1/feedback", query=query)
+
+    async def aget_feedback(self, feedback_id: str) -> Any:
+        """Async fetch for one feedback record."""
+
+        return await self.arequest_json("GET", f"/api/v1/feedback/{feedback_id}")
+
+    async def aupdate_feedback(self, feedback_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async update for one feedback record."""
+
+        return await self.arequest_json("PATCH", f"/api/v1/feedback/{feedback_id}", body=dict(body))
+
+    async def adelete_feedback(self, feedback_id: str) -> Any:
+        """Async deletion for one feedback record."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/feedback/{feedback_id}")
+
     async def acreate_run_wait(self, *, body: Mapping[str, Any]) -> Any:
         """Async stateless run that waits for final output."""
 

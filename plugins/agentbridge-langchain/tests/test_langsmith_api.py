@@ -157,6 +157,67 @@ def test_langsmith_async_assistant_and_run_lifecycle_preserves_native_paths():
     assert calls[-1][1].endswith("/threads/thread-1/runs/cancel")
 
 
+def test_langsmith_async_dataset_example_and_feedback_helpers_preserve_cursors():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if "/datasets?" in url:
+            payload = (
+                {"datasets": [{"id": "dataset-2"}]}
+                if "cursor=next" in url
+                else {"datasets": [{"id": "dataset-1"}], "next_cursor": "next"}
+            )
+        elif "/examples?" in url:
+            payload = (
+                {"examples": [{"id": "example-2"}]}
+                if "cursor=next" in url
+                else {"examples": [{"id": "example-1"}], "next_cursor": "next"}
+            )
+        else:
+            payload = {"ok": True}
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else json.dumps(payload).encode()
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        dataset = await client.acreate_dataset(name="refunds", metadata={"team": "support"})
+        datasets = [item async for item in client.aiter_datasets(query={"name": "refunds"})]
+        await client.aupdate_dataset("dataset-1", body={"description": "Updated"})
+        await client.adelete_dataset("dataset-1")
+        example = await client.acreate_example(
+            dataset_id="dataset-1",
+            inputs={"question": "double charged"},
+            outputs={"eligible": True},
+            example_id="example-1",
+        )
+        examples = [item async for item in client.aiter_examples(query={"dataset_id": "dataset-1"})]
+        await client.aupdate_example("example-1", body={"metadata": {"reviewed": True}})
+        await client.adelete_example("example-1")
+        feedback = await client.acreate_feedback(
+            run_id="run-1", key="quality", score=1, comment="Helpful"
+        )
+        listed = await client.alist_feedback(query={"run_id": "run-1"})
+        fetched = await client.aget_feedback("feedback-1")
+        await client.aupdate_feedback("feedback-1", body={"comment": "Updated"})
+        await client.adelete_feedback("feedback-1")
+        return dataset, datasets, example, examples, feedback, listed, fetched
+
+    values = asyncio.run(collect())
+    assert values[0] == {"ok": True}
+    assert [item["id"] for item in values[1]] == ["dataset-1", "dataset-2"]
+    assert values[2] == {"ok": True}
+    assert [item["id"] for item in values[3]] == ["example-1", "example-2"]
+    assert values[4:] == ({"ok": True},) * 3
+    assert calls[0][1].endswith("/api/v1/datasets")
+    assert calls[1][1].endswith("/api/v1/datasets?name=refunds")
+    assert calls[2][1].endswith("/api/v1/datasets?name=refunds&cursor=next")
+    assert calls[6][1].endswith("/api/v1/examples?dataset_id=dataset-1")
+    assert calls[7][1].endswith("/api/v1/examples?dataset_id=dataset-1&cursor=next")
+
+
 def test_langsmith_async_a2a_mcp_and_cron_helpers_preserve_native_paths():
     calls = []
 
