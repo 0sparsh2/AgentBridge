@@ -207,6 +207,67 @@ class LangGraphAdapter(BackendAdapter):
             raw=raw,
         )
 
+    async def arun(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
+        """Use LangGraph's native async invoke path when the graph exposes it."""
+
+        native_ainvoke = getattr(compiled.graph, "ainvoke", None)
+        if not callable(native_ainvoke):
+            return await super().arun(compiled, run_input)
+
+        invoke_config = self._invoke_config(compiled, run_input)
+        with langsmith_context(self._observability_config(compiled)):
+            raw = await native_ainvoke(
+                {
+                    "input": run_input.input,
+                    "context": run_input.context,
+                    "output": "",
+                    "tool_outputs": [],
+                    "route": "",
+                },
+                config=invoke_config,
+                **_context_kwargs(native_ainvoke, run_input.context),
+            )
+        raw = raw or {}
+        interrupt_state = self._interrupt_state(compiled, invoke_config)
+        output = raw.get("output", raw) if isinstance(raw, dict) else raw
+        if interrupt_state and not output:
+            output = {
+                "agent": compiled.spec.name,
+                "input": raw.get("input", run_input.input),
+                "interrupted": True,
+                "next": interrupt_state["next"],
+                "message": "LangGraph execution paused at an interrupt boundary.",
+            }
+        raw_mapping = raw if isinstance(raw, dict) else {"output": raw}
+        events = self._events_from_raw(raw_mapping, output, interrupt_state=interrupt_state)
+        metadata = {
+            "node_name": compiled.config.node_name,
+            "checkpointing": compiled.config.enable_checkpointing,
+            "route": raw_mapping.get("route", compiled.config.node_name),
+            "deployment": _deployment_summary(compiled.config),
+            "agentcore_memory_id": compiled.config.agentcore_memory_id,
+            "agentcore_store_namespace": compiled.config.agentcore_store_namespace,
+            "native_graph": compiled.config.native_graph is not None,
+            "native_options": _safe_summary(compiled.config.native_options),
+            "native_model": compiled.config.model is not None,
+            "custom_checkpointer": compiled.config.checkpointer is not None,
+            "custom_store": compiled.config.store is not None,
+            "custom_cache": compiled.config.cache is not None,
+            "async": True,
+            "run_diagnostics": self._run_diagnostics(raw_mapping, events, compiled, interrupt_state),
+        }
+        if interrupt_state:
+            metadata["interrupted"] = True
+            metadata["next"] = interrupt_state["next"]
+            metadata["checkpoint"] = interrupt_state.get("checkpoint")
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            metadata=metadata,
+            raw=raw,
+        )
+
     def resume(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
         if not compiled.config.enable_checkpointing:
             raise ValueError("LangGraph resume requires enable_checkpointing=True.")

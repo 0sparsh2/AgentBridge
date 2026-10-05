@@ -152,6 +152,29 @@ def test_langgraph_adapter_consumes_native_async_graph_stream() -> None:
     assert events[-1].data["output"] == {"status": "approved"}
 
 
+def test_langgraph_adapter_uses_native_async_invoke():
+    class FakeGraph:
+        async def ainvoke(self, payload, config=None, *, context=None):
+            assert payload["input"] == "A123"
+            assert config is None
+            assert context == {"tenant": "support"}
+            return {"output": {"status": "approved"}, "route": "native"}
+
+    spec = AgentSpec(name="refund_agent", instructions="Check refunds.", model="openai/gpt-5")
+    compiled = LangGraphCompiledAgent(spec=spec, graph=FakeGraph(), config=LangGraphConfig())
+
+    async def run():
+        return await LangGraphAdapter().arun(
+            compiled,
+            RunInput(input="A123", context={"tenant": "support"}),
+        )
+
+    result = asyncio.run(run())
+    assert result.output == {"status": "approved"}
+    assert result.metadata["async"] is True
+    assert result.metadata["route"] == "native"
+
+
 def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -> None:
     class FakeGraph:
         def stream(self, payload, config=None, **options):
