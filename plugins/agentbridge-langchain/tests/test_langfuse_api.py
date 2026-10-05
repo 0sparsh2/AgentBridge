@@ -134,6 +134,52 @@ def test_langfuse_async_typed_queries_preserve_current_paths_and_cursors():
     assert calls[2].endswith("/api/public/v3/scores?dataType=NUMERIC")
 
 
+def test_langfuse_async_lifecycle_helpers_preserve_payloads_and_current_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    async def collect():
+        prompt = await client.aget_prompt("refunds", label="production", prompt_type="text")
+        created_prompt = await client.acreate_prompt(
+            name="refunds",
+            prompt="Handle {input}",
+            prompt_type="text",
+            labels=["production"],
+        )
+        score = await client.acreate_score(
+            name="quality",
+            value=True,
+            trace_id="trace-1",
+            data_type="BOOLEAN",
+        )
+        dataset = await client.acreate_dataset(name="refunds", description="regression")
+        fetched_dataset = await client.aget_dataset("refunds", version="v1")
+        item = await client.acreate_dataset_item(
+            dataset_name="refunds",
+            input={"question": "double charge"},
+            expected_output={"eligible": True},
+            status="ACTIVE",
+        )
+        return prompt, created_prompt, score, dataset, fetched_dataset, item
+
+    assert asyncio.run(collect()) == ({"ok": True},) * 6
+    assert calls[0][1].endswith("/api/public/v2/prompts/refunds?label=production&type=text")
+    assert json.loads(calls[1][2])["labels"] == ["production"]
+    assert json.loads(calls[2][2]) == {
+        "name": "quality",
+        "value": True,
+        "traceId": "trace-1",
+        "dataType": "BOOLEAN",
+    }
+    assert calls[5][1].endswith("/api/public/dataset-items")
+
+
 def test_langfuse_trace_and_dataset_helpers_preserve_native_shapes():
     calls = []
 

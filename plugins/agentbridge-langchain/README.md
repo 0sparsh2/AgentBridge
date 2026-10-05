@@ -78,6 +78,8 @@ AgentBridge adapter plugin for `langchain`.
   prompt-management exports without dropping caller filters.
 - Async Langfuse query facades cover observations, scores, experiments, datasets, and dataset items;
   `aiter_observations()` preserves the current cursor contract.
+- Async Langfuse lifecycle facades cover prompt versions, typed scores, datasets, and dataset-item
+  upserts using the same current v2/v3 paths as synchronous helpers.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the

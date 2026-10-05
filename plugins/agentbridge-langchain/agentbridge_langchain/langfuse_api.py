@@ -275,6 +275,126 @@ class LangfuseAPIClient:
                 return
             page_query["cursor"] = cursor
 
+    async def aget_prompt(
+        self,
+        name: str,
+        *,
+        label: str | None = None,
+        version: int | None = None,
+        prompt_type: str | None = None,
+    ) -> Any:
+        """Async fetch for a Langfuse prompt version or label."""
+
+        query = {
+            key: value
+            for key, value in {
+                "label": label,
+                "version": version,
+                "type": prompt_type,
+            }.items()
+            if value is not None
+        }
+        return await self.arequest_json("GET", f"/api/public/v2/prompts/{name}", query=query)
+
+    async def acreate_prompt(
+        self,
+        *,
+        name: str,
+        prompt: Any,
+        prompt_type: str,
+        labels: list[str] | None = None,
+        config: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async create for a Langfuse prompt version."""
+
+        body: dict[str, Any] = {"name": name, "prompt": prompt, "type": prompt_type}
+        if labels is not None:
+            body["labels"] = list(labels)
+        if config is not None:
+            body["config"] = dict(config)
+        return await self.arequest_json("POST", "/api/public/v2/prompts", body=body)
+
+    async def acreate_score(
+        self,
+        *,
+        name: str,
+        value: Any,
+        trace_id: str | None = None,
+        session_id: str | None = None,
+        observation_id: str | None = None,
+        dataset_run_id: str | None = None,
+        score_id: str | None = None,
+        data_type: str | None = None,
+        config_id: str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+        description: str | None = None,
+        source: str | None = None,
+        environment: str | None = None,
+        timestamp: str | None = None,
+        comment: str | None = None,
+    ) -> Any:
+        """Async create/upsert for a typed Langfuse score."""
+
+        body: dict[str, Any] = {"name": name, "value": value}
+        optional = {
+            "traceId": trace_id,
+            "sessionId": session_id,
+            "observationId": observation_id,
+            "datasetRunId": dataset_run_id,
+            "id": score_id,
+            "dataType": data_type,
+            "configId": config_id,
+            "metadata": dict(metadata) if metadata is not None else None,
+            "description": description,
+            "source": source,
+            "environment": environment,
+            "timestamp": timestamp,
+            "comment": comment,
+        }
+        body.update({key: item for key, item in optional.items() if item is not None})
+        return await self.arequest_json("POST", "/api/public/scores", body=body)
+
+    async def acreate_dataset(self, *, name: str, description: str | None = None) -> Any:
+        """Async create for a Langfuse dataset."""
+
+        body: dict[str, Any] = {"name": name}
+        if description is not None:
+            body["description"] = description
+        return await self.arequest_json("POST", "/api/public/v2/datasets", body=body)
+
+    async def aget_dataset(self, name: str, *, version: str | None = None) -> Any:
+        """Async fetch for a Langfuse dataset."""
+
+        query = {"version": version} if version is not None else None
+        return await self.arequest_json("GET", f"/api/public/v2/datasets/{name}", query=query)
+
+    async def acreate_dataset_item(
+        self,
+        *,
+        dataset_name: str,
+        input: Any = None,
+        expected_output: Any = None,
+        item_id: str | None = None,
+        metadata: Any = None,
+        source_trace_id: str | None = None,
+        source_observation_id: str | None = None,
+        status: str | None = None,
+    ) -> Any:
+        """Async create/upsert for a versioned Langfuse dataset item."""
+
+        body: dict[str, Any] = {"datasetName": dataset_name}
+        optional = {
+            "input": input,
+            "expectedOutput": expected_output,
+            "id": item_id,
+            "metadata": metadata,
+            "sourceTraceId": source_trace_id,
+            "sourceObservationId": source_observation_id,
+            "status": status,
+        }
+        body.update({key: item for key, item in optional.items() if item is not None})
+        return await self.arequest_json("POST", "/api/public/dataset-items", body=body)
+
     async def astream_events(
         self,
         method: str,
