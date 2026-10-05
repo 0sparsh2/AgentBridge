@@ -39,6 +39,11 @@ class BackendAdapter:
 
         raise NotImplementedError(f"{self.backend_name} does not implement resume().")
 
+    async def aresume(self, compiled: Any, run_input: RunInput) -> RunResult:
+        """Resume asynchronously; adapters may override with native async continuation."""
+
+        return await asyncio.to_thread(self.resume, compiled, run_input)
+
     def stream(self, compiled: Any, run_input: RunInput) -> Iterator[AgentEvent]:
         """Stream normalized events for a compiled agent."""
 

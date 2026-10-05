@@ -5,7 +5,7 @@ import asyncio
 import pytest
 from pydantic import BaseModel
 
-from agentbridge import AgentSpec, RunInput, ToolSpec, get_adapter, resume_agent
+from agentbridge import AgentSpec, RunInput, ToolSpec, aresume_agent, get_adapter, resume_agent
 from agentbridge.errors import MissingDependencyError
 from agentbridge.extensions.langgraph import LangGraphConfig, LangGraphExtension
 from agentbridge.adapters.langgraph import LangGraphAdapter, LangGraphCompiledAgent
@@ -173,6 +173,33 @@ def test_langgraph_adapter_uses_native_async_invoke():
     assert result.output == {"status": "approved"}
     assert result.metadata["async"] is True
     assert result.metadata["route"] == "native"
+
+
+def test_langgraph_adapter_uses_native_async_resume_and_public_runner():
+    class FakeGraph:
+        async def ainvoke(self, payload, config=None):
+            assert payload is None
+            assert config["configurable"]["thread_id"] == "session-1"
+            return {"output": {"status": "approved"}, "route": "resumed"}
+
+    spec = AgentSpec(name="refund_agent", instructions="Check refunds.", model="openai/gpt-5")
+    compiled = LangGraphCompiledAgent(
+        spec=spec,
+        graph=FakeGraph(),
+        config=LangGraphConfig(enable_checkpointing=True),
+    )
+
+    async def run():
+        return await aresume_agent(
+            compiled,
+            backend="langgraph",
+            input=RunInput(input="resume", session_id="session-1"),
+        )
+
+    result = asyncio.run(run())
+    assert result.output == {"status": "approved"}
+    assert result.metadata["resumed"] is True
+    assert result.metadata["async"] is True
 
 
 def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -> None:

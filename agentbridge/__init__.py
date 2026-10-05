@@ -39,7 +39,14 @@ from agentbridge.registry import (
     register_adapter,
     reset_adapters,
 )
-from agentbridge.runner import astream_agent, arun_agent, resume_agent, run_agent, stream_agent
+from agentbridge.runner import (
+    arun_agent,
+    aresume_agent,
+    astream_agent,
+    resume_agent,
+    run_agent,
+    stream_agent,
+)
 from agentbridge.tool_registry import (
     ToolRegistry,
     coerce_tool_registry,
@@ -89,6 +96,7 @@ __all__ = [
     "ToolSpec",
     "adapter_sources",
     "arun_agent",
+    "aresume_agent",
     "astream_agent",
     "capability_matrix",
     "coerce_tool_registry",

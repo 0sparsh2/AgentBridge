@@ -321,6 +321,63 @@ class LangGraphAdapter(BackendAdapter):
             raw=raw,
         )
 
+    async def aresume(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
+        """Continue a checkpointed graph through its native async invoke path."""
+
+        if not compiled.config.enable_checkpointing:
+            raise ValueError("LangGraph resume requires enable_checkpointing=True.")
+        native_ainvoke = getattr(compiled.graph, "ainvoke", None)
+        if not callable(native_ainvoke):
+            return await super().aresume(compiled, run_input)
+
+        invoke_config = self._invoke_config(compiled, run_input)
+        with langsmith_context(self._observability_config(compiled)):
+            raw = await native_ainvoke(
+                None,
+                config=invoke_config,
+                **_context_kwargs(native_ainvoke, run_input.context),
+            )
+        raw = raw or {}
+        interrupt_state = self._interrupt_state(compiled, invoke_config)
+        raw_mapping = raw if isinstance(raw, dict) else {"output": raw}
+        output = raw_mapping.get("output", raw_mapping)
+        if interrupt_state and not output:
+            output = {
+                "agent": compiled.spec.name,
+                "input": raw_mapping.get("input", run_input.input),
+                "interrupted": True,
+                "next": interrupt_state["next"],
+                "message": "LangGraph execution paused again at an interrupt boundary.",
+            }
+        events = self._events_from_raw(raw_mapping, output, interrupt_state=interrupt_state, resumed=True)
+        metadata = {
+            "node_name": compiled.config.node_name,
+            "checkpointing": True,
+            "route": raw_mapping.get("route", compiled.config.node_name),
+            "resumed": True,
+            "async": True,
+            "native_graph": compiled.config.native_graph is not None,
+            "native_options": _safe_summary(compiled.config.native_options),
+            "run_diagnostics": self._run_diagnostics(
+                raw_mapping,
+                events,
+                compiled,
+                interrupt_state,
+                resumed=True,
+            ),
+        }
+        if interrupt_state:
+            metadata["interrupted"] = True
+            metadata["next"] = interrupt_state["next"]
+            metadata["checkpoint"] = interrupt_state.get("checkpoint")
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            metadata=metadata,
+            raw=raw,
+        )
+
     def get_state(
         self,
         compiled: LangGraphCompiledAgent,
