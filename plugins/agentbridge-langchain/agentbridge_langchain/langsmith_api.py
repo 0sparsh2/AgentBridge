@@ -687,6 +687,27 @@ class LangSmithAPIClient:
             f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
         )
 
+    async def alist_connection_tokens(
+        self, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """Async list for Fleet Agent Auth connection tokens."""
+
+        return await self.arequest_json("GET", "/v1/fleet/auth-tokens", query=query)
+
+    async def aupdate_connection_token(
+        self, token_id: str, *, body: Mapping[str, Any]
+    ) -> Any:
+        """Async update for connection-token metadata such as label/default."""
+
+        return await self.arequest_json(
+            "PATCH", f"/v1/fleet/auth-tokens/{token_id}", body=dict(body)
+        )
+
+    async def arevoke_connection_token(self, token_id: str) -> Any:
+        """Async revoke for one Fleet Agent Auth connection token."""
+
+        return await self.arequest_json("DELETE", f"/v1/fleet/auth-tokens/{token_id}")
+
     async def acreate_tool(self, *, body: Mapping[str, Any]) -> Any:
         """Async create for a workspace platform tool."""
 
@@ -1725,6 +1746,23 @@ class LangSmithAPIClient:
             "DELETE",
             f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
         )
+
+    def list_connection_tokens(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List Fleet Agent Auth connection tokens."""
+
+        return self.request_json("GET", "/v1/fleet/auth-tokens", query=query)
+
+    def update_connection_token(self, token_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Update connection-token metadata such as label/default."""
+
+        return self.request_json(
+            "PATCH", f"/v1/fleet/auth-tokens/{token_id}", body=dict(body)
+        )
+
+    def revoke_connection_token(self, token_id: str) -> Any:
+        """Revoke one Fleet Agent Auth connection token."""
+
+        return self.request_json("DELETE", f"/v1/fleet/auth-tokens/{token_id}")
 
     def create_tool(self, *, body: Mapping[str, Any]) -> Any:
         """Create a workspace tool in the LangSmith platform registry."""

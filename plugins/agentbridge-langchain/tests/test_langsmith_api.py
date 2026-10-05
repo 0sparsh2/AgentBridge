@@ -137,6 +137,49 @@ def test_langsmith_dataset_delta_and_shared_examples_are_typed_sync_and_async():
     assert calls[3] == calls[1]
 
 
+def test_langsmith_connection_token_lifecycle_preserves_sync_and_async_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(
+        api_key="secret",
+        base_url="https://example.test",
+        transport=transport,
+    )
+    client.list_connection_tokens(query={"agent_id": "agent-1"})
+    client.update_connection_token(
+        "token-1", body={"label": "production", "is_default": True}
+    )
+    assert client.revoke_connection_token("token-1") is None
+
+    async def collect():
+        return (
+            await client.alist_connection_tokens(query={"agent_id": "agent-1"}),
+            await client.aupdate_connection_token(
+                "token-1", body={"label": "production", "is_default": True}
+            ),
+            await client.arevoke_connection_token("token-1"),
+        )
+
+    assert asyncio.run(collect()) == ({"ok": True}, {"ok": True}, None)
+    assert calls[0][1].endswith("/v1/fleet/auth-tokens?agent_id=agent-1")
+    assert calls[1] == (
+        "PATCH",
+        "https://example.test/v1/fleet/auth-tokens/token-1",
+        {"label": "production", "is_default": True},
+    )
+    assert calls[2][0:2] == (
+        "DELETE",
+        "https://example.test/v1/fleet/auth-tokens/token-1",
+    )
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 
