@@ -62,6 +62,15 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "observability",
             "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval.",
         }
+    if (
+        "/smith-api/feedback-configs/" in url
+        or ("/smith-api/feedback/" in url and "formula" not in lower)
+    ):
+        return {
+            "status": "extension",
+            "owner": "observability",
+            "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy.",
+        }
     if any(token in lower for token in ("/agent-server-api/", "/api-reference/", "/smith-api/", "openapi.json")):
         return {
             "status": "native_only",

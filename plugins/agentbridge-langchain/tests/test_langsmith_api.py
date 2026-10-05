@@ -336,6 +336,63 @@ def test_langsmith_annotation_queue_lifecycle_preserves_sync_and_async_paths():
     assert calls[5][1].endswith("/api/v1/annotation-queues/queue-1/runs/by-key")
 
 
+def test_langsmith_feedback_config_and_presigned_token_lifecycle_preserves_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.create_feedback_config(
+        "quality", feedback_config={"type": "continuous", "min": 0, "max": 1}
+    )
+    client.list_feedback_configs(query={"name_contains": "qual"})
+    client.update_feedback_config("quality", body={"is_lower_score_better": True})
+    assert client.delete_feedback_config("quality") is None
+    client.create_presigned_feedback_token(
+        "run-1", "quality", body={"expires_in": {"hours": 1}}
+    )
+    client.list_presigned_feedback_tokens("run-1", query={"limit": 5})
+
+    async def collect():
+        return (
+            await client.acreate_feedback_config(
+                "quality", feedback_config={"type": "continuous", "min": 0, "max": 1}
+            ),
+            await client.alist_feedback_configs(query={"name_contains": "qual"}),
+            await client.aupdate_feedback_config(
+                "quality", body={"is_lower_score_better": True}
+            ),
+            await client.adelete_feedback_config("quality"),
+            await client.acreate_presigned_feedback_token(
+                "run-1", "quality", body={"expires_in": {"hours": 1}}
+            ),
+            await client.alist_presigned_feedback_tokens("run-1", query={"limit": 5}),
+        )
+
+    assert asyncio.run(collect()) == (
+        {"ok": True},
+        {"ok": True},
+        {"ok": True},
+        None,
+        {"ok": True},
+        {"ok": True},
+    )
+    assert calls[0][2]["feedback_key"] == "quality"
+    assert calls[1][1].endswith("/api/v1/feedback-configs?name_contains=qual")
+    assert calls[3][1].endswith("/api/v1/feedback-configs?feedback_key=quality")
+    assert calls[4][2] == {
+        "run_id": "run-1",
+        "feedback_key": "quality",
+        "expires_in": {"hours": 1},
+    }
+    assert calls[5][1].endswith("/api/v1/feedback/tokens?run_id=run-1&limit=5")
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 

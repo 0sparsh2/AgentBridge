@@ -791,6 +791,67 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/api/v1/feedback/{feedback_id}")
 
+    async def acreate_feedback_config(
+        self,
+        feedback_key: str,
+        *,
+        feedback_config: Mapping[str, Any],
+        is_lower_score_better: bool = False,
+    ) -> Any:
+        """Async create a LangSmith feedback configuration."""
+
+        return await self.arequest_json(
+            "POST",
+            "/api/v1/feedback-configs",
+            body={
+                "feedback_key": feedback_key,
+                "feedback_config": dict(feedback_config),
+                "is_lower_score_better": is_lower_score_better,
+            },
+        )
+
+    async def alist_feedback_configs(
+        self, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """Async list LangSmith feedback configurations."""
+
+        return await self.arequest_json("GET", "/api/v1/feedback-configs", query=query)
+
+    async def aupdate_feedback_config(
+        self, feedback_key: str, *, body: Mapping[str, Any]
+    ) -> Any:
+        """Async update a LangSmith feedback configuration."""
+
+        payload = {"feedback_key": feedback_key, **dict(body)}
+        return await self.arequest_json("PATCH", "/api/v1/feedback-configs", body=payload)
+
+    async def adelete_feedback_config(self, feedback_key: str) -> Any:
+        """Async soft-delete a LangSmith feedback configuration."""
+
+        return await self.arequest_json(
+            "DELETE", "/api/v1/feedback-configs", query={"feedback_key": feedback_key}
+        )
+
+    async def acreate_presigned_feedback_token(
+        self,
+        run_id: str,
+        feedback_key: str,
+        *,
+        body: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async create a browser-safe presigned feedback ingest token."""
+
+        payload = {"run_id": run_id, "feedback_key": feedback_key, **dict(body or {})}
+        return await self.arequest_json("POST", "/api/v1/feedback/tokens", body=payload)
+
+    async def alist_presigned_feedback_tokens(
+        self, run_id: str, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """Async list presigned feedback tokens for a run."""
+
+        payload = {"run_id": run_id, **dict(query or {})}
+        return await self.arequest_json("GET", "/api/v1/feedback/tokens", query=payload)
+
     async def acreate_agent_connection(
         self,
         agent_id: str,
@@ -2054,6 +2115,63 @@ class LangSmithAPIClient:
         """Delete one feedback record."""
 
         return self.request_json("DELETE", f"/api/v1/feedback/{feedback_id}")
+
+    def create_feedback_config(
+        self,
+        feedback_key: str,
+        *,
+        feedback_config: Mapping[str, Any],
+        is_lower_score_better: bool = False,
+    ) -> Any:
+        """Create a LangSmith feedback configuration."""
+
+        return self.request_json(
+            "POST",
+            "/api/v1/feedback-configs",
+            body={
+                "feedback_key": feedback_key,
+                "feedback_config": dict(feedback_config),
+                "is_lower_score_better": is_lower_score_better,
+            },
+        )
+
+    def list_feedback_configs(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List LangSmith feedback configurations."""
+
+        return self.request_json("GET", "/api/v1/feedback-configs", query=query)
+
+    def update_feedback_config(self, feedback_key: str, *, body: Mapping[str, Any]) -> Any:
+        """Update a LangSmith feedback configuration."""
+
+        payload = {"feedback_key": feedback_key, **dict(body)}
+        return self.request_json("PATCH", "/api/v1/feedback-configs", body=payload)
+
+    def delete_feedback_config(self, feedback_key: str) -> Any:
+        """Soft-delete a LangSmith feedback configuration."""
+
+        return self.request_json(
+            "DELETE", "/api/v1/feedback-configs", query={"feedback_key": feedback_key}
+        )
+
+    def create_presigned_feedback_token(
+        self,
+        run_id: str,
+        feedback_key: str,
+        *,
+        body: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Create a browser-safe presigned feedback ingest token."""
+
+        payload = {"run_id": run_id, "feedback_key": feedback_key, **dict(body or {})}
+        return self.request_json("POST", "/api/v1/feedback/tokens", body=payload)
+
+    def list_presigned_feedback_tokens(
+        self, run_id: str, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """List presigned feedback tokens for a run."""
+
+        payload = {"run_id": run_id, **dict(query or {})}
+        return self.request_json("GET", "/api/v1/feedback/tokens", query=payload)
 
     def create_agent_connection(
         self,

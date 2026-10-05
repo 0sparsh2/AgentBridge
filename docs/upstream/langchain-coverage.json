@@ -7001,36 +7001,36 @@
       "title": "Create feedback config endpoint",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback-configs/delete-feedback-config-endpoint.md",
       "title": "Delete feedback config endpoint",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback-configs/list-feedback-configs-endpoint.md",
       "title": "List feedback configs endpoint",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback-configs/update-feedback-config-endpoint.md",
       "title": "Update feedback config endpoint",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/create-feedback-formula-ep.md",
@@ -7046,36 +7046,36 @@
       "title": "Create feedback ingest token",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/create-feedback-with-token-get.md",
       "title": "Create feedback with token get",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/create-feedback-with-token-post.md",
       "title": "Create feedback with token post",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/create-feedback.md",
       "title": "Create feedback",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/delete-feedback-formula-endpoint.md",
@@ -7091,9 +7091,9 @@
       "title": "Delete feedback",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/get-feedback-formula-ep.md",
@@ -7118,27 +7118,27 @@
       "title": "List feedback ingest tokens",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/read-feedback.md",
       "title": "Read feedback",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/read-feedbacks.md",
       "title": "Read feedbacks",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/feedback/update-feedback-formula-ep.md",
@@ -7154,9 +7154,9 @@
       "title": "Update feedback",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient feedback configuration and presigned-token helpers; deprecated composite formula APIs remain native-only by upstream policy."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/gateway-policies/create-a-gateway-policy.md",
