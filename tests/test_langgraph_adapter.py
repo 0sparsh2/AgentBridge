@@ -66,6 +66,32 @@ def test_langgraph_adapter_accepts_prebuilt_native_graph() -> None:
     assert result.metadata["native_options"] == {"stream_mode": "updates"}
 
 
+def test_langgraph_adapter_uses_native_sync_and_async_batch() -> None:
+    class NativeGraph:
+        def batch(self, payloads, config=None):
+            assert len(payloads) == len(config)
+            return [{"output": {"input": payload["input"]}} for payload in payloads]
+
+        async def abatch(self, payloads, config=None):
+            assert len(payloads) == len(config)
+            return [{"output": {"input": payload["input"]}} for payload in payloads]
+
+    agent = LangGraphExtension.with_config(
+        AgentSpec(name="batch_agent", instructions="Batch.", model="openai/gpt-5"),
+        native_graph=NativeGraph(),
+    )
+    adapter = LangGraphAdapter()
+    compiled = adapter.compile(agent)
+    inputs = [RunInput(input="one"), RunInput(input="two")]
+
+    results = adapter.batch(compiled, inputs)
+    async_results = asyncio.run(adapter.abatch(compiled, inputs))
+
+    assert [result.output for result in results] == [{"input": "one"}, {"input": "two"}]
+    assert [result.output for result in async_results] == [{"input": "one"}, {"input": "two"}]
+    assert all(result.metadata["batch"] is True for result in results + async_results)
+
+
 def test_langgraph_adapter_passes_runtime_context_to_native_graph() -> None:
     class NativeGraph:
         def invoke(self, payload, config=None, *, context=None):

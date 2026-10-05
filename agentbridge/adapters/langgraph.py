@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Iterable, Iterator
 from dataclasses import dataclass
 import inspect
 from typing import Any, TypedDict
@@ -44,6 +44,7 @@ class LangGraphAdapter(BackendAdapter):
                 "agent.model": "partial",
                 "tools.sync": "full",
                 "tools.async": "partial",
+                "execution.batch": "partial",
                 "structured_output": "full",
                 "workflow.graph": "full",
                 "workflow.routing": "extension",
@@ -62,6 +63,7 @@ class LangGraphAdapter(BackendAdapter):
                 "human_approval": "Interrupt state is reported when configured and checkpointed runs can resume through resume_agent().",
                 "agent.model": "Uses a supplied native model object when configured; otherwise retains deterministic graph output.",
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
+                "execution.batch": "Uses native graph batch/abatch when available and preserves ordered normalized results with a sequential fallback.",
                 "structured_output": "Deterministically validates graph output against AgentSpec.output_type/output_schema; use backend_config.custom_output_args for fixture data.",
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True) or forward native compile options.",
                 "state.time_travel": "Exposes native get_state, get_state_history, update_state, and checkpoint replay helpers.",
@@ -268,6 +270,90 @@ class LangGraphAdapter(BackendAdapter):
             metadata=metadata,
             raw=raw,
         )
+
+    def batch(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_inputs: Iterable[RunInput],
+    ) -> list[RunResult]:
+        """Use LangGraph's native batch invocation when the compiled graph exposes it."""
+
+        inputs = list(run_inputs)
+        native_batch = getattr(compiled.graph, "batch", None)
+        if not callable(native_batch):
+            return super().batch(compiled, inputs)
+        payloads = [_graph_input(run_input) for run_input in inputs]
+        configs = [self._invoke_config(compiled, run_input) for run_input in inputs]
+        with langsmith_context(self._observability_config(compiled)):
+            raws = native_batch(payloads, config=configs)
+        return [
+            self._normalize_batch_result(compiled, run_input, raw, config)
+            for run_input, raw, config in zip(inputs, raws, configs, strict=True)
+        ]
+
+    async def abatch(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_inputs: Iterable[RunInput],
+    ) -> list[RunResult]:
+        """Use LangGraph's native async batch invocation when available."""
+
+        inputs = list(run_inputs)
+        native_abatch = getattr(compiled.graph, "abatch", None)
+        if not callable(native_abatch):
+            return await super().abatch(compiled, inputs)
+        payloads = [_graph_input(run_input) for run_input in inputs]
+        configs = [self._invoke_config(compiled, run_input) for run_input in inputs]
+        with langsmith_context(self._observability_config(compiled)):
+            raws = await native_abatch(payloads, config=configs)
+        return [
+            self._normalize_batch_result(compiled, run_input, raw, config, async_run=True)
+            for run_input, raw, config in zip(inputs, raws, configs, strict=True)
+        ]
+
+    def _normalize_batch_result(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        raw: Any,
+        invoke_config: dict[str, Any],
+        *,
+        async_run: bool = False,
+    ) -> RunResult:
+        raw_mapping = raw if isinstance(raw, dict) else {"output": raw}
+        interrupt_state = self._interrupt_state(compiled, invoke_config)
+        output = raw_mapping.get("output", raw_mapping)
+        if interrupt_state and not output:
+            output = {
+                "agent": compiled.spec.name,
+                "input": raw_mapping.get("input", run_input.input),
+                "interrupted": True,
+                "next": interrupt_state["next"],
+                "message": "LangGraph execution paused at an interrupt boundary.",
+            }
+        events = self._events_from_raw(raw_mapping, output, interrupt_state=interrupt_state)
+        metadata = {
+            "node_name": compiled.config.node_name,
+            "checkpointing": compiled.config.enable_checkpointing,
+            "route": raw_mapping.get("route", compiled.config.node_name),
+            "deployment": _deployment_summary(compiled.config),
+            "agentcore_memory_id": compiled.config.agentcore_memory_id,
+            "agentcore_store_namespace": compiled.config.agentcore_store_namespace,
+            "native_graph": compiled.config.native_graph is not None,
+            "native_options": _safe_summary(compiled.config.native_options),
+            "native_model": compiled.config.model is not None,
+            "custom_checkpointer": compiled.config.checkpointer is not None,
+            "custom_store": compiled.config.store is not None,
+            "custom_cache": compiled.config.cache is not None,
+            "async": async_run,
+            "batch": True,
+            "run_diagnostics": self._run_diagnostics(raw_mapping, events, compiled, interrupt_state),
+        }
+        if interrupt_state:
+            metadata["interrupted"] = True
+            metadata["next"] = interrupt_state["next"]
+            metadata["checkpoint"] = interrupt_state.get("checkpoint")
+        return RunResult(output=output, backend=self.backend_name, events=events, metadata=metadata, raw=raw)
 
     def resume(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
         if not compiled.config.enable_checkpointing:
@@ -913,6 +999,18 @@ class LangGraphAdapter(BackendAdapter):
             "structured_output": compiled.spec.output_type is not None
             or compiled.spec.output_schema is not None,
         }
+
+
+def _graph_input(run_input: RunInput) -> dict[str, Any]:
+    """Build the portable state payload used by generated and native graphs."""
+
+    return {
+        "input": run_input.input,
+        "context": run_input.context,
+        "output": "",
+        "tool_outputs": [],
+        "route": "",
+    }
 
 
 def _events_from_native_graph_chunk(
