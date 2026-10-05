@@ -212,6 +212,107 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("POST", "/threads/search", body=dict(body or {}))
 
+    async def acount_threads(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async count for deployment threads matching native filters."""
+
+        return await self.arequest_json("POST", "/threads/count", body=dict(body or {}))
+
+    async def apatch_thread(self, thread_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async patch for deployment thread metadata."""
+
+        return await self.arequest_json("PATCH", f"/threads/{thread_id}", body=dict(body))
+
+    async def acopy_thread(self, thread_id: str) -> Any:
+        """Async copy for a deployment thread and its persisted state."""
+
+        return await self.arequest_json("POST", f"/threads/{thread_id}/copy")
+
+    async def aget_assistant(self, assistant_id: str) -> Any:
+        """Async fetch for a deployed assistant configuration."""
+
+        return await self.arequest_json("GET", f"/assistants/{assistant_id}")
+
+    async def acreate_assistant(
+        self,
+        *,
+        graph_id: str,
+        config: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async create for a deployed assistant configuration."""
+
+        return await self.arequest_json(
+            "POST",
+            "/assistants",
+            body={"graph_id": graph_id, "config": dict(config or {})},
+        )
+
+    async def aupdate_assistant(self, assistant_id: str, *, config: Mapping[str, Any]) -> Any:
+        """Async update for an assistant's full native configuration."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"/assistants/{assistant_id}",
+            body={"config": dict(config)},
+        )
+
+    async def adelete_assistant(self, assistant_id: str) -> Any:
+        """Async delete for an assistant and its versions."""
+
+        return await self.arequest_json("DELETE", f"/assistants/{assistant_id}")
+
+    async def asearch_assistants(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async assistant search using native request filters."""
+
+        return await self.arequest_json("POST", "/assistants/search", body=dict(body or {}))
+
+    async def acount_assistants(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async count for assistants matching native search filters."""
+
+        return await self.arequest_json("POST", "/assistants/count", body=dict(body or {}))
+
+    async def aget_assistant_graph(self, assistant_id: str, *, xray: bool | int | None = None) -> Any:
+        """Async fetch for an assistant graph definition."""
+
+        query = {"xray": xray} if xray is not None else None
+        return await self.arequest_json("GET", f"/assistants/{assistant_id}/graph", query=query)
+
+    async def aget_assistant_schemas(self, assistant_id: str) -> Any:
+        """Async fetch for assistant input, output, and config schemas."""
+
+        return await self.arequest_json("GET", f"/assistants/{assistant_id}/schemas")
+
+    async def aget_assistant_subgraphs(
+        self,
+        assistant_id: str,
+        *,
+        namespace: str | None = None,
+    ) -> Any:
+        """Async fetch for all assistant subgraphs or one namespace."""
+
+        path = f"/assistants/{assistant_id}/subgraphs"
+        if namespace is not None:
+            path = f"{path}/{quote(namespace, safe='')}"
+        return await self.arequest_json("GET", path)
+
+    async def aget_assistant_versions(
+        self,
+        assistant_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list for all versions of an assistant."""
+
+        return await self.arequest_json("GET", f"/assistants/{assistant_id}/versions", query=query)
+
+    async def aset_latest_assistant_version(self, assistant_id: str, version: int) -> Any:
+        """Async select for the active assistant version."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/assistants/{assistant_id}/latest",
+            body={"version": version},
+        )
+
     async def aget_thread_state(
         self,
         thread_id: str,
@@ -254,6 +355,51 @@ class LangSmithAPIClient:
         if stream:
             return self.astream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
         return await self.arequest_json("POST", f"/threads/{thread_id}/runs", body=body)
+
+    async def aget_run(self, thread_id: str, run_id: str) -> Any:
+        """Async fetch for one thread run."""
+
+        return await self.arequest_json("GET", f"/threads/{thread_id}/runs/{run_id}")
+
+    async def alist_thread_runs(
+        self,
+        thread_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list for runs belonging to one thread."""
+
+        return await self.arequest_json("GET", f"/threads/{thread_id}/runs", query=query)
+
+    async def alist_run_events(self, thread_id: str, run_id: str) -> Any:
+        """Async fetch for the persisted event list of one run."""
+
+        return await self.arequest_json("GET", f"/threads/{thread_id}/runs/{run_id}/events")
+
+    async def ajoin_run(self, thread_id: str, run_id: str) -> Any:
+        """Async wait for the final result of one thread run."""
+
+        return await self.arequest_json("GET", f"/threads/{thread_id}/runs/{run_id}/join")
+
+    async def ajoin_run_stream(self, thread_id: str, run_id: str) -> AsyncIterator[dict[str, Any]]:
+        """Async stream for the final result of one thread run."""
+
+        async for event in self.astream_events("GET", f"/threads/{thread_id}/runs/{run_id}/join"):
+            yield event
+
+    async def acancel_runs(
+        self,
+        thread_id: str,
+        *,
+        body: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async cancel for one or more active thread runs."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/threads/{thread_id}/runs/cancel",
+            body=dict(body or {}),
+        )
 
     async def acreate_run_wait(self, *, body: Mapping[str, Any]) -> Any:
         """Async stateless run that waits for final output."""

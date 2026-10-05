@@ -111,6 +111,52 @@ def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     assert calls[-1][1].endswith("/api/v1/feedback")
 
 
+def test_langsmith_async_assistant_and_run_lifecycle_preserves_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, body))
+        if url.endswith("/join") and headers.get("Accept") == "text/event-stream":
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"done"}\n\ndata: [DONE]\n'
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        created = await client.acreate_assistant(graph_id="agent", config={"model": "offline"})
+        fetched = await client.aget_assistant("assistant-1")
+        await client.aupdate_assistant("assistant-1", config={"prompt": "hello"})
+        await client.asearch_assistants(body={"limit": 2})
+        await client.acount_assistants(body={"graph_id": "agent"})
+        await client.aget_assistant_graph("assistant-1", xray=2)
+        await client.aget_assistant_schemas("assistant-1")
+        await client.aget_assistant_subgraphs("assistant-1", namespace="child/ns")
+        await client.aget_assistant_versions("assistant-1", query={"limit": 10})
+        await client.aset_latest_assistant_version("assistant-1", 3)
+        await client.adelete_assistant("assistant-1")
+        await client.acount_threads(body={"metadata": {"team": "support"}})
+        await client.apatch_thread("thread-1", body={"metadata": {"team": "support"}})
+        await client.acopy_thread("thread-1")
+        run = await client.aget_run("thread-1", "run-1")
+        runs = await client.alist_thread_runs("thread-1", query={"limit": 10})
+        events = await client.alist_run_events("thread-1", "run-1")
+        joined = await client.ajoin_run("thread-1", "run-1")
+        stream = [event async for event in client.ajoin_run_stream("thread-1", "run-1")]
+        await client.acancel_runs("thread-1", body={"run_ids": ["run-1"]})
+        return created, fetched, run, runs, events, joined, stream
+
+    values = asyncio.run(collect())
+    assert all(value == {"ok": True} for value in values[:-1])
+    assert values[-1] == [{"event": "done"}]
+    assert calls[0][1].endswith("/assistants")
+    assert calls[5][1].endswith("/assistants/assistant-1/graph?xray=2")
+    assert calls[7][1].endswith("/assistants/assistant-1/subgraphs/child%2Fns")
+    assert any(url.endswith("/threads/thread-1/runs/run-1/events") for _, url, _ in calls)
+    assert calls[-1][1].endswith("/threads/thread-1/runs/cancel")
+
+
 def test_langsmith_thread_helpers_preserve_native_api_shapes():
     calls = []
 
