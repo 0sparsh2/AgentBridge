@@ -500,8 +500,21 @@ def test_langsmith_control_plane_client_covers_deployment_and_revision_lifecycle
     client.list_revisions("deployment-1")
     client.get_revision("deployment-1", "revision-1")
     client.create_deployment_revision("deployment-1", body={"config": {}})
+    client.redeploy_revision("deployment-1", "revision-1")
+    client.interrupt_deployment_revision("deployment-1", "revision-1")
+    client.list_deployment_logs("deployment-1", query={"limit": 10})
+    client.list_revision_logs("deployment-1", "revision-1", query={"limit": 10})
+    client.list_deployment_log_entries(
+        deployment_id="deployment-1",
+        revision_id="revision-1",
+        log_type="BUILD",
+        sort_order="asc",
+    )
+    client.patch_deployment_resource_tiers("deployment-1", body={"cpu": 2})
+    client.patch_deployment_tier("deployment-1", body={"tier": "professional"})
     client.get_free_deployment_count()
     assert client.delete_deployment("deployment-1") is None
+    client.delete_deployments(["deployment-1", "deployment-2"])
 
     assert calls[0][0:2] == (
         "GET",
@@ -511,6 +524,12 @@ def test_langsmith_control_plane_client_covers_deployment_and_revision_lifecycle
     assert all(call[2]["X-Tenant-Id"] == "workspace-1" for call in calls)
     assert calls[1][0:2] == ("POST", "https://control.example.test/v2/deployments")
     assert calls[6][1].endswith("/v2/deployments/deployment-1/revisions")
+    assert any(call[1].endswith("/revisions/revision-1/redeploy") for call in calls)
+    assert any(call[1].endswith("/revisions/revision-1/interruption") for call in calls)
+    assert any("/v2/deployment-logs?" in call[1] for call in calls)
+    delete_many = next(call for call in calls if call[0] == "DELETE" and "/v2/deployments?" in call[1])
+    assert "deployment_ids=deployment-1" in delete_many[1]
+    assert "deployment_ids=deployment-2" in delete_many[1]
 
 
 def test_langsmith_control_plane_requires_workspace_identity():

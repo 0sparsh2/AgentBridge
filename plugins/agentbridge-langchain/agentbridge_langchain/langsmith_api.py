@@ -1074,6 +1074,11 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
 
         return self.request_json("DELETE", f"/v2/deployments/{deployment_id}")
 
+    def delete_deployments(self, deployment_ids: list[str]) -> Any:
+        """Delete multiple deployments with the native partial-success contract."""
+
+        return self.request_json("DELETE", "/v2/deployments", query={"deployment_ids": deployment_ids})
+
     def list_revisions(self, deployment_id: str) -> Any:
         """List revisions, normally newest first."""
 
@@ -1098,6 +1103,101 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
         return self.request_json(
             "POST",
             f"/v2/deployments/{deployment_id}/revisions",
+            body=dict(body),
+        )
+
+    def redeploy_revision(self, deployment_id: str, revision_id: str) -> Any:
+        """Redeploy an existing revision."""
+
+        return self.request_json(
+            "POST",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}/redeploy",
+        )
+
+    def interrupt_deployment_revision(self, deployment_id: str, revision_id: str) -> Any:
+        """Interrupt an in-progress deployment revision."""
+
+        return self.request_json(
+            "POST",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}/interruption",
+        )
+
+    def list_deployment_logs(
+        self,
+        deployment_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """List deployment log batches."""
+
+        return self.request_json("GET", f"/v2/deployments/{deployment_id}/logs", query=query)
+
+    def list_revision_logs(
+        self,
+        deployment_id: str,
+        revision_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """List logs for one deployment revision."""
+
+        return self.request_json(
+            "GET",
+            f"/v2/deployments/{deployment_id}/revisions/{revision_id}/logs",
+            query=query,
+        )
+
+    def list_deployment_log_entries(
+        self,
+        *,
+        deployment_id: str,
+        revision_id: str | None = None,
+        log_type: str = "DEPLOY",
+        start_time: str | None = None,
+        end_time: str | None = None,
+        sort_order: str | None = None,
+    ) -> Any:
+        """List individual build/deploy log entries across a deployment."""
+
+        query = {
+            key: value
+            for key, value in {
+                "deployment_id": deployment_id,
+                "revision_id": revision_id,
+                "log_type": log_type,
+                "start_time": start_time,
+                "end_time": end_time,
+                "sort_order": sort_order,
+            }.items()
+            if value is not None
+        }
+        return self.request_json("GET", "/v2/deployment-logs", query=query)
+
+    def patch_deployment_resource_tiers(
+        self,
+        deployment_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Update deployment resource-tier settings."""
+
+        return self.request_json(
+            "PATCH",
+            f"/v2/deployments/{deployment_id}/resource-tiers",
+            body=dict(body),
+        )
+
+    def patch_deployment_tier(
+        self,
+        deployment_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Update the deployment tier."""
+
+        return self.request_json(
+            "PATCH",
+            f"/v2/deployments/{deployment_id}/deployment-tier",
             body=dict(body),
         )
 
