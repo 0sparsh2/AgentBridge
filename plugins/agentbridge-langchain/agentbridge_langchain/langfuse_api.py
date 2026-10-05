@@ -254,10 +254,63 @@ class LangfuseAPIClient:
 
         return self.request_json("GET", "/api/public/v2/observations", query=query)
 
+    def list_trace_observations(
+        self,
+        trace_id: str,
+        *,
+        from_start_time: str,
+        to_start_time: str,
+        fields: str | None = None,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Retrieve current v4 observations for one trace in a bounded time window."""
+
+        request_query = {
+            "traceId": trace_id,
+            "fromStartTime": from_start_time,
+            "toStartTime": to_start_time,
+            "fields": fields,
+            **dict(query or {}),
+        }
+        return self.list_observations(query=request_query)
+
+    def get_observation(
+        self,
+        observation_id: str,
+        *,
+        from_start_time: str,
+        to_start_time: str,
+        fields: str | None = None,
+    ) -> Any:
+        """Find one observation through the v2 filter contract.
+
+        Langfuse v4 intentionally has no observation-by-ID route. The API returns a
+        page, so this method preserves that native response shape rather than
+        guessing whether a missing row means not-found or eventual consistency.
+        """
+
+        filter_value = json.dumps(
+            [{"type": "string", "column": "id", "operator": "=", "value": observation_id}],
+            separators=(",", ":"),
+        )
+        return self.list_observations(
+            query={
+                "filter": filter_value,
+                "fromStartTime": from_start_time,
+                "toStartTime": to_start_time,
+                "fields": fields,
+            }
+        )
+
     def list_scores_v3(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Query typed Langfuse Scores API v3."""
 
         return self.request_json("GET", "/api/public/v3/scores", query=query)
+
+    def get_score(self, score_id: str, *, fields: str | None = None) -> Any:
+        """Fetch one score through the current Scores v3 query endpoint."""
+
+        return self.list_scores_v3(query={"id": score_id, "fields": fields})
 
     def query_metrics(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Query Langfuse Metrics API v2."""

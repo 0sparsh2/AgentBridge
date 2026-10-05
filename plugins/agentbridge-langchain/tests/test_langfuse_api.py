@@ -175,6 +175,37 @@ def test_langfuse_current_telemetry_and_query_helpers_preserve_native_paths():
     assert calls[5][1].endswith("/api/public/experiment-items?experimentId=exp-1&fields=io%2Cscores")
 
 
+def test_langfuse_current_observation_and_score_lookup_helpers_use_v4_query_contracts():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        return 200, {"content-type": "application/json"}, b'{"data": []}'
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    client.list_trace_observations(
+        "trace-1",
+        from_start_time="2026-01-01T00:00:00Z",
+        to_start_time="2026-01-02T00:00:00Z",
+        fields="core,usage",
+    )
+    client.get_observation(
+        "observation-1",
+        from_start_time="2026-01-01T00:00:00Z",
+        to_start_time="2026-01-02T00:00:00Z",
+        fields="core,io",
+    )
+    client.get_score("score-1", fields="details,subject")
+
+    assert "traceId=trace-1" in calls[0]
+    assert "fromStartTime=2026-01-01T00%3A00%3A00Z" in calls[0]
+    assert "fields=core%2Cusage" in calls[0]
+    assert "filter=%5B%7B%22type%22%3A%22string%22" in calls[1]
+    assert "observation-1" in calls[1]
+    assert calls[2].endswith("/api/public/v3/scores?id=score-1&fields=details%2Csubject")
+
+
 def test_langfuse_query_iterators_follow_cursor_pages_without_dropping_filters():
     calls = []
 

@@ -47,6 +47,9 @@ AgentBridge adapter plugin for `langchain`.
 - Langfuse score creation preserves typed numeric, boolean, categorical, and text values plus
   trace/session/observation/dataset-run targets, idempotency IDs, score configs, metadata, and
   environment fields.
+- Current Langfuse v4 reads use `list_trace_observations()` and `get_observation()` for bounded
+  Observations v2 queries, and `get_score()` for Scores v3 lookup; deprecated trace and
+  observation-by-ID reads are not presented as current APIs.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
