@@ -127,6 +127,18 @@ for event in stream_agent(agent, framework="mock", input="Summarize AgentBridge"
     print(event.type, event.data)
 ```
 
+For independent inputs, use the same compiled backend through the batch helpers:
+
+```python
+from agentbridge import batch_agent
+
+results = batch_agent(
+    agent,
+    backend="langchain",
+    inputs=["Summarize refund policy", "Summarize cancellation policy"],
+)
+```
+
 `AgentEvent` objects normalize message, tool-call, tool-result, error, and completion events. They can also be converted into AG-UI-shaped dictionaries:
 
 ```python

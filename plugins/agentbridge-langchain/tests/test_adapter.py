@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from contextlib import contextmanager
 import sys
 from types import SimpleNamespace
@@ -120,8 +121,52 @@ class FakeContextAgent(FakeNativeAgent):
         }
 
 
+class FakeBatchAgent(FakeNativeAgent):
+    def batch(self, payloads, config=None):
+        assert len(payloads) == len(config)
+        return [self.invoke(payload, item_config) for payload, item_config in zip(payloads, config, strict=True)]
+
+    async def abatch(self, payloads, config=None):
+        assert len(payloads) == len(config)
+        return [self.invoke(payload, item_config) for payload, item_config in zip(payloads, config, strict=True)]
+
+
 def fake_create_agent(**kwargs):
     return FakeNativeAgent(**kwargs)
+
+
+def fake_create_batch_agent(**kwargs):
+    return FakeBatchAgent(**kwargs)
+
+
+def test_adapter_uses_native_sync_and_async_batch(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_batch_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    spec = AgentSpec(name="batch_agent", instructions="Reply.", model="vendor/model")
+    adapter = Adapter()
+    compiled = adapter.compile(spec)
+    inputs = [RunInput(input="one", session_id="s1"), RunInput(input="two", session_id="s2")]
+
+    results = adapter.batch(compiled, inputs)
+    async_results = asyncio.run(adapter.abatch(compiled, inputs))
+
+    assert [result.output for result in results] == [
+        "native langchain: one",
+        "native langchain: two",
+    ]
+    assert [result.output for result in async_results] == [
+        "native langchain: one",
+        "native langchain: two",
+    ]
+    assert all(result.events[-1].type == "complete" for result in results + async_results)
 
 
 def test_adapter_compiles_and_runs_native_agent(monkeypatch) -> None:

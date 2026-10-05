@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Iterable, Iterator
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Any
@@ -119,44 +119,24 @@ class Adapter(BackendAdapter):
                 config=runtime_config,
                 **_context_kwargs(run_input),
             )
-        output = _final_output(result)
-        events = _events_from_result(result, backend=self.backend_name)
-        events.extend(
-            [
-                AgentEvent(
-                    type="message",
-                    backend=self.backend_name,
-                    data={
-                        "content": output,
-                        "agent": compiled_agent.spec.name,
-                    },
-                ),
-                AgentEvent(
-                    type="complete",
-                    backend=self.backend_name,
-                    data={"output": output},
-                ),
-            ]
-        )
-        return RunResult(
-            output=output,
-            backend=self.backend_name,
-            events=events,
-            metadata={
-                "agent": compiled_agent.spec.name,
-                "runtime_config": _safe_summary(runtime_config),
-                "extension_config": _safe_summary(compiled_agent.config),
-                "extension_summary": _extension_summary(compiled_agent.config),
-                "native_agent_type": type(compiled_agent.native_agent).__name__,
-                "run_diagnostics": _run_diagnostics(
-                    result,
-                    events,
-                    compiled_agent,
-                    runtime_config,
-                ),
-            },
-            raw=result,
-        )
+        return _normalized_result(compiled_agent, run_input, result, runtime_config)
+
+    def batch(self, compiled: Any, run_inputs: Iterable[RunInput]) -> list[RunResult]:
+        """Use LangChain's native batch path when available."""
+
+        compiled_agent = _ensure_compiled(compiled)
+        inputs = list(run_inputs)
+        native_batch = getattr(compiled_agent.native_agent, "batch", None)
+        if _uses_offline_model(compiled_agent) or not callable(native_batch):
+            return super().batch(compiled_agent, inputs)
+        payloads = [_input_payload(run_input) for run_input in inputs]
+        configs = [_runtime_config(compiled_agent, run_input) for run_input in inputs]
+        with langsmith_context(compiled_agent.config):
+            results = native_batch(payloads, config=configs)
+        return [
+            _normalized_result(compiled_agent, run_input, result, config)
+            for run_input, result, config in zip(inputs, results, configs, strict=True)
+        ]
 
     async def arun(self, compiled: Any, run_input: RunInput) -> RunResult:
         """Use LangChain's native async invoke path when available."""
@@ -171,32 +151,24 @@ class Adapter(BackendAdapter):
                 config=runtime_config,
                 **_context_kwargs(run_input),
             )
-        output = _final_output(result)
-        events = _events_from_result(result, backend=self.backend_name)
-        events.extend(
-            [
-                AgentEvent(
-                    type="message",
-                    backend=self.backend_name,
-                    data={"content": output, "agent": compiled_agent.spec.name},
-                ),
-                AgentEvent(type="complete", backend=self.backend_name, data={"output": output}),
-            ]
-        )
-        return RunResult(
-            output=output,
-            backend=self.backend_name,
-            events=events,
-            metadata={
-                "agent": compiled_agent.spec.name,
-                "runtime_config": _safe_summary(runtime_config),
-                "extension_config": _safe_summary(compiled_agent.config),
-                "extension_summary": _extension_summary(compiled_agent.config),
-                "native_agent_type": type(compiled_agent.native_agent).__name__,
-                "run_diagnostics": _run_diagnostics(result, events, compiled_agent, runtime_config),
-            },
-            raw=result,
-        )
+        return _normalized_result(compiled_agent, run_input, result, runtime_config)
+
+    async def abatch(self, compiled: Any, run_inputs: Iterable[RunInput]) -> list[RunResult]:
+        """Use LangChain's native async batch path when available."""
+
+        compiled_agent = _ensure_compiled(compiled)
+        inputs = list(run_inputs)
+        native_batch = getattr(compiled_agent.native_agent, "abatch", None)
+        if _uses_offline_model(compiled_agent) or not callable(native_batch):
+            return await super().abatch(compiled_agent, inputs)
+        payloads = [_input_payload(run_input) for run_input in inputs]
+        configs = [_runtime_config(compiled_agent, run_input) for run_input in inputs]
+        with langsmith_context(compiled_agent.config):
+            results = await native_batch(payloads, config=configs)
+        return [
+            _normalized_result(compiled_agent, run_input, result, config)
+            for run_input, result, config in zip(inputs, results, configs, strict=True)
+        ]
 
     async def astream(self, compiled: Any, run_input: RunInput) -> AsyncIterator[AgentEvent]:
         """Consume LangChain's native async event stream when it is available."""
@@ -240,6 +212,48 @@ class Adapter(BackendAdapter):
             yield from _normalize_native_events(chunk, backend=self.backend_name)
         if not yielded:
             yield from self.run(compiled_agent, run_input).events
+
+
+def _normalized_result(
+    compiled_agent: CompiledLangChainAgent,
+    run_input: RunInput,
+    result: Any,
+    runtime_config: dict[str, Any],
+    events: list[AgentEvent] | None = None,
+) -> RunResult:
+    """Build the same normalized result shape for single and batch invocations."""
+
+    output = _final_output(result)
+    normalized_events = list(events or _events_from_result(result, backend="langchain"))
+    normalized_events.extend(
+        [
+            AgentEvent(
+                type="message",
+                backend="langchain",
+                data={"content": output, "agent": compiled_agent.spec.name},
+            ),
+            AgentEvent(type="complete", backend="langchain", data={"output": output}),
+        ]
+    )
+    return RunResult(
+        output=output,
+        backend="langchain",
+        events=normalized_events,
+        metadata={
+            "agent": compiled_agent.spec.name,
+            "runtime_config": _safe_summary(runtime_config),
+            "extension_config": _safe_summary(compiled_agent.config),
+            "extension_summary": _extension_summary(compiled_agent.config),
+            "native_agent_type": type(compiled_agent.native_agent).__name__,
+            "run_diagnostics": _run_diagnostics(
+                result,
+                normalized_events,
+                compiled_agent,
+                runtime_config,
+            ),
+        },
+        raw=result,
+    )
 
 
 def _load_langchain() -> tuple[Any, Any]:

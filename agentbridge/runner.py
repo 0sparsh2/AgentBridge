@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator
 
 from agentbridge.registry import get_adapter
 from agentbridge.types import AgentEvent, AgentSpec, RunInput, RunResult
@@ -51,6 +51,41 @@ async def arun_agent(
     adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
     compiled = adapter.compile(agent)
     return await adapter.arun(compiled, _coerce_run_input(input, **run_input_kwargs))
+
+
+def batch_agent(
+    agent: AgentSpec,
+    *,
+    backend: str | None = None,
+    framework: str | None = None,
+    inputs: Iterable[str | RunInput],
+    **run_input_kwargs: object,
+) -> list[RunResult]:
+    """Run multiple inputs through one compiled backend agent."""
+
+    adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
+    compiled = adapter.compile(agent)
+    run_inputs = (_coerce_run_input(item, **run_input_kwargs) for item in inputs)
+    return adapter.batch(compiled, run_inputs)
+
+
+async def abatch_agent(
+    agent: AgentSpec,
+    *,
+    backend: str | None = None,
+    framework: str | None = None,
+    inputs: Iterable[str | RunInput] | AsyncIterable[str | RunInput],
+    **run_input_kwargs: object,
+) -> list[RunResult]:
+    """Run multiple inputs asynchronously through one compiled backend agent."""
+
+    adapter = get_adapter(_resolve_backend(backend=backend, framework=framework))
+    compiled = adapter.compile(agent)
+    if hasattr(inputs, "__aiter__"):
+        run_inputs = [_coerce_run_input(item, **run_input_kwargs) async for item in inputs]  # type: ignore[union-attr]
+    else:
+        run_inputs = [_coerce_run_input(item, **run_input_kwargs) for item in inputs]  # type: ignore[arg-type]
+    return await adapter.abatch(compiled, run_inputs)
 
 
 def resume_agent(

@@ -41,6 +41,7 @@ raw backend escape hatch, or an explicit diagnostic.
 | Remote LangGraph/Agent Server runs | `RemoteGraphClient` maps native thread/run SSE events to `AgentEvent` and `RunResult` | `extension` |
 | AgentCore Memory/Gateway bindings | `LangChainExtension.agentcore` plus credential-free conformance and AgentCore plugin contracts | `extension` |
 | Async LangChain execution | Native `ainvoke` path normalized through `arun_agent` | `extension` |
+| LangChain batch and async-batch execution | Public `batch_agent()`/`abatch_agent()` with native `batch()`/`abatch()` dispatch and ordered fallback | `extension` |
 | Async normalized streaming | Public `astream_agent()` contract, LangChain native `astream`/`astream_events`, and LangGraph native `astream` with fallback | `extension` |
 | LangSmith datasets, evaluators, prompts, experiments, monitoring, feedback, REST API, governance, and deployment control plane | Evaluation contract, LangSmith dataset/evaluation bridge, prompt pull/push helpers, typed feedback/thread/MCP/deployment clients, and generic API transport; remaining hosted APIs stay native | `extension` |
 | Deep Agents, sandboxes, filesystem backends, permissions, skills, interpreters | External `agentbridge-deepagents` plugin maps `create_deep_agent`, native backends, skills, memory, subagents, permissions, HITL, persistence, structured output, and native options | `extension` |

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Iterable, Iterator
 from typing import Any
 
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
@@ -33,6 +33,16 @@ class BackendAdapter:
         """Run asynchronously; adapters may override with native async execution."""
 
         return await asyncio.to_thread(self.run, compiled, run_input)
+
+    def batch(self, compiled: Any, run_inputs: Iterable[RunInput]) -> list[RunResult]:
+        """Run multiple inputs in order, with a portable sequential fallback."""
+
+        return [self.run(compiled, run_input) for run_input in run_inputs]
+
+    async def abatch(self, compiled: Any, run_inputs: Iterable[RunInput]) -> list[RunResult]:
+        """Run multiple inputs asynchronously, preserving input order."""
+
+        return list(await asyncio.gather(*(self.arun(compiled, run_input) for run_input in run_inputs)))
 
     def resume(self, compiled: Any, run_input: RunInput) -> RunResult:
         """Resume a previously interrupted compiled agent."""

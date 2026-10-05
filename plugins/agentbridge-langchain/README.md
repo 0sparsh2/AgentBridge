@@ -60,6 +60,8 @@ AgentBridge adapter plugin for `langchain`.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
   native runtime exposes `ainvoke`, `astream`, or `astream_events`, the adapter uses those methods;
   otherwise it retains the dependency-free fallback contract.
+- Ordered batch and async-batch execution through `batch_agent()` and `abatch_agent()`. The adapter
+  uses LangChain `batch()`/`abatch()` when available and falls back to normalized sequential runs.
 
 ## Install
 

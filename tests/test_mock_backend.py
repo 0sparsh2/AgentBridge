@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
-from agentbridge import AgentSpec, ToolSpec, run_agent, stream_agent
+from agentbridge import AgentSpec, ToolSpec, abatch_agent, batch_agent, run_agent, stream_agent
 
 
 def lookup(query: str) -> str:
@@ -49,3 +51,13 @@ def test_mock_backend_streams_normalized_events() -> None:
     events = list(stream_agent(agent, framework="mock", input="hello"))
 
     assert [event.type for event in events] == ["message", "complete"]
+
+
+def test_batch_helpers_preserve_input_order() -> None:
+    agent = AgentSpec(name="batch_agent", instructions="Reply.", model="openai/gpt-5")
+
+    results = batch_agent(agent, backend="mock", inputs=["one", "two"])
+    async_results = asyncio.run(abatch_agent(agent, backend="mock", inputs=["one", "two"]))
+
+    assert [result.output["input"] for result in results] == ["one", "two"]
+    assert [result.output["input"] for result in async_results] == ["one", "two"]
