@@ -4,7 +4,7 @@ import json
 import pytest
 
 from agentbridge_langchain.langfuse_api import LangfuseAPIClient
-from agentbridge_langchain.langfuse_prompts import fetch_prompt
+from agentbridge_langchain.langfuse_prompts import afetch_prompt, fetch_prompt
 
 
 def test_langfuse_api_client_supports_json_and_sse_without_secrets_in_output():
@@ -508,8 +508,13 @@ def test_langfuse_prompt_management_supports_versions_and_chat_compilation():
 
     client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
     prompt = fetch_prompt(client, "refunds", label="production", prompt_type="chat")
+    async_prompt = asyncio.run(
+        afetch_prompt(client, "refunds", label="production", prompt_type="chat")
+    )
 
     assert prompt.version == 3
+    assert async_prompt.version == 3
+    assert async_prompt.compile(team="support", order_id="A123")[1]["content"] == "Order A123"
     assert prompt.compile(team="support", order_id="A123")[1]["content"] == "Order A123"
     assert prompt.get_langchain_prompt()[0]["content"] == "Help {team}"
     assert calls[0][1].endswith("/api/public/v2/prompts/refunds?label=production&type=chat")

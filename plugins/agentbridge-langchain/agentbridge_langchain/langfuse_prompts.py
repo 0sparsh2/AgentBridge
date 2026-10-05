@@ -70,6 +70,25 @@ def fetch_prompt(
     return LangfusePrompt.from_response(name, response)
 
 
+async def afetch_prompt(
+    client: LangfuseAPIClient,
+    name: str,
+    *,
+    label: str | None = None,
+    version: int | None = None,
+    prompt_type: str | None = None,
+) -> LangfusePrompt:
+    """Async fetch and wrap a versioned or labeled Langfuse prompt."""
+
+    response = await client.aget_prompt(
+        name,
+        label=label,
+        version=version,
+        prompt_type=prompt_type,
+    )
+    return LangfusePrompt.from_response(name, response)
+
+
 def _compile_value(value: Any, variables: Mapping[str, Any]) -> Any:
     if isinstance(value, str):
         return _VARIABLE.sub(
