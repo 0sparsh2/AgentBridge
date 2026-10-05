@@ -57,6 +57,8 @@ AgentBridge adapter plugin for `langchain`.
   observation-by-ID reads are not presented as current APIs.
 - Cursor-safe `iter_experiments()` and `iter_experiment_items()` helpers support evaluation
   exports and CI regression gates without dropping the original filters between pages.
+- Cursor-safe `iter_dataset_items()` supports versioned dataset exports without dropping dataset
+  or version filters between pages.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the

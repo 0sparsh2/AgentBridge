@@ -145,6 +145,30 @@ def test_langfuse_dataset_v2_and_item_lifecycle_helpers_preserve_current_paths()
     assert calls[-1][1].endswith("/api/public/traces/delete")
 
 
+def test_langfuse_dataset_item_iterator_preserves_filters_across_cursors():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        if "cursor=next" in url:
+            payload = {"data": [{"id": "item-2"}], "meta": {}}
+        else:
+            payload = {"data": [{"id": "item-1"}], "meta": {"cursor": "next"}}
+        return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    assert list(client.iter_dataset_items(query={"datasetName": "refunds", "version": "v1"})) == [
+        {"id": "item-1"},
+        {"id": "item-2"},
+    ]
+    assert calls == [
+        "https://cloud.langfuse.com/api/public/dataset-items?datasetName=refunds&version=v1",
+        "https://cloud.langfuse.com/api/public/dataset-items?datasetName=refunds&version=v1&cursor=next",
+    ]
+
+
 def test_langfuse_current_telemetry_and_query_helpers_preserve_native_paths():
     calls = []
 
