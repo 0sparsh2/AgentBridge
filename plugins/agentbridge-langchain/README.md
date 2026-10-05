@@ -44,6 +44,9 @@ AgentBridge adapter plugin for `langchain`.
 - Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
+- Langfuse score creation preserves typed numeric, boolean, categorical, and text values plus
+  trace/session/observation/dataset-run targets, idempotency IDs, score configs, metadata, and
+  environment fields.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the

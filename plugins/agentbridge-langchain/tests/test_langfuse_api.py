@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import pytest
 
@@ -36,6 +37,40 @@ def test_langfuse_helpers_preserve_ingestion_and_score_shapes():
     client.create_score(trace_id="trace-1", name="quality", value=0.9, comment="good")
     assert '"batch": [{"id": "event-1", "type": "trace-create"}]' in calls[0][2].decode()
     assert '"traceId": "trace-1"' in calls[1][2].decode()
+
+
+def test_langfuse_score_helper_preserves_typed_targets_and_native_options():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, url, headers
+        calls.append(body)
+        return 200, {"content-type": "application/json"}, b'{"id":"score-1"}'
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    assert client.create_score(
+        score_id="score-1",
+        name="helpfulness",
+        value=True,
+        session_id="session-1",
+        observation_id="observation-1",
+        data_type="BOOLEAN",
+        config_id="config-1",
+        metadata={"reviewer": "qa"},
+        environment="staging",
+    ) == {"id": "score-1"}
+
+    assert json.loads(calls[0]) == {
+        "id": "score-1",
+        "name": "helpfulness",
+        "value": True,
+        "sessionId": "session-1",
+        "observationId": "observation-1",
+        "dataType": "BOOLEAN",
+        "configId": "config-1",
+        "metadata": {"reviewer": "qa"},
+        "environment": "staging",
+    }
 
 
 def test_langfuse_api_client_supports_async_json_and_sse_facades():

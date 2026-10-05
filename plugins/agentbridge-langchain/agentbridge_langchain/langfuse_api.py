@@ -321,16 +321,47 @@ class LangfuseAPIClient:
     def create_score(
         self,
         *,
-        trace_id: str,
         name: str,
-        value: float,
+        value: Any,
+        trace_id: str | None = None,
+        session_id: str | None = None,
+        observation_id: str | None = None,
+        dataset_run_id: str | None = None,
+        score_id: str | None = None,
+        data_type: str | None = None,
+        config_id: str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+        description: str | None = None,
+        source: str | None = None,
+        environment: str | None = None,
+        timestamp: str | None = None,
         comment: str | None = None,
     ) -> Any:
-        """Attach a numeric score to a trace using the public API contract."""
+        """Create or upsert a typed score using the native public API contract.
 
-        body: dict[str, Any] = {"traceId": trace_id, "name": name, "value": value}
-        if comment is not None:
-            body["comment"] = comment
+        The target is intentionally optional: Langfuse accepts scores attached to a
+        trace, session, observation, or dataset run, and also supports standalone
+        scores. ``value`` is left typed as ``Any`` so numeric, boolean, categorical,
+        and text scores retain their native representation.
+        """
+
+        body: dict[str, Any] = {"name": name, "value": value}
+        optional = {
+            "traceId": trace_id,
+            "sessionId": session_id,
+            "observationId": observation_id,
+            "datasetRunId": dataset_run_id,
+            "id": score_id,
+            "dataType": data_type,
+            "configId": config_id,
+            "metadata": dict(metadata) if metadata is not None else None,
+            "description": description,
+            "source": source,
+            "environment": environment,
+            "timestamp": timestamp,
+            "comment": comment,
+        }
+        body.update({key: item for key, item in optional.items() if item is not None})
         return self.request_json("POST", "/api/public/scores", body=body)
 
     def get_trace(self, trace_id: str) -> Any:
