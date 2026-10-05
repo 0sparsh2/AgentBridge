@@ -322,10 +322,50 @@ class LangfuseAPIClient:
 
         return self.request_json("GET", "/api/public/experiments", query=query)
 
+    def iter_experiments(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate through cursor-paginated current experiment responses."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_experiments(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     def list_experiment_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """List experiment inputs, outputs, expected outputs, and scores."""
 
         return self.request_json("GET", "/api/public/experiment-items", query=query)
+
+    def iter_experiment_items(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate through cursor-paginated current experiment-item responses."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_experiment_items(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
 
     def list_prompts(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """List prompts through Langfuse Prompt Management API v2."""

@@ -240,6 +240,38 @@ def test_langfuse_query_iterators_follow_cursor_pages_without_dropping_filters()
     assert "cursor=score-next" in calls[3]
 
 
+def test_langfuse_experiment_iterators_follow_cursor_pages_without_dropping_filters():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        if "/experiments?" in url:
+            if "cursor=next" in url:
+                payload = b'{"data":[{"id":"exp-2"}],"meta":{"cursor":null}}'
+            else:
+                payload = b'{"data":[{"id":"exp-1"}],"meta":{"cursor":"next"}}'
+        elif "cursor=item-next" in url:
+            payload = b'{"data":[{"id":"item-2"}],"meta":{"cursor":null}}'
+        else:
+            payload = b'{"data":[{"id":"item-1"}],"meta":{"cursor":"item-next"}}'
+        return 200, {"content-type": "application/json"}, payload
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    assert [item["id"] for item in client.iter_experiments(query={"fromStartTime": "2026-01-01"})] == [
+        "exp-1",
+        "exp-2",
+    ]
+    assert [item["id"] for item in client.iter_experiment_items(query={"experimentId": "exp-1"})] == [
+        "item-1",
+        "item-2",
+    ]
+    assert "fromStartTime=2026-01-01" in calls[0]
+    assert "cursor=next" in calls[1]
+    assert "experimentId=exp-1" in calls[2]
+    assert "cursor=item-next" in calls[3]
+
+
 def test_langfuse_prompt_management_supports_versions_and_chat_compilation():
     calls = []
 

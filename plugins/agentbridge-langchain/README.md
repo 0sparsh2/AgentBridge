@@ -50,6 +50,8 @@ AgentBridge adapter plugin for `langchain`.
 - Current Langfuse v4 reads use `list_trace_observations()` and `get_observation()` for bounded
   Observations v2 queries, and `get_score()` for Scores v3 lookup; deprecated trace and
   observation-by-ID reads are not presented as current APIs.
+- Cursor-safe `iter_experiments()` and `iter_experiment_items()` helpers support evaluation
+  exports and CI regression gates without dropping the original filters between pages.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
