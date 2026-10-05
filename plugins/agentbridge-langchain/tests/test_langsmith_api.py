@@ -73,6 +73,44 @@ def test_langsmith_api_client_supports_async_json_and_sse_facades():
     assert events == [{"event": "update"}]
 
 
+def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, body))
+        if url.endswith("/runs/stream"):
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"token"}\n\ndata: [DONE]\n'
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        thread = await client.acreate_thread(metadata={"team": "support"})
+        fetched = await client.aget_thread("thread-1")
+        searched = await client.asearch_threads(body={"limit": 2})
+        state = await client.aget_thread_state("thread-1", checkpoint_id="cp-1")
+        updated = await client.aupdate_thread_state("thread-1", values={"approved": True})
+        run = await client.acreate_thread_run(
+            "thread-1", assistant_id="assistant-1", input={"text": "hello"}
+        )
+        stream = await client.acreate_thread_run(
+            "thread-1", assistant_id="assistant-1", input={"text": "stream"}, stream=True
+        )
+        events = [event async for event in stream]
+        waited = await client.acreate_run_wait(body={"assistant_id": "assistant-1"})
+        background = await client.acreate_background_run(body={"assistant_id": "assistant-1"})
+        cancelled = await client.acancel_run("thread-1", "run-1")
+        feedback = await client.acreate_feedback(run_id="run-1", key="quality", score=1)
+        return thread, fetched, searched, state, updated, run, events, waited, background, cancelled, feedback
+
+    values = asyncio.run(collect())
+    assert all(value == {"ok": True} for value in values if not isinstance(value, list))
+    assert values[6] == [{"event": "token"}]
+    assert calls[0][1].endswith("/threads")
+    assert calls[3][1].endswith("/threads/thread-1/state?checkpoint_id=cp-1")
+    assert calls[-1][1].endswith("/api/v1/feedback")
+
+
 def test_langsmith_thread_helpers_preserve_native_api_shapes():
     calls = []
 

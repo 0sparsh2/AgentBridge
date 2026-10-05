@@ -56,6 +56,8 @@ AgentBridge adapter plugin for `langchain`.
   handle, allowing AgentBridge tool definitions to be synchronized without the LangSmith SDK.
 - `publish_dataset()` supports both the optional native LangSmith SDK and the dependency-free
   `LangSmithAPIClient` dataset/example transport.
+- Async LangSmith typed facades cover thread creation/search/state updates, thread runs, stateless
+  runs, cancellation, and feedback while retaining the existing SSE stream facade.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.

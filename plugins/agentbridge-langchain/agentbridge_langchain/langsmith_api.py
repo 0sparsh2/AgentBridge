@@ -193,6 +193,99 @@ class LangSmithAPIClient:
         for event in events:
             yield event
 
+    async def aget_thread(self, thread_id: str) -> Any:
+        """Async fetch for a deployment thread."""
+
+        return await self.arequest_json("GET", f"/threads/{thread_id}")
+
+    async def acreate_thread(self, *, metadata: Mapping[str, Any] | None = None) -> Any:
+        """Async create for a deployment thread."""
+
+        return await self.arequest_json(
+            "POST",
+            "/threads",
+            body={"metadata": dict(metadata or {})},
+        )
+
+    async def asearch_threads(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async thread search using native Agent Server filters."""
+
+        return await self.arequest_json("POST", "/threads/search", body=dict(body or {}))
+
+    async def aget_thread_state(
+        self,
+        thread_id: str,
+        *,
+        checkpoint_id: str | None = None,
+    ) -> Any:
+        """Async read of remote graph state."""
+
+        return await self.arequest_json(
+            "GET",
+            f"/threads/{thread_id}/state",
+            query={"checkpoint_id": checkpoint_id},
+        )
+
+    async def aupdate_thread_state(
+        self,
+        thread_id: str,
+        *,
+        values: Any,
+        as_node: str | None = None,
+    ) -> Any:
+        """Async remote graph state update."""
+
+        body: dict[str, Any] = {"values": values}
+        if as_node is not None:
+            body["as_node"] = as_node
+        return await self.arequest_json("POST", f"/threads/{thread_id}/state", body=body)
+
+    async def acreate_thread_run(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        input: Any,
+        stream: bool = False,
+    ) -> Any:
+        """Async start of a non-streaming or SSE thread run."""
+
+        body = {"assistant_id": assistant_id, "input": input}
+        if stream:
+            return self.astream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
+        return await self.arequest_json("POST", f"/threads/{thread_id}/runs", body=body)
+
+    async def acreate_run_wait(self, *, body: Mapping[str, Any]) -> Any:
+        """Async stateless run that waits for final output."""
+
+        return await self.arequest_json("POST", "/runs/wait", body=dict(body))
+
+    async def acreate_background_run(self, *, body: Mapping[str, Any]) -> Any:
+        """Async stateless run that returns without waiting."""
+
+        return await self.arequest_json("POST", "/runs", body=dict(body))
+
+    async def acancel_run(self, thread_id: str, run_id: str) -> Any:
+        """Async request to cancel one active deployment run."""
+
+        return await self.arequest_json("POST", f"/threads/{thread_id}/runs/{run_id}/cancel")
+
+    async def acreate_feedback(
+        self,
+        *,
+        run_id: str,
+        key: str,
+        score: float | None = None,
+        value: Any | None = None,
+        comment: str | None = None,
+    ) -> Any:
+        """Async attach of user or evaluator feedback to a run."""
+
+        body: dict[str, Any] = {"run_id": run_id, "key": key}
+        optional = {"score": score, "value": value, "comment": comment}
+        body.update({name: item for name, item in optional.items() if item is not None})
+        return await self.arequest_json("POST", "/api/v1/feedback", body=body)
+
     def get_thread(self, thread_id: str) -> Any:
         """Fetch a LangSmith/LangGraph deployment thread."""
 
