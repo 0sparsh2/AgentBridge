@@ -12,7 +12,7 @@ from agentbridge.adapters.base import BackendAdapter
 from agentbridge.errors import MissingDependencyError
 from agentbridge.extensions.langgraph import LangGraphConfig
 from agentbridge.observability import callbacks_for_config, langsmith_context, observability_metadata
-from agentbridge.tool_execution import execute_sync_tools
+from agentbridge.tool_execution import execute_async_tools, execute_sync_tools
 from agentbridge.types import AgentEvent, AgentSpec, BackendCapabilities, RunInput, RunResult
 
 
@@ -29,6 +29,7 @@ class LangGraphCompiledAgent:
     spec: AgentSpec
     graph: Any
     config: LangGraphConfig
+    async_tools: bool = False
 
 
 class LangGraphAdapter(BackendAdapter):
@@ -43,7 +44,7 @@ class LangGraphAdapter(BackendAdapter):
                 "agent.instructions": "partial",
                 "agent.model": "partial",
                 "tools.sync": "full",
-                "tools.async": "partial",
+                "tools.async": "extension",
                 "execution.batch": "partial",
                 "structured_output": "full",
                 "workflow.graph": "full",
@@ -63,6 +64,7 @@ class LangGraphAdapter(BackendAdapter):
                 "human_approval": "Interrupt state is reported when configured and checkpointed runs can resume through resume_agent().",
                 "agent.model": "Uses a supplied native model object when configured; otherwise retains deterministic graph output.",
                 "tools.sync": "ToolSpec callables execute inside the graph node.",
+                "tools.async": "Generated graphs await async ToolSpec handlers; sync entry points delegate through the native async graph path.",
                 "execution.batch": "Uses native graph batch/abatch when available and preserves ordered normalized results with a sequential fallback.",
                 "structured_output": "Deterministically validates graph output against AgentSpec.output_type/output_schema; use backend_config.custom_output_args for fixture data.",
                 "state.checkpointing": "Enable via LangGraphExtension.config(enable_checkpointing=True) or forward native compile options.",
@@ -81,6 +83,7 @@ class LangGraphAdapter(BackendAdapter):
             raise MissingDependencyError(self.backend_name, "langgraph", "langgraph") from exc
 
         config = LangGraphConfig.model_validate(spec.backend_config.get("langgraph", {}))
+        has_async_tools = any(inspect.iscoroutinefunction(tool.handler) for tool in spec.tools)
 
         if config.native_graph is not None:
             return LangGraphCompiledAgent(spec=spec, graph=config.native_graph, config=config)
@@ -118,6 +121,41 @@ class LangGraphAdapter(BackendAdapter):
         def default_node(state: AgentState) -> AgentState:
             return run_node(state, route_name=config.node_name)
 
+        async def async_run_node(state: AgentState, *, route_name: str) -> AgentState:
+            run_input = RunInput(input=state["input"], context=state.get("context", {}))
+            tool_outputs = await execute_async_tools(spec.tools, run_input)
+            output = {
+                "agent": spec.name,
+                "input": state["input"],
+                "route": route_name,
+                "tools": [
+                    {"name": record["name"], "result": record["result"]} for record in tool_outputs
+                ],
+                "message": f"{spec.name} ({spec.model}) completed LangGraph execution.",
+            }
+            if config.model is not None:
+                output["message"] = _native_model_message(config.model, state["input"])
+                output["model_type"] = type(config.model).__name__
+            if config.include_context_in_output:
+                output["context"] = state.get("context", {})
+            output = _structured_output_for_spec(
+                spec,
+                fallback=output,
+                run_input=state["input"],
+                route_name=route_name,
+            )
+            return {
+                "input": state["input"],
+                "output": output,
+                "tool_outputs": tool_outputs,
+                "route": route_name,
+            }
+
+        if has_async_tools:
+
+            async def default_node(state: AgentState) -> AgentState:
+                return await async_run_node(state, route_name=config.node_name)
+
         graph = StateGraph(AgentState)
         graph.add_node(config.node_name, default_node)
         route_targets = self._route_targets(config)
@@ -125,8 +163,15 @@ class LangGraphAdapter(BackendAdapter):
             if node_name == config.node_name:
                 continue
 
-            def route_node(state: AgentState, *, _node_name: str = node_name) -> AgentState:
-                return run_node(state, route_name=_node_name)
+            if has_async_tools:
+
+                async def route_node(state: AgentState, *, _node_name: str = node_name) -> AgentState:
+                    return await async_run_node(state, route_name=_node_name)
+
+            else:
+
+                def route_node(state: AgentState, *, _node_name: str = node_name) -> AgentState:
+                    return run_node(state, route_name=_node_name)
 
             graph.add_node(node_name, route_node)
 
@@ -156,9 +201,16 @@ class LangGraphAdapter(BackendAdapter):
         compiled_graph = graph.compile(
             **compile_options,
         )
-        return LangGraphCompiledAgent(spec=spec, graph=compiled_graph, config=config)
+        return LangGraphCompiledAgent(
+            spec=spec,
+            graph=compiled_graph,
+            config=config,
+            async_tools=has_async_tools,
+        )
 
     def run(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> RunResult:
+        if compiled.async_tools:
+            return asyncio.run(self.arun(compiled, run_input))
         invoke_config = self._invoke_config(compiled, run_input)
         with langsmith_context(self._observability_config(compiled)):
             raw = compiled.graph.invoke(
@@ -766,6 +818,9 @@ class LangGraphAdapter(BackendAdapter):
         return "__default__"
 
     def stream(self, compiled: LangGraphCompiledAgent, run_input: RunInput) -> Iterator[AgentEvent]:
+        if compiled.async_tools:
+            yield from self.run(compiled, run_input).events
+            return
         yield AgentEvent(
             type="workflow",
             backend=self.backend_name,

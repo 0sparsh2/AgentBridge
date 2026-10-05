@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import Any
 
 from agentbridge.types import RunInput, ToolSpec
@@ -38,5 +39,18 @@ def execute_sync_tools(tools: list[ToolSpec], run_input: RunInput) -> list[dict[
     for tool in tools:
         arguments = arguments_from_schema(tool.input_schema, run_input)
         result = tool.call(arguments)
+        records.append({"name": tool.name, "arguments": arguments, "result": result})
+    return records
+
+
+async def execute_async_tools(tools: list[ToolSpec], run_input: RunInput) -> list[dict[str, Any]]:
+    """Execute sync or async ToolSpecs and await awaitable results."""
+
+    records: list[dict[str, Any]] = []
+    for tool in tools:
+        arguments = arguments_from_schema(tool.input_schema, run_input)
+        result = tool.call(arguments)
+        if inspect.isawaitable(result):
+            result = await result
         records.append({"name": tool.name, "arguments": arguments, "result": result})
     return records

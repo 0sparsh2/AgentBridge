@@ -17,6 +17,12 @@ def lookup_order(order_id: str) -> str:
     return f"found:{order_id}"
 
 
+async def async_lookup_order(order_id: str) -> str:
+    """Look up an order asynchronously."""
+
+    return f"async-found:{order_id}"
+
+
 def test_langgraph_adapter_executes_tools_when_available() -> None:
     adapter = get_adapter("langgraph")
     agent = AgentSpec(
@@ -43,6 +49,29 @@ def test_langgraph_adapter_executes_tools_when_available() -> None:
         "tool_result",
         "complete",
     ]
+
+
+def test_langgraph_adapter_executes_async_tools_in_generated_graph() -> None:
+    adapter = get_adapter("langgraph")
+    agent = AgentSpec(
+        name="async_refund_agent",
+        instructions="Check refunds asynchronously.",
+        model="openai/gpt-5",
+        tools=[ToolSpec.from_function(async_lookup_order)],
+    )
+
+    try:
+        compiled = adapter.compile(agent)
+    except MissingDependencyError:
+        pytest.skip("langgraph optional dependency is not installed")
+
+    async_result = asyncio.run(adapter.arun(compiled, RunInput(input="A123")))
+    sync_result = adapter.run(compiled, RunInput(input="A123"))
+
+    assert compiled.async_tools is True
+    assert async_result.output["tools"][0]["result"] == "async-found:A123"
+    assert sync_result.output["tools"][0]["result"] == "async-found:A123"
+    assert not asyncio.iscoroutine(async_result.output["tools"][0]["result"])
 
 
 def test_langgraph_adapter_accepts_prebuilt_native_graph() -> None:
