@@ -180,6 +180,44 @@ def test_langfuse_async_lifecycle_helpers_preserve_payloads_and_current_paths():
     assert calls[5][1].endswith("/api/public/dataset-items")
 
 
+def test_langfuse_async_metrics_prompts_and_cleanup_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if "/prompts" in url and "cursor=next" not in url:
+            payload = {"data": [{"name": "refunds"}], "meta": {"cursor": "next"}}
+        elif "/prompts" in url:
+            payload = {"data": [{"name": "support"}], "meta": {}}
+        else:
+            payload = {"ok": True}
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else json.dumps(payload).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    async def collect():
+        metrics = await client.aquery_metrics(query={"view": "traces"})
+        prompts = [item async for item in client.aiter_prompts(query={"limit": 1})]
+        trace = await client.aget_trace("trace-1")
+        await client.adelete_trace("trace-1")
+        await client.adelete_traces(trace_ids=["trace-1", "trace-2"])
+        item = await client.aget_dataset_item("item-1")
+        await client.adelete_dataset_item("item-1")
+        return metrics, prompts, trace, item
+
+    metrics, prompts, trace, item = asyncio.run(collect())
+    assert metrics == {"ok": True}
+    assert prompts == [{"name": "refunds"}, {"name": "support"}]
+    assert trace == {"ok": True}
+    assert item == {"ok": True}
+    assert calls[0][1].endswith("/api/public/v2/metrics?view=traces")
+    assert calls[1][1].endswith("/api/public/v2/prompts?limit=1")
+    assert calls[2][1].endswith("/api/public/v2/prompts?limit=1&cursor=next")
+    assert calls[-1][1].endswith("/api/public/dataset-items/item-1")
+
+
 def test_langfuse_trace_and_dataset_helpers_preserve_native_shapes():
     calls = []
 

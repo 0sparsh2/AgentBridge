@@ -63,6 +63,8 @@ AgentBridge adapter plugin for `langchain`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
 - Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.
+- Async Langfuse facades also cover Metrics v2, prompt listing/cursor iteration, legacy trace
+  retrieval/deletion, and dataset-item retrieval/deletion with the same native paths.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
 - Langfuse score creation preserves typed numeric, boolean, categorical, and text values plus

@@ -235,6 +235,11 @@ class LangfuseAPIClient:
 
         return await self.alist_scores_v3(query={"id": score_id, "fields": fields})
 
+    async def aquery_metrics(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async query for Langfuse Metrics API v2."""
+
+        return await self.arequest_json("GET", "/api/public/v2/metrics", query=query)
+
     async def alist_experiments(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for hosted experiment runs."""
 
@@ -244,6 +249,31 @@ class LangfuseAPIClient:
         """Async query facade for experiment inputs, outputs, and scores."""
 
         return await self.arequest_json("GET", "/api/public/experiment-items", query=query)
+
+    async def alist_prompts(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """Async list for Langfuse Prompt Management API v2."""
+
+        return await self.arequest_json("GET", "/api/public/v2/prompts", query=query)
+
+    async def aiter_prompts(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for prompts while preserving filters."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_prompts(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
 
     async def alist_datasets(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for Langfuse Dataset API v2."""
@@ -394,6 +424,35 @@ class LangfuseAPIClient:
         }
         body.update({key: item for key, item in optional.items() if item is not None})
         return await self.arequest_json("POST", "/api/public/dataset-items", body=body)
+
+    async def aget_trace(self, trace_id: str) -> Any:
+        """Async fetch for one legacy Langfuse trace payload."""
+
+        return await self.arequest_json("GET", f"/api/public/traces/{trace_id}")
+
+    async def adelete_trace(self, trace_id: str) -> Any:
+        """Async delete for one trace and its observations/scores."""
+
+        return await self.arequest_json("DELETE", f"/api/public/traces/{trace_id}")
+
+    async def adelete_traces(self, *, trace_ids: list[str]) -> Any:
+        """Async batch delete for traces."""
+
+        return await self.arequest_json(
+            "POST",
+            "/api/public/traces/delete",
+            body={"traceIds": trace_ids},
+        )
+
+    async def aget_dataset_item(self, item_id: str) -> Any:
+        """Async fetch for one dataset item."""
+
+        return await self.arequest_json("GET", f"/api/public/dataset-items/{item_id}")
+
+    async def adelete_dataset_item(self, item_id: str) -> Any:
+        """Async delete for one dataset item and its experiment items."""
+
+        return await self.arequest_json("DELETE", f"/api/public/dataset-items/{item_id}")
 
     async def astream_events(
         self,
