@@ -318,6 +318,34 @@ def test_langsmith_agent_connection_helpers_preserve_agent_scoped_paths():
     assert calls[2][1].endswith("/v2/auth/agents/agent-1/connections/connection-1")
 
 
+def test_langsmith_platform_tool_registry_helpers_preserve_id_and_handle_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    assert client.create_tool(body={"handle": "refund_lookup", "description": "Lookup refunds"}) == {
+        "ok": True
+    }
+    assert client.list_tools(query={"limit": 10}) == {"ok": True}
+    assert client.get_tool_by_id("tool-1") == {"ok": True}
+    assert client.get_tool_by_handle("refund_lookup") == {"ok": True}
+    assert client.update_tool_by_id("tool-1", body={"description": "Updated"}) == {"ok": True}
+    assert client.update_tool_by_handle("refund_lookup", body={"enabled": False}) == {"ok": True}
+    assert client.delete_tool_by_id("tool-1") is None
+    assert client.delete_tool_by_handle("refund_lookup") is None
+
+    assert calls[0][0:2] == ("POST", "https://example.test/api/v1/platform/tools")
+    assert json.loads(calls[0][2])["handle"] == "refund_lookup"
+    assert calls[1][1].endswith("/api/v1/platform/tools?limit=10")
+    assert calls[2][1].endswith("/api/v1/platform/tools/id/tool-1")
+    assert calls[3][1].endswith("/api/v1/platform/tools/refund_lookup")
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

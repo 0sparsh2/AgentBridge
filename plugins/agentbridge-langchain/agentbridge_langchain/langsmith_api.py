@@ -774,6 +774,46 @@ class LangSmithAPIClient:
             f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
         )
 
+    def create_tool(self, *, body: Mapping[str, Any]) -> Any:
+        """Create a workspace tool in the LangSmith platform registry."""
+
+        return self.request_json("POST", "/api/v1/platform/tools", body=dict(body))
+
+    def list_tools(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List workspace tools with native filters and pagination."""
+
+        return self.request_json("GET", "/api/v1/platform/tools", query=query)
+
+    def get_tool_by_id(self, tool_id: str) -> Any:
+        """Fetch a workspace tool by UUID."""
+
+        return self.request_json("GET", f"/api/v1/platform/tools/id/{tool_id}")
+
+    def get_tool_by_handle(self, handle: str) -> Any:
+        """Fetch a workspace tool by stable handle."""
+
+        return self.request_json("GET", f"/api/v1/platform/tools/{handle}")
+
+    def update_tool_by_id(self, tool_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Patch a workspace tool by UUID."""
+
+        return self.request_json("PATCH", f"/api/v1/platform/tools/id/{tool_id}", body=dict(body))
+
+    def update_tool_by_handle(self, handle: str, *, body: Mapping[str, Any]) -> Any:
+        """Patch a workspace tool by stable handle."""
+
+        return self.request_json("PATCH", f"/api/v1/platform/tools/{handle}", body=dict(body))
+
+    def delete_tool_by_id(self, tool_id: str) -> Any:
+        """Delete a workspace tool by UUID."""
+
+        return self.request_json("DELETE", f"/api/v1/platform/tools/id/{tool_id}")
+
+    def delete_tool_by_handle(self, handle: str) -> Any:
+        """Delete a workspace tool by stable handle."""
+
+        return self.request_json("DELETE", f"/api/v1/platform/tools/{handle}")
+
     def list_agents(
         self,
         *,
