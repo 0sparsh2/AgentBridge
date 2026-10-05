@@ -24,6 +24,7 @@ class LangChainConfig(BaseModel):
     callbacks: list[Any] = Field(default_factory=list)
     memory: str | None = None
     retrievers: list[Any] = Field(default_factory=list)
+    retriever_tools: list[Any] = Field(default_factory=list)
     mcp_tools: list[Any] = Field(default_factory=list)
     checkpointer: Any | None = None
     store: Any | None = None
@@ -57,6 +58,7 @@ class LangChainExtension(FrameworkExtension):
         callbacks: list[Any] | None = None,
         memory: str | None = None,
         retrievers: list[Any] | None = None,
+        retriever_tools: list[Any] | None = None,
         mcp_tools: list[Any] | None = None,
         checkpointer: Any | None = None,
         store: Any | None = None,
@@ -84,6 +86,7 @@ class LangChainExtension(FrameworkExtension):
             callbacks=callbacks or [],
             memory=memory,
             retrievers=retrievers or [],
+            retriever_tools=retriever_tools or [],
             mcp_tools=mcp_tools or [],
             checkpointer=checkpointer,
             store=store,

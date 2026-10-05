@@ -51,6 +51,7 @@ class Adapter(BackendAdapter):
                 "tools.sync": "Maps ToolSpec callables to LangChain StructuredTool instances.",
                 "tools.async": "Preserves LangChain async runnables through native ainvoke/astream when exposed by the compiled agent.",
                 "tools.mcp": "Passes native MCP adapter tools through LangChain create_agent without making langchain-mcp-adapters a core dependency.",
+                "tools.retriever": "Wraps explicitly requested native retrievers as search tools while preserving the retriever implementation.",
                 "structured_output": "Maps AgentSpec.output_type to LangChain response_format and validates native structured_response.",
                 "state.memory": "Records memory/retriever hints and forwards native checkpointer/store objects when provided; portable memory semantics remain extension-level.",
                 "observability.tracing": "Passes callbacks and metadata through native runtime config; provider-specific tracing remains extension-level.",
@@ -66,6 +67,10 @@ class Adapter(BackendAdapter):
         config = dict(spec.backend_config.get(self.backend_name, {}))
         native_tools = [_to_langchain_tool(structured_tool, tool) for tool in spec.tools]
         native_tools.extend(config.get("mcp_tools") or [])
+        native_tools.extend(
+            _to_langchain_retriever_tool(structured_tool, retriever, index)
+            for index, retriever in enumerate(config.get("retriever_tools") or [])
+        )
         agent_kwargs: dict[str, Any] = {
             "model": config.get("model") or _model_for_spec(spec, config),
             "tools": native_tools,
@@ -288,6 +293,40 @@ def _to_langchain_tool(structured_tool: Any, tool_spec: Any) -> Any:
         name=tool_spec.name,
         description=tool_spec.description,
     )
+
+
+def _to_langchain_retriever_tool(structured_tool: Any, retriever: Any, index: int) -> Any:
+    """Expose one native retriever as a query tool without replacing it."""
+
+    raw_name = getattr(retriever, "name", None) or f"retriever_{index + 1}"
+    name = "".join(character if character.isalnum() or character == "_" else "_" for character in raw_name)
+    description = getattr(retriever, "description", None) or f"Search documents with {name}."
+
+    def search(query: str) -> list[Any]:
+        invoke = getattr(retriever, "invoke", None)
+        if callable(invoke):
+            documents = invoke(query)
+        else:
+            get_documents = getattr(retriever, "get_relevant_documents", None)
+            if not callable(get_documents):
+                raise TypeError(f"Retriever {name!r} must expose invoke() or get_relevant_documents().")
+            documents = get_documents(query)
+        return [_document_payload(document) for document in documents]
+
+    return structured_tool.from_function(func=search, name=name, description=description)
+
+
+def _document_payload(document: Any) -> Any:
+    """Keep native document content and metadata while making results serializable."""
+
+    if isinstance(document, dict):
+        return document
+    payload: dict[str, Any] = {}
+    if hasattr(document, "page_content"):
+        payload["page_content"] = document.page_content
+    if hasattr(document, "metadata"):
+        payload["metadata"] = document.metadata
+    return payload or document
 
 
 def _model_for_spec(spec: AgentSpec, config: dict[str, Any] | None = None) -> Any:
@@ -650,6 +689,7 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
             "requested": _safe_summary(config.get("retrievers") or []),
             "native_store": "store" in applied_native_options,
         },
+        "retriever_tools_count": len(config.get("retriever_tools") or []),
         "mcp_tools_count": len(config.get("mcp_tools") or []),
         "applied_native_options": applied_native_options,
         "native_options_count": len(config.get("native_options") or {}),

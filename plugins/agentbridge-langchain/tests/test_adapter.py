@@ -429,6 +429,7 @@ def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
         ],
         "native_options_count": 1,
         "mcp_tools_count": 0,
+        "retriever_tools_count": 0,
     }
 
 
@@ -682,6 +683,46 @@ def test_adapter_summarizes_native_langchain_retrievers(monkeypatch) -> None:
         "requested": [{"name": "refund_policy_retriever"}],
         "native_store": True,
     }
+
+
+def test_adapter_wraps_native_retriever_as_search_tool(monkeypatch) -> None:
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=fake_create_agent),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+
+    class Retriever:
+        name = "refund policy"
+        description = "Search refund policy documents."
+
+        def invoke(self, query):
+            assert query == "double charge"
+            return [
+                SimpleNamespace(
+                    page_content="Refund within 30 days.",
+                    metadata={"source": "policy"},
+                )
+            ]
+
+    spec = LangChainExtension.with_config(
+        AgentSpec(name="support_agent", instructions="Search policy.", model="openai/gpt-5"),
+        retriever_tools=[Retriever()],
+    )
+    compiled = Adapter().compile(spec)
+    retriever_tool = compiled.native_agent.kwargs["tools"][0]
+
+    assert retriever_tool.name == "refund_policy"
+    assert retriever_tool.description == "Search refund policy documents."
+    assert retriever_tool.func("double charge") == [
+        {"page_content": "Refund within 30 days.", "metadata": {"source": "policy"}}
+    ]
+    assert len(compiled.config["retriever_tools"]) == 1
 
 
 def test_adapter_runs_offline_model_through_create_agent() -> None:

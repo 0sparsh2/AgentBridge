@@ -17,6 +17,9 @@ AgentBridge adapter plugin for `langchain`.
 - Structured output through native LangChain `response_format` and typed `structured_response`.
 - Middleware, callbacks, memory hints, retriever hints, and native `create_agent` options through
   `LangChainExtension`.
+- Explicit native retrievers can be exposed as agent tools with
+  `LangChainExtension.config(retriever_tools=[...])`; document content and metadata are preserved
+  in tool results while the original retriever remains the implementation of record.
 - Runtime context schemas receive `RunInput.context` through LangChain's native `context=`
   invocation channel instead of being mixed into message state.
 - Native `HumanInTheLoopMiddleware` pauses are surfaced as normalized workflow interrupt events and
