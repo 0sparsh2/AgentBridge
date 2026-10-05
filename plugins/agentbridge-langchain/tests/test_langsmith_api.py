@@ -577,6 +577,64 @@ def test_langsmith_async_auth_tools_and_store_helpers_preserve_native_paths():
     assert json.loads(calls[13][2]) == {"namespace_prefix": ["support"], "limit": 5}
 
 
+def test_langsmith_async_fleet_deepagents_and_mcp_helpers_preserve_prefixes_and_cursors():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if "/agents?" in url:
+            payload = (
+                {"items": [{"id": "agent-2"}]}
+                if "cursor=next" in url
+                else {"items": [{"id": "agent-1"}], "next_cursor": "next"}
+            )
+        elif "/threads?" in url:
+            payload = (
+                {"items": [{"id": "thread-2"}]}
+                if "cursor=next" in url
+                else {"items": [{"id": "thread-1"}], "next_cursor": "next"}
+            )
+        else:
+            status = 204 if method == "DELETE" else 200
+            payload = None if status == 204 else {"ok": True}
+            return status, {"content-type": "application/json"}, b"" if payload is None else json.dumps(payload).encode()
+        return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        agents = [item async for item in client.aiter_agents(query={"name": "refund"})]
+        managed_agents = await client.alist_agents(path_prefix="/v1/deepagents")
+        fetched = await client.aget_agent("agent-1", include_files=True)
+        created = await client.acreate_agent(body={"name": "refunds"})
+        await client.aupdate_agent("agent-1", body={"enabled": False})
+        await client.adelete_agent("agent-1")
+        threads = [item async for item in client.aiter_fleet_threads(query={"page_size": 10})]
+        await client.aget_fleet_thread("thread-1")
+        await client.aupdate_fleet_thread("thread-1", body={"title": "Refunds"})
+        await client.adelete_fleet_thread("thread-1")
+        servers = await client.alist_mcp_servers()
+        templates = await client.alist_trigger_templates()
+        await client.acreate_mcp_server(body={"name": "search"})
+        await client.aget_mcp_server("mcp-1")
+        await client.aupdate_mcp_server("mcp-1", body={"enabled": True})
+        await client.adelete_mcp_server("mcp-1")
+        return agents, managed_agents, fetched, created, threads, servers, templates
+
+    values = asyncio.run(collect())
+    assert [item["id"] for item in values[0]] == ["agent-1", "agent-2"]
+    assert values[1:4] == ({"ok": True},) * 3
+    assert [item["id"] for item in values[4]] == ["thread-1", "thread-2"]
+    assert values[5:] == ({"ok": True},) * 2
+    assert calls[0][1].endswith("/v1/fleet/agents?name=refund")
+    assert calls[1][1].endswith("/v1/fleet/agents?name=refund&cursor=next")
+    assert calls[3][1].endswith("/v1/fleet/agents/agent-1?include_files=true")
+    assert calls[7][1].endswith("/v1/fleet/threads?page_size=10")
+    assert calls[8][1].endswith("/v1/fleet/threads?page_size=10&cursor=next")
+    assert any(url.endswith("/v1/deepagents/mcp-servers") for _, url, _ in calls)
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

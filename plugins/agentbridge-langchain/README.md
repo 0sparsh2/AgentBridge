@@ -53,6 +53,8 @@ AgentBridge adapter plugin for `langchain`.
   client, preserving native connection payloads and agent-scoped paths.
 - Async LangSmith governance helpers cover Agent Auth connections, platform tool registry CRUD by
   ID or handle, and long-term store put/get/search/delete operations.
+- Async Fleet and Deep Agents helpers cover agent/thread CRUD, cursor iteration, MCP-server
+  registration, and trigger-template discovery with configurable native path prefixes.
 - LangSmith deployment control-plane revision redeploy/interruption, bulk deletion, deployment and
   revision logs, and resource/deployment-tier updates are exposed through typed helpers.
 - LangSmith v2 listener create/list/get/patch/delete operations are exposed through the same

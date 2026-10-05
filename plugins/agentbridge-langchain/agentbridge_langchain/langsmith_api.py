@@ -617,6 +617,188 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/api/v1/platform/tools/{handle}")
 
+    async def alist_agents(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+        path_prefix: str = "/v1/fleet",
+    ) -> Any:
+        """Async list for Fleet or Managed Deep Agents."""
+
+        return await self.arequest_json("GET", f"{path_prefix.rstrip('/')}/agents", query=query)
+
+    async def aiter_agents(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+        path_prefix: str = "/v1/fleet",
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for Fleet or Managed Deep Agents."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_agents(query=page_query, path_prefix=path_prefix)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("items", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    async def aget_agent(
+        self,
+        agent_id: str,
+        *,
+        include_files: bool = False,
+        path_prefix: str = "/v1/fleet",
+    ) -> Any:
+        """Async fetch for an agent definition."""
+
+        query = {"include_files": str(include_files).lower()} if include_files else None
+        return await self.arequest_json(
+            "GET",
+            f"{path_prefix.rstrip('/')}/agents/{agent_id}",
+            query=query,
+        )
+
+    async def acreate_agent(
+        self,
+        *,
+        body: Mapping[str, Any],
+        path_prefix: str = "/v1/fleet",
+    ) -> Any:
+        """Async create for a Fleet or Managed Deep Agent."""
+
+        return await self.arequest_json("POST", f"{path_prefix.rstrip('/')}/agents", body=dict(body))
+
+    async def aupdate_agent(
+        self,
+        agent_id: str,
+        *,
+        body: Mapping[str, Any],
+        path_prefix: str = "/v1/fleet",
+    ) -> Any:
+        """Async update for a Fleet or Managed Deep Agent."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"{path_prefix.rstrip('/')}/agents/{agent_id}",
+            body=dict(body),
+        )
+
+    async def adelete_agent(self, agent_id: str, *, path_prefix: str = "/v1/fleet") -> Any:
+        """Async deletion for a Fleet or Managed Deep Agent."""
+
+        return await self.arequest_json("DELETE", f"{path_prefix.rstrip('/')}/agents/{agent_id}")
+
+    async def alist_fleet_threads(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+        path_prefix: str = "/v1/fleet",
+    ) -> Any:
+        """Async list for managed-agent threads."""
+
+        return await self.arequest_json("GET", f"{path_prefix.rstrip('/')}/threads", query=query)
+
+    async def aiter_fleet_threads(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+        path_prefix: str = "/v1/fleet",
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for managed-agent threads."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_fleet_threads(query=page_query, path_prefix=path_prefix)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("items", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = page.get("next_cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
+    async def aget_fleet_thread(self, thread_id: str, *, path_prefix: str = "/v1/fleet") -> Any:
+        """Async fetch for one managed-agent thread."""
+
+        return await self.arequest_json("GET", f"{path_prefix.rstrip('/')}/threads/{thread_id}")
+
+    async def aupdate_fleet_thread(
+        self,
+        thread_id: str,
+        *,
+        body: Mapping[str, Any],
+        path_prefix: str = "/v1/fleet",
+    ) -> Any:
+        """Async update for managed-agent thread metadata."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"{path_prefix.rstrip('/')}/threads/{thread_id}",
+            body=dict(body),
+        )
+
+    async def adelete_fleet_thread(self, thread_id: str, *, path_prefix: str = "/v1/fleet") -> Any:
+        """Async deletion for a managed-agent thread."""
+
+        return await self.arequest_json("DELETE", f"{path_prefix.rstrip('/')}/threads/{thread_id}")
+
+    async def alist_mcp_servers(self, *, path_prefix: str = "/v1/deepagents") -> Any:
+        """Async list for workspace-registered MCP servers."""
+
+        return await self.arequest_json("GET", f"{path_prefix.rstrip('/')}/mcp-servers")
+
+    async def alist_trigger_templates(self, *, path_prefix: str = "/v1/fleet") -> Any:
+        """Async list for native Fleet trigger templates."""
+
+        return await self.arequest_json("GET", f"{path_prefix.rstrip('/')}/trigger-templates")
+
+    async def acreate_mcp_server(
+        self,
+        *,
+        body: Mapping[str, Any],
+        path_prefix: str = "/v1/deepagents",
+    ) -> Any:
+        """Async register for an MCP server."""
+
+        return await self.arequest_json(
+            "POST",
+            f"{path_prefix.rstrip('/')}/mcp-servers",
+            body=dict(body),
+        )
+
+    async def aget_mcp_server(self, server_id: str, *, path_prefix: str = "/v1/deepagents") -> Any:
+        """Async fetch for a registered MCP server."""
+
+        return await self.arequest_json("GET", f"{path_prefix.rstrip('/')}/mcp-servers/{server_id}")
+
+    async def aupdate_mcp_server(
+        self,
+        server_id: str,
+        *,
+        body: Mapping[str, Any],
+        path_prefix: str = "/v1/deepagents",
+    ) -> Any:
+        """Async update for a registered MCP server."""
+
+        return await self.arequest_json(
+            "PATCH",
+            f"{path_prefix.rstrip('/')}/mcp-servers/{server_id}",
+            body=dict(body),
+        )
+
+    async def adelete_mcp_server(self, server_id: str, *, path_prefix: str = "/v1/deepagents") -> Any:
+        """Async deletion for a registered MCP server."""
+
+        return await self.arequest_json("DELETE", f"{path_prefix.rstrip('/')}/mcp-servers/{server_id}")
+
     async def astore_put(self, *, namespace: list[str], key: str, value: Any) -> Any:
         """Async write for a long-term memory item."""
 
