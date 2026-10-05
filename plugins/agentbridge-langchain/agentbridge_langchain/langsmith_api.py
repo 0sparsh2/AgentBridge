@@ -7,7 +7,7 @@ import json
 import os
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 
@@ -198,6 +198,16 @@ class LangSmithAPIClient:
 
         return self.request_json("GET", f"/threads/{thread_id}")
 
+    def patch_thread(self, thread_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Patch thread metadata using native Agent Server semantics."""
+
+        return self.request_json("PATCH", f"/threads/{thread_id}", body=dict(body))
+
+    def copy_thread(self, thread_id: str) -> Any:
+        """Copy a thread and its persisted state."""
+
+        return self.request_json("POST", f"/threads/{thread_id}/copy")
+
     def search_threads(self, *, body: Mapping[str, Any] | None = None) -> Any:
         """Search deployment threads using the native request body."""
 
@@ -268,6 +278,43 @@ class LangSmithAPIClient:
 
         return self.request_json("POST", "/assistants/search", body=dict(body or {}))
 
+    def count_assistants(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Count assistants matching the native search criteria."""
+
+        return self.request_json("POST", "/assistants/count", body=dict(body or {}))
+
+    def get_assistant_graph(self, assistant_id: str, *, xray: bool | int | None = None) -> Any:
+        """Fetch an assistant graph definition for inspection or visualization."""
+
+        return self.request_json(
+            "GET",
+            f"/assistants/{assistant_id}/graph",
+            query={"xray": xray} if xray is not None else None,
+        )
+
+    def get_assistant_schemas(self, assistant_id: str) -> Any:
+        """Fetch the input, output, and config schemas for an assistant."""
+
+        return self.request_json("GET", f"/assistants/{assistant_id}/schemas")
+
+    def get_assistant_subgraphs(
+        self,
+        assistant_id: str,
+        *,
+        namespace: str | None = None,
+    ) -> Any:
+        """Fetch all assistant subgraphs or those under one namespace."""
+
+        path = f"/assistants/{assistant_id}/subgraphs"
+        if namespace is not None:
+            path = f"{path}/{quote(namespace, safe='')}"
+        return self.request_json("GET", path)
+
+    def get_assistant_versions(self, assistant_id: str, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List all versions of an assistant."""
+
+        return self.request_json("GET", f"/assistants/{assistant_id}/versions", query=query)
+
     def set_latest_assistant_version(self, assistant_id: str, version: int) -> Any:
         """Select the active version for an assistant."""
 
@@ -313,6 +360,31 @@ class LangSmithAPIClient:
         """Fetch one run from a deployment thread."""
 
         return self.request_json("GET", f"/threads/{thread_id}/runs/{run_id}")
+
+    def list_thread_runs(self, thread_id: str, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List runs belonging to a thread."""
+
+        return self.request_json("GET", f"/threads/{thread_id}/runs", query=query)
+
+    def list_run_events(self, thread_id: str, run_id: str) -> Any:
+        """Fetch persisted events for a thread run."""
+
+        return self.request_json("GET", f"/threads/{thread_id}/runs/{run_id}/events")
+
+    def join_run(self, thread_id: str, run_id: str) -> Any:
+        """Wait for a thread run to finish and return its final payload."""
+
+        return self.request_json("GET", f"/threads/{thread_id}/runs/{run_id}/join")
+
+    def join_run_stream(self, thread_id: str, run_id: str) -> Iterator[dict[str, Any]]:
+        """Stream a persisted thread run to completion."""
+
+        return self.stream_events("GET", f"/threads/{thread_id}/runs/{run_id}/join")
+
+    def cancel_runs(self, thread_id: str, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Cancel multiple active runs in a thread."""
+
+        return self.request_json("POST", f"/threads/{thread_id}/runs/cancel", body=dict(body or {}))
 
     def cancel_run(self, thread_id: str, run_id: str) -> Any:
         """Request cancellation of an active deployment run."""

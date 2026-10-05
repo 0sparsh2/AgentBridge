@@ -111,6 +111,39 @@ def test_langsmith_assistant_run_and_state_helpers_preserve_native_shapes():
     assert calls[-1][2] == b'{"values": {"approved": true}, "as_node": "review"}'
 
 
+def test_langsmith_assistant_introspection_and_thread_run_lifecycle_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if url.endswith("/join"):
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"done"}\n\ndata: [DONE]\n'
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.count_assistants(body={"graph_id": "agent"})
+    client.get_assistant_graph("assistant-1", xray=2)
+    client.get_assistant_schemas("assistant-1")
+    client.get_assistant_subgraphs("assistant-1")
+    client.get_assistant_subgraphs("assistant-1", namespace="child/ns")
+    client.get_assistant_versions("assistant-1", query={"limit": 10})
+    client.patch_thread("thread-1", body={"metadata": {"team": "support"}})
+    client.copy_thread("thread-1")
+    client.list_thread_runs("thread-1", query={"limit": 10})
+    client.list_run_events("thread-1", "run-1")
+    client.join_run("thread-1", "run-1")
+    assert list(client.join_run_stream("thread-1", "run-1")) == [{"event": "done"}]
+    client.cancel_runs("thread-1", body={"run_ids": ["run-1"]})
+
+    assert calls[0][1].endswith("/assistants/count")
+    assert calls[1][1].endswith("/assistants/assistant-1/graph?xray=2")
+    assert calls[4][1].endswith("/assistants/assistant-1/subgraphs/child%2Fns")
+    assert calls[7][1].endswith("/threads/thread-1/copy")
+    assert calls[8][1].endswith("/threads/thread-1/runs?limit=10")
+    assert calls[10][1].endswith("/threads/thread-1/runs/run-1/join")
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

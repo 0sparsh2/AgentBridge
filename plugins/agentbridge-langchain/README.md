@@ -265,14 +265,14 @@ result = remote.run(
 The native thread/run API remains available through `LangSmithAPIClient` for endpoints that need
 provider-specific payloads.
 
-The same client exposes assistant lifecycle, thread search/history/interrupts, run inspection and
-cancellation, run feedback, long-term store operations, thread-state helpers, Fleet/Managed Deep
-Agent CRUD, managed-agent thread metadata, and registered MCP-server lifecycle operations for
-common LangGraph and LangSmith workflows while retaining `request_json()`/`call()` for the complete
-native API surface. Cursor-safe `iter_agents()` and `iter_fleet_threads()` helpers follow native
-`next_cursor` pagination, and `list_trigger_templates()` exposes Fleet trigger schemas. Use
-`path_prefix="/v1/deepagents"` for Managed Deep Agents; Fleet agents use the default `/v1/fleet`
-prefix.
+The same client exposes assistant lifecycle and graph/schema/subgraph/version introspection, thread
+search/history/patch/copy/interrupts, run listing/events/join/cancellation, run feedback, long-term
+store operations, thread-state helpers, Fleet/Managed Deep Agent CRUD, managed-agent thread metadata,
+and registered MCP-server lifecycle operations for common LangGraph and LangSmith workflows while
+retaining `request_json()`/`call()` for the complete native API surface. Cursor-safe `iter_agents()`
+and `iter_fleet_threads()` helpers follow native `next_cursor` pagination, and
+`list_trigger_templates()` exposes Fleet trigger schemas. Use `path_prefix="/v1/deepagents"` for
+Managed Deep Agents; Fleet agents use the default `/v1/fleet` prefix.
 
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
 `RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing
