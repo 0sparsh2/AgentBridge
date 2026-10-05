@@ -202,6 +202,44 @@ def test_langgraph_adapter_uses_native_async_resume_and_public_runner():
     assert result.metadata["async"] is True
 
 
+def test_langgraph_adapter_uses_native_async_checkpoint_state_methods():
+    class FakeGraph:
+        async def aget_state(self, config):
+            return {"kind": "state", "config": config}
+
+        async def aget_state_history(self, config):
+            return [{"kind": "history", "config": config}]
+
+        async def aupdate_state(self, config, values, as_node=None):
+            return {"kind": "update", "config": config, "values": values, "as_node": as_node}
+
+    compiled = LangGraphCompiledAgent(
+        spec=AgentSpec(name="state_agent", instructions="Inspect state.", model="openai/gpt-5"),
+        graph=FakeGraph(),
+        config=LangGraphConfig(enable_checkpointing=True),
+    )
+    adapter = LangGraphAdapter()
+
+    async def run():
+        run_input = RunInput(input="inspect", session_id="session-1")
+        state = await adapter.aget_state(compiled, run_input, checkpoint_id="checkpoint-1")
+        history = await adapter.aget_state_history(compiled, run_input)
+        updated = await adapter.aupdate_state(
+            compiled,
+            run_input,
+            values={"approved": True},
+            as_node="review",
+        )
+        return state, history, updated
+
+    state, history, updated = asyncio.run(run())
+    assert state["kind"] == "state"
+    assert state["config"]["configurable"]["checkpoint_id"] == "checkpoint-1"
+    assert history[0]["kind"] == "history"
+    assert updated["values"] == {"approved": True}
+    assert updated["as_node"] == "review"
+
+
 def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -> None:
     class FakeGraph:
         def stream(self, payload, config=None, **options):

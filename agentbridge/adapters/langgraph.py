@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 import inspect
@@ -392,6 +393,25 @@ class LangGraphAdapter(BackendAdapter):
             raise TypeError("The compiled LangGraph does not expose get_state().")
         return method(self._checkpoint_config(compiled, run_input, checkpoint_id=checkpoint_id))
 
+    async def aget_state(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        checkpoint_id: str | None = None,
+    ) -> Any:
+        """Read a checkpoint snapshot through LangGraph's native async API when available."""
+
+        method = getattr(compiled.graph, "aget_state", None)
+        if not callable(method):
+            return await asyncio.to_thread(
+                self.get_state,
+                compiled,
+                run_input,
+                checkpoint_id=checkpoint_id,
+            )
+        return await method(self._checkpoint_config(compiled, run_input, checkpoint_id=checkpoint_id))
+
     def get_state_history(
         self,
         compiled: LangGraphCompiledAgent,
@@ -403,6 +423,18 @@ class LangGraphAdapter(BackendAdapter):
         if not callable(method):
             raise TypeError("The compiled LangGraph does not expose get_state_history().")
         return method(self._checkpoint_config(compiled, run_input))
+
+    async def aget_state_history(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+    ) -> Any:
+        """Read checkpoint history through LangGraph's native async API when available."""
+
+        method = getattr(compiled.graph, "aget_state_history", None)
+        if not callable(method):
+            return await asyncio.to_thread(self.get_state_history, compiled, run_input)
+        return await method(self._checkpoint_config(compiled, run_input))
 
     def update_state(
         self,
@@ -421,6 +453,30 @@ class LangGraphAdapter(BackendAdapter):
         if as_node is None:
             return method(config, values)
         return method(config, values, as_node=as_node)
+
+    async def aupdate_state(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        values: Any,
+        as_node: str | None = None,
+    ) -> Any:
+        """Apply a checkpoint update through LangGraph's native async API when available."""
+
+        method = getattr(compiled.graph, "aupdate_state", None)
+        if not callable(method):
+            return await asyncio.to_thread(
+                self.update_state,
+                compiled,
+                run_input,
+                values=values,
+                as_node=as_node,
+            )
+        config = self._checkpoint_config(compiled, run_input)
+        if as_node is None:
+            return await method(config, values)
+        return await method(config, values, as_node=as_node)
 
     def replay(
         self,
