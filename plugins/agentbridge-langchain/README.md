@@ -85,6 +85,8 @@ AgentBridge adapter plugin for `langchain`.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
 - The evaluation bridge also exposes async `apublish_dataset()` and `apublish_report_scores()`
   helpers for fully asynchronous evaluation pipelines.
+- These async evaluation helpers are exported from the plugin package as
+  `apublish_langfuse_dataset()` and `apublish_report_scores()`.
 - Langfuse score creation preserves typed numeric, boolean, categorical, and text values plus
   trace/session/observation/dataset-run targets, idempotency IDs, score configs, metadata, and
   environment fields.

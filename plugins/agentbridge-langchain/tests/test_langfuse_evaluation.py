@@ -1,9 +1,11 @@
 from agentbridge import EvaluationExample, EvaluationReport, EvaluationCase, EvaluationScore
 import asyncio
 
+from agentbridge_langchain import (
+    apublish_langfuse_dataset,
+    apublish_report_scores as exported_apublish_report_scores,
+)
 from agentbridge_langchain.langfuse_evaluation import (
-    apublish_dataset,
-    apublish_report_scores,
     publish_dataset,
     publish_report_scores,
 )
@@ -80,12 +82,14 @@ def test_async_langfuse_evaluation_bridge_publishes_examples_and_scores():
     )
 
     async def publish():
-        dataset = await apublish_dataset(
+        dataset = await apublish_langfuse_dataset(
             [EvaluationExample(input="A123", expected_output={"eligible": True})],
             dataset_name="refunds",
             client=client,
         )
-        scores = await apublish_report_scores(report, trace_ids={0: "trace-1"}, client=client)
+        scores = await exported_apublish_report_scores(
+            report, trace_ids={0: "trace-1"}, client=client
+        )
         return dataset, scores
 
     dataset, scores = asyncio.run(publish())
