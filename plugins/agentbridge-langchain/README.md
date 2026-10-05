@@ -187,6 +187,8 @@ forwards native callbacks and metadata, adds Langfuse's `CallbackHandler` when e
 the invocation/stream in LangSmith's native tracing context. No API keys are stored in `AgentSpec`.
 Langfuse callback options such as `release`, `version`, `environment`, `session_id`, `user_id`, and
 `trace_id` are forwarded when supported by the installed SDK, with a fallback for older SDK lines.
+Future or provider-specific callback fields can be passed through
+`observability.langfuse.callback_options` without changing core.
 
 LangSmith smoke coverage is available but disabled by default to avoid accidental network calls:
 

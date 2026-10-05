@@ -454,6 +454,10 @@ def test_adapter_passes_native_langfuse_trace_options(monkeypatch) -> None:
                 "session_id": "session-1",
                 "trace_id": "trace-1",
                 "user_id": "user-1",
+                "callback_options": {
+                    "trace_name": "refund-check",
+                    "trace_attributes": {"service": "support"},
+                },
             }
         },
     )
@@ -466,7 +470,11 @@ def test_adapter_passes_native_langfuse_trace_options(monkeypatch) -> None:
         "session_id": "session-1",
         "trace_id": "trace-1",
         "user_id": "user-1",
+        "trace_name": "refund-check",
+        "trace_attributes": {"service": "support"},
     }
+
+
 def test_adapter_forwards_langchain_extension_surface(monkeypatch) -> None:
     monkeypatch.setitem(
         sys.modules,

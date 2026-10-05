@@ -49,7 +49,9 @@ def callbacks_for_config(config: dict[str, Any]) -> list[Any]:
                 "Langfuse observability is enabled but langfuse is not installed. "
                 "Install the relevant adapter with its observability extra."
             ) from exc
-        callback_options = {
+        callback_options = dict(langfuse.get("callback_options") or {})
+        callback_options.update(
+            {
             key: langfuse[key]
             for key in (
                 "public_key",
@@ -64,7 +66,8 @@ def callbacks_for_config(config: dict[str, Any]) -> list[Any]:
                 "debug",
             )
             if langfuse.get(key) is not None
-        }
+            }
+        )
         try:
             callbacks.append(CallbackHandler(**callback_options))
         except TypeError:
