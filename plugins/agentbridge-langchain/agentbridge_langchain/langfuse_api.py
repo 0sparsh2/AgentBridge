@@ -245,10 +245,50 @@ class LangfuseAPIClient:
 
         return await self.arequest_json("GET", "/api/public/experiments", query=query)
 
+    async def aiter_experiments(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for hosted experiments."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_experiments(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     async def alist_experiment_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for experiment inputs, outputs, and scores."""
 
         return await self.arequest_json("GET", "/api/public/experiment-items", query=query)
+
+    async def aiter_experiment_items(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for experiment items."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_experiment_items(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
 
     async def alist_prompts(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async list for Langfuse Prompt Management API v2."""
@@ -280,10 +320,50 @@ class LangfuseAPIClient:
 
         return await self.arequest_json("GET", "/api/public/v2/datasets", query=query)
 
+    async def aiter_datasets(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for datasets."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_datasets(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     async def alist_dataset_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for versioned dataset items."""
 
         return await self.arequest_json("GET", "/api/public/dataset-items", query=query)
+
+    async def aiter_dataset_items(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async cursor iterator for dataset items."""
+
+        page_query = dict(query or {})
+        while True:
+            page = await self.alist_dataset_items(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
 
     async def aiter_observations(
         self,

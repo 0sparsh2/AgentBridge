@@ -68,6 +68,8 @@ AgentBridge adapter plugin for `langchain`.
 - Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.
 - Async Langfuse facades also cover Metrics v2, prompt listing/cursor iteration, legacy trace
   retrieval/deletion, and dataset-item retrieval/deletion with the same native paths.
+- Async Langfuse cursor iterators now cover experiments, experiment items, datasets, and dataset
+  items while preserving caller filters and server cursors.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
 - Langfuse score creation preserves typed numeric, boolean, categorical, and text values plus

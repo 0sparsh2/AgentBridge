@@ -134,6 +134,47 @@ def test_langfuse_async_typed_queries_preserve_current_paths_and_cursors():
     assert calls[2].endswith("/api/public/v3/scores?dataType=NUMERIC")
 
 
+def test_langfuse_async_cursor_iterators_preserve_filters_across_resources():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        resource = next(
+            name
+            for name in ("experiments", "experiment-items", "datasets", "dataset-items")
+            if f"/{name}" in url
+        )
+        if "cursor=next" not in url:
+            payload = {"data": [{"resource": resource, "page": 1}], "meta": {"cursor": "next"}}
+        else:
+            payload = {"data": [{"resource": resource, "page": 2}], "meta": {}}
+        return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    async def collect():
+        experiments = [item async for item in client.aiter_experiments(query={"limit": 1})]
+        experiment_items = [
+            item async for item in client.aiter_experiment_items(query={"experimentId": "exp-1"})
+        ]
+        datasets = [item async for item in client.aiter_datasets(query={"limit": 1})]
+        dataset_items = [
+            item async for item in client.aiter_dataset_items(query={"datasetName": "refunds"})
+        ]
+        return experiments, experiment_items, datasets, dataset_items
+
+    values = asyncio.run(collect())
+    assert all(len(items) == 2 for items in values)
+    assert values[0][0]["resource"] == "experiments"
+    assert values[1][0]["resource"] == "experiment-items"
+    assert values[2][0]["resource"] == "datasets"
+    assert values[3][0]["resource"] == "dataset-items"
+    assert calls[0].endswith("/api/public/experiments?limit=1")
+    assert calls[1].endswith("/api/public/experiments?limit=1&cursor=next")
+    assert calls[2].endswith("/api/public/experiment-items?experimentId=exp-1")
+
+
 def test_langfuse_async_lifecycle_helpers_preserve_payloads_and_current_paths():
     calls = []
 
