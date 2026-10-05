@@ -747,6 +747,33 @@ class LangSmithAPIClient:
 
         return self.request_json("DELETE", f"/api/v1/feedback/{feedback_id}")
 
+    def create_agent_connection(
+        self,
+        agent_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Create an Agent Auth connection for a LangSmith agent."""
+
+        return self.request_json(
+            "POST",
+            f"/v2/auth/agents/{agent_id}/connections",
+            body=dict(body),
+        )
+
+    def list_agent_connections(self, agent_id: str) -> Any:
+        """List Agent Auth connections configured for a LangSmith agent."""
+
+        return self.request_json("GET", f"/v2/auth/agents/{agent_id}/connections")
+
+    def remove_agent_connection(self, agent_id: str, connection_id: str) -> Any:
+        """Remove one Agent Auth connection from a LangSmith agent."""
+
+        return self.request_json(
+            "DELETE",
+            f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
+        )
+
     def list_agents(
         self,
         *,

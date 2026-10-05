@@ -297,6 +297,27 @@ def test_langsmith_dataset_and_example_helpers_preserve_native_shapes():
     assert calls[3][1].endswith("/datasets?name=refunds&cursor=next")
 
 
+def test_langsmith_agent_connection_helpers_preserve_agent_scoped_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    assert client.create_agent_connection(
+        "agent-1", body={"provider": "github", "scopes": ["repo"]}
+    ) == {"ok": True}
+    assert client.list_agent_connections("agent-1") == {"ok": True}
+    assert client.remove_agent_connection("agent-1", "connection-1") == {"ok": True}
+
+    assert calls[0][0:2] == ("POST", "https://example.test/v2/auth/agents/agent-1/connections")
+    assert json.loads(calls[0][2]) == {"provider": "github", "scopes": ["repo"]}
+    assert calls[1][1].endswith("/v2/auth/agents/agent-1/connections")
+    assert calls[2][1].endswith("/v2/auth/agents/agent-1/connections/connection-1")
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 
