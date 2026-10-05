@@ -333,7 +333,8 @@ available through `get_thread_state_at_checkpoint()`, `get_thread_state_at_check
 and `prune_threads()`.
 
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
-`RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing
+`RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`, with matching async
+`acreate_thread()`, `astate()`, `aupdate_state()`, and `aresume()` methods. Langfuse evaluation publishing
 is available through `publish_langfuse_dataset()` and `publish_report_scores()`.
 
 For an option that AgentBridge has not normalized yet, pass it explicitly:

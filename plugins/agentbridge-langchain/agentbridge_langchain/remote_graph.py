@@ -25,6 +25,20 @@ class RemoteGraphClient:
             raise ValueError("Remote graph thread response did not include thread_id or id.")
         return str(thread_id)
 
+    async def acreate_thread(self, *, metadata: Mapping[str, Any] | None = None) -> str:
+        """Async create for a remote graph thread."""
+
+        response = await _async_client_call(
+            self.client,
+            "acreate_thread",
+            "create_thread",
+            metadata=metadata,
+        )
+        thread_id = response.get("thread_id") or response.get("id") if isinstance(response, dict) else None
+        if not thread_id:
+            raise ValueError("Remote graph thread response did not include thread_id or id.")
+        return str(thread_id)
+
     def stream(
         self,
         *,
@@ -116,10 +130,33 @@ class RemoteGraphClient:
 
         return self.client.get_thread_state(thread_id, checkpoint_id=checkpoint_id)
 
+    async def astate(self, thread_id: str, *, checkpoint_id: str | None = None) -> Any:
+        """Async read for remote graph state."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_thread_state",
+            "get_thread_state",
+            thread_id,
+            checkpoint_id=checkpoint_id,
+        )
+
     def update_state(self, thread_id: str, *, values: Any, as_node: str | None = None) -> Any:
         """Apply a native remote graph state update."""
 
         return self.client.update_thread_state(thread_id, values=values, as_node=as_node)
+
+    async def aupdate_state(self, thread_id: str, *, values: Any, as_node: str | None = None) -> Any:
+        """Async update for remote graph state."""
+
+        return await _async_client_call(
+            self.client,
+            "aupdate_thread_state",
+            "update_thread_state",
+            thread_id,
+            values=values,
+            as_node=as_node,
+        )
 
     def resume(
         self,
@@ -131,6 +168,24 @@ class RemoteGraphClient:
         """Resume an interrupted remote run using the native command payload."""
 
         return self.client.create_thread_run(
+            thread_id,
+            assistant_id=assistant_id,
+            input={"command": {"resume": resume_value}},
+        )
+
+    async def aresume(
+        self,
+        *,
+        thread_id: str,
+        assistant_id: str,
+        resume_value: Any,
+    ) -> Any:
+        """Async resume for an interrupted remote run."""
+
+        return await _async_client_call(
+            self.client,
+            "acreate_thread_run",
+            "create_thread_run",
             thread_id,
             assistant_id=assistant_id,
             input={"command": {"resume": resume_value}},
@@ -179,3 +234,21 @@ async def _collect_sync_stream(
     return await asyncio.to_thread(
         lambda: list(client.stream(thread_id=thread_id, assistant_id=assistant_id, input=input))
     )
+
+
+async def _async_client_call(
+    client: Any,
+    async_name: str,
+    sync_name: str,
+    *args: Any,
+    **kwargs: Any,
+) -> Any:
+    """Prefer a typed async API and retain an explicit sync compatibility fallback."""
+
+    import asyncio
+
+    async_method = getattr(client, async_name, None)
+    if callable(async_method):
+        return await async_method(*args, **kwargs)
+    sync_method = getattr(client, sync_name)
+    return await asyncio.to_thread(sync_method, *args, **kwargs)

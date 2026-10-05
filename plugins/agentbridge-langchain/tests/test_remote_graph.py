@@ -56,3 +56,24 @@ def test_remote_graph_supports_async_native_event_stream():
     assert result.output == "hello"
     assert result.metadata["async"] is True
     assert result.events[-1].type == "complete"
+
+
+def test_remote_graph_async_thread_state_and_resume_helpers_use_compatibility_fallbacks():
+    client = RemoteGraphClient(FakeClient())
+
+    async def collect():
+        thread_id = await client.acreate_thread(metadata={"team": "support"})
+        state = await client.astate(thread_id, checkpoint_id="cp-2")
+        updated = await client.aupdate_state(thread_id, values={"approved": True}, as_node="review")
+        resumed = await client.aresume(
+            thread_id=thread_id,
+            assistant_id="agent",
+            resume_value="approved",
+        )
+        return thread_id, state, updated, resumed
+
+    thread_id, state, updated, resumed = asyncio.run(collect())
+    assert thread_id == "thread-1"
+    assert state["checkpoint_id"] == "cp-2"
+    assert updated["as_node"] == "review"
+    assert resumed["input"] == {"command": {"resume": "approved"}}
