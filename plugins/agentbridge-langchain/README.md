@@ -282,6 +282,9 @@ through `create_run_wait()`, native SSE through `create_run_stream()`, and batch
 stream modes, webhooks, interrupts, and completion policy are not discarded. Agent-to-Agent
 JSON-RPC and stateless MCP transport are available through `a2a_json_rpc()`, `a2a_stream()`,
 `mcp_get()`, `mcp_post()`, and `mcp_terminate()`.
+Agent Server health, version metadata, local API docs, system metrics, and persistent thread
+subscriptions are available through `health_check()`, `server_info()`, `api_documentation()`,
+`system_metrics()`, and `join_thread_stream()`.
 
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
 `RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`. Langfuse evaluation publishing

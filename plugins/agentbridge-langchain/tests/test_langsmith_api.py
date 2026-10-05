@@ -218,6 +218,36 @@ def test_langsmith_protocol_helpers_stream_a2a_json_rpc_events():
     ]
 
 
+def test_langsmith_agent_server_thread_and_system_helpers_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        if "/stream?" in url:
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"run"}\n\n'
+        if url.endswith("/metrics?format=prometheus"):
+            return 200, {"content-type": "text/plain"}, b"agent_runs_total 1\n"
+        if url.endswith("/docs"):
+            return 200, {"content-type": "text/html"}, b"<html>docs</html>"
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    assert client.thread_history("thread-1", body={"limit": 1}) == {"ok": True}
+    assert list(client.join_thread_stream("thread-1", stream_modes=["lifecycle"], last_event_id="7")) == [
+        {"event": "run"}
+    ]
+    assert client.health_check(check_db=True) == {"ok": True}
+    assert client.server_info() == {"ok": True}
+    assert client.api_documentation() == b"<html>docs</html>"
+    assert client.system_metrics() == b"agent_runs_total 1\n"
+
+    assert calls[0][1].endswith("/threads/thread-1/history")
+    assert calls[1][1].endswith("/threads/thread-1/stream?stream_modes=lifecycle")
+    assert calls[1][2]["Last-Event-ID"] == "7"
+    assert calls[2][1].endswith("/ok?check_db=1")
+    assert calls[5][1].endswith("/metrics?format=prometheus")
+
+
 def test_langsmith_agent_server_helpers_cover_threads_runs_assistants_and_store():
     calls = []
 

@@ -228,6 +228,26 @@ class LangSmithAPIClient:
 
         return self.request_json("POST", f"/threads/{thread_id}/history", body=dict(body or {}))
 
+    def join_thread_stream(
+        self,
+        thread_id: str,
+        *,
+        stream_modes: str | list[str] | None = None,
+        last_event_id: str | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Subscribe to the native SSE stream for all runs on a thread."""
+
+        query: dict[str, Any] = {}
+        if stream_modes is not None:
+            query["stream_modes"] = stream_modes
+        headers = {"Last-Event-ID": last_event_id} if last_event_id is not None else None
+        return self.stream_events(
+            "GET",
+            f"/threads/{thread_id}/stream",
+            query=query,
+            headers=headers,
+        )
+
     def resolve_interrupt(self, thread_id: str) -> Any:
         """Resolve a paused human-in-the-loop thread."""
 
@@ -237,6 +257,26 @@ class LangSmithAPIClient:
         """Create a thread for a deployed graph or Agent Server runtime."""
 
         return self.request_json("POST", "/threads", body={"metadata": dict(metadata or {})})
+
+    def health_check(self, *, check_db: bool = False) -> Any:
+        """Check Agent Server health, optionally including database connectivity."""
+
+        return self.request_json("GET", "/ok", query={"check_db": int(check_db)})
+
+    def server_info(self) -> Any:
+        """Fetch Agent Server version, feature flags, and deployment metadata."""
+
+        return self.request_json("GET", "/info")
+
+    def api_documentation(self) -> Any:
+        """Fetch the Agent Server's local HTML API documentation."""
+
+        return self.request_json("GET", "/docs")
+
+    def system_metrics(self, *, format: str = "prometheus") -> Any:
+        """Fetch Agent Server metrics in Prometheus or JSON format."""
+
+        return self.request_json("GET", "/metrics", query={"format": format})
 
     def stream_thread_run(
         self,
