@@ -61,7 +61,7 @@ AgentBridge adapter plugin for `langchain`.
   `LangSmithAPIClient` dataset/example transport.
 - Async LangSmith typed facades cover assistant CRUD/introspection/version selection, thread
   creation/search/state updates/copying, thread-run inspection/join/cancellation, stateless runs,
-  feedback, and the existing SSE stream facade.
+  feedback, A2A JSON-RPC, MCP, cron scheduling, and the existing SSE stream facade.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.

@@ -432,6 +432,97 @@ class LangSmithAPIClient:
         body.update({name: item for name, item in optional.items() if item is not None})
         return await self.arequest_json("POST", "/api/v1/feedback", body=body)
 
+    async def aa2a_json_rpc(
+        self,
+        assistant_id: str,
+        *,
+        body: Mapping[str, Any],
+        accept: str = "application/json",
+    ) -> Any:
+        """Async JSON-RPC request to a LangSmith Agent-to-Agent endpoint."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/a2a/{assistant_id}",
+            body=dict(body),
+            headers={"Accept": accept},
+        )
+
+    async def aa2a_stream(
+        self,
+        assistant_id: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Async JSON-RPC event stream from a LangSmith Agent-to-Agent endpoint."""
+
+        async for event in self.astream_events("POST", f"/a2a/{assistant_id}", body=dict(body)):
+            yield event
+
+    async def amcp_get(self) -> Any:
+        """Async open for the stateless streamable-HTTP MCP endpoint."""
+
+        return await self.arequest_json("GET", "/mcp/")
+
+    async def amcp_post(
+        self,
+        *,
+        body: Mapping[str, Any],
+        accept: str = "application/json",
+    ) -> Any:
+        """Async JSON-RPC request to the stateless MCP endpoint."""
+
+        return await self.arequest_json(
+            "POST",
+            "/mcp/",
+            body=dict(body),
+            headers={"Accept": accept},
+        )
+
+    async def amcp_terminate(self) -> Any:
+        """Async termination for an MCP session."""
+
+        return await self.arequest_json("DELETE", "/mcp/")
+
+    async def acreate_cron(self, *, body: Mapping[str, Any]) -> Any:
+        """Async schedule for stateless runs on a new thread per execution."""
+
+        return await self.arequest_json("POST", "/runs/crons", body=dict(body))
+
+    async def acreate_thread_cron(self, thread_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async schedule for runs against an existing thread."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/threads/{thread_id}/runs/crons",
+            body=dict(body),
+        )
+
+    async def asearch_crons(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async search for scheduled cron jobs."""
+
+        return await self.arequest_json("POST", "/runs/crons/search", body=dict(body or {}))
+
+    async def acount_crons(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async count for scheduled cron jobs."""
+
+        return await self.arequest_json("POST", "/runs/crons/count", body=dict(body or {}))
+
+    async def aget_cron(self, cron_id: str) -> Any:
+        """Async fetch for one scheduled cron job."""
+
+        return await self.arequest_json("GET", f"/runs/crons/{cron_id}")
+
+    async def aupdate_cron(self, cron_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async update for one scheduled cron job."""
+
+        return await self.arequest_json("PATCH", f"/runs/crons/{cron_id}", body=dict(body))
+
+    async def adelete_cron(self, cron_id: str) -> Any:
+        """Async deletion for one scheduled cron job."""
+
+        return await self.arequest_json("DELETE", f"/runs/crons/{cron_id}")
+
     def get_thread(self, thread_id: str) -> Any:
         """Fetch a LangSmith/LangGraph deployment thread."""
 

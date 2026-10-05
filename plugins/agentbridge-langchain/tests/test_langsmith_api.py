@@ -157,6 +157,45 @@ def test_langsmith_async_assistant_and_run_lifecycle_preserves_native_paths():
     assert calls[-1][1].endswith("/threads/thread-1/runs/cancel")
 
 
+def test_langsmith_async_a2a_mcp_and_cron_helpers_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        if "/a2a/" in url and headers.get("Accept") == "text/event-stream":
+            return 200, {"content-type": "text/event-stream"}, b'data: {"event":"task"}\n\ndata: [DONE]\n'
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+
+    async def collect():
+        a2a = await client.aa2a_json_rpc("assistant-1", body={"method": "message/send"})
+        a2a_stream = [
+            event async for event in client.aa2a_stream("assistant-1", body={"method": "message/stream"})
+        ]
+        mcp_get = await client.amcp_get()
+        mcp_post = await client.amcp_post(body={"method": "tools/list"})
+        mcp_delete = await client.amcp_terminate()
+        cron = await client.acreate_cron(body={"schedule": "@hourly"})
+        thread_cron = await client.acreate_thread_cron("thread-1", body={"schedule": "@daily"})
+        searched = await client.asearch_crons(body={"assistant_id": "assistant-1"})
+        counted = await client.acount_crons()
+        fetched = await client.aget_cron("cron-1")
+        updated = await client.aupdate_cron("cron-1", body={"enabled": False})
+        deleted = await client.adelete_cron("cron-1")
+        return a2a, a2a_stream, mcp_get, mcp_post, mcp_delete, cron, thread_cron, searched, counted, fetched, updated, deleted
+
+    values = asyncio.run(collect())
+    assert all(value == {"ok": True} for value in values if not isinstance(value, list))
+    assert values[1] == [{"event": "task"}]
+    assert calls[0][1].endswith("/a2a/assistant-1")
+    assert calls[0][2]["Accept"] == "application/json"
+    assert calls[2][1].endswith("/mcp/")
+    assert calls[3][2]["Accept"] == "application/json"
+    assert any(url.endswith("/runs/crons/search") for _, url, _, _ in calls)
+    assert calls[-1][1].endswith("/runs/crons/cron-1")
+
+
 def test_langsmith_thread_helpers_preserve_native_api_shapes():
     calls = []
 
