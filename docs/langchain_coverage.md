@@ -27,7 +27,7 @@ raw backend escape hatch, or an explicit diagnostic.
 
 | LangChain area | AgentBridge surface | Current status |
 | --- | --- | --- |
-| LangChain `create_agent`, tools, structured output, middleware, streaming, runtime context | `AgentSpec`, `ToolSpec`, `LangChainExtension.context_schema`, native `context=` invocation, plugin configuration, and normalized events | `extension` |
+| LangChain `create_agent`, tools, retriever tools, structured output, middleware, streaming, runtime context | `AgentSpec`, `ToolSpec`, explicit `LangChainExtension.config(retriever_tools=...)`, `LangChainExtension.context_schema`, native `context=` invocation, plugin configuration, and normalized events | `extension` |
 | LangChain human-in-the-loop middleware and checkpointed pauses | Native `HumanInTheLoopMiddleware`, checkpointer pass-through, normalized interrupted workflow event | `extension` |
 | LangChain MCP tools | Native MCP tool objects supplied through `LangChainExtension(mcp_tools=...)`; optional MCP adapter packages remain external | `extension` |
 | Newly added LangChain `create_agent` options | Guarded `LangChainExtension.native_options` pass-through with diagnostics and offline conformance | `native_only` until normalized |

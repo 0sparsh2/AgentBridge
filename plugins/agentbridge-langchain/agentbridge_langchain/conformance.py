@@ -53,6 +53,7 @@ def run_native_conformance() -> NativeConformanceReport:
     checks = [
         _capture("structured_output", _check_structured_output),
         _capture("tools_and_normalized_events", _check_tools_and_events),
+        _capture("retriever_tool_bridge", _check_retriever_tool_bridge),
         _capture("middleware_memory_retrieval", _check_native_state_options),
         _capture("human_in_the_loop", _check_human_in_the_loop),
         _capture("observability_runtime_config", _check_observability_config),
@@ -99,6 +100,36 @@ def _check_tools_and_events() -> str:
     if not {"tool_call", "tool_result", "complete"}.issubset(event_types):
         raise AssertionError(f"missing normalized tool lifecycle events: {event_types}")
     return "native StructuredTool execution and normalized tool lifecycle passed"
+
+
+def _check_retriever_tool_bridge() -> str:
+    class PolicyRetriever:
+        name = "refund_policy"
+        description = "Search refund policy documents."
+
+        def invoke(self, query: str) -> list[Any]:
+            if query != "double charge":
+                raise AssertionError(f"unexpected retriever query: {query}")
+            return [
+                {"page_content": "Refunds are available within 30 days.", "metadata": {"source": "policy"}}
+            ]
+
+    spec = LangChainExtension.with_config(
+        AgentSpec(
+            name="langchain_native_retriever_tool",
+            instructions="Search policy documents.",
+            model="agentbridge/offline",
+        ),
+        retriever_tools=[PolicyRetriever()],
+    )
+    compiled = Adapter().compile(spec)
+    tool = compiled.native_tools[0]
+    result = tool.func("double charge")
+    if result != [
+        {"page_content": "Refunds are available within 30 days.", "metadata": {"source": "policy"}}
+    ]:
+        raise AssertionError(f"retriever result was not preserved: {result}")
+    return "native retriever invocation and document payload preservation passed"
 
 
 def _check_native_state_options() -> str:

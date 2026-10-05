@@ -13,6 +13,7 @@ def test_langchain_native_conformance_report_passes_offline() -> None:
     assert {check.name for check in report.checks} == {
         "structured_output",
         "tools_and_normalized_events",
+        "retriever_tool_bridge",
         "middleware_memory_retrieval",
         "human_in_the_loop",
         "observability_runtime_config",
