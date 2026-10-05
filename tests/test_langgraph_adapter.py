@@ -240,6 +240,32 @@ def test_langgraph_adapter_uses_native_async_checkpoint_state_methods():
     assert updated["as_node"] == "review"
 
 
+def test_langgraph_adapter_replays_checkpoint_through_native_async_invoke():
+    class FakeGraph:
+        async def ainvoke(self, payload, config=None):
+            assert payload is None
+            assert config["configurable"]["checkpoint_id"] == "checkpoint-1"
+            return {"output": {"status": "replayed"}, "route": "historical"}
+
+    compiled = LangGraphCompiledAgent(
+        spec=AgentSpec(name="replay_agent", instructions="Replay state.", model="openai/gpt-5"),
+        graph=FakeGraph(),
+        config=LangGraphConfig(enable_checkpointing=True),
+    )
+
+    async def run():
+        return await LangGraphAdapter().areplay(
+            compiled,
+            RunInput(input="replay", session_id="session-1"),
+            checkpoint_id="checkpoint-1",
+        )
+
+    result = asyncio.run(run())
+    assert result.output == {"status": "replayed"}
+    assert result.metadata["replayed"] is True
+    assert result.metadata["async"] is True
+
+
 def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -> None:
     class FakeGraph:
         def stream(self, payload, config=None, **options):

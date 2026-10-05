@@ -517,6 +517,55 @@ class LangGraphAdapter(BackendAdapter):
             raw=raw,
         )
 
+    async def areplay(
+        self,
+        compiled: LangGraphCompiledAgent,
+        run_input: RunInput,
+        *,
+        checkpoint_id: str,
+    ) -> RunResult:
+        """Replay a historical checkpoint through LangGraph's native async API."""
+
+        native_ainvoke = getattr(compiled.graph, "ainvoke", None)
+        if not callable(native_ainvoke):
+            return await asyncio.to_thread(
+                self.replay,
+                compiled,
+                run_input,
+                checkpoint_id=checkpoint_id,
+            )
+        config = self._checkpoint_config(compiled, run_input, checkpoint_id=checkpoint_id)
+        with langsmith_context(self._observability_config(compiled)):
+            raw = await native_ainvoke(
+                None,
+                config=config,
+                **_context_kwargs(native_ainvoke, run_input.context),
+            )
+        raw = raw or {}
+        raw_mapping = raw if isinstance(raw, dict) else {"output": raw}
+        output = raw_mapping.get("output", raw_mapping)
+        events = self._events_from_raw(raw_mapping, output)
+        return RunResult(
+            output=output,
+            backend=self.backend_name,
+            events=events,
+            metadata={
+                "node_name": compiled.config.node_name,
+                "checkpointing": True,
+                "replayed": True,
+                "async": True,
+                "checkpoint_id": checkpoint_id,
+                "native_graph": compiled.config.native_graph is not None,
+                "run_diagnostics": self._run_diagnostics(
+                    raw_mapping,
+                    events,
+                    compiled,
+                    None,
+                ),
+            },
+            raw=raw,
+        )
+
     def _build_checkpointer(self, config: LangGraphConfig) -> Any | None:
         if config.checkpointer is not None:
             return config.checkpointer
