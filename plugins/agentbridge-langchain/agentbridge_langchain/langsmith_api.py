@@ -535,6 +535,49 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/api/v1/datasets/{dataset_id}")
 
+    async def aread_dataset_delta(
+        self,
+        dataset_id: str,
+        *,
+        baseline_session_id: str,
+        comparison_session_ids: list[str],
+        feedback_key: str,
+        filters: Mapping[str, Any] | None = None,
+        offset: int = 0,
+        limit: int = 100,
+        comparative_experiment_id: str | None = None,
+    ) -> Any:
+        """Async compare feedback regressions and improvements across sessions."""
+
+        body: dict[str, Any] = {
+            "baseline_session_id": baseline_session_id,
+            "comparison_session_ids": list(comparison_session_ids),
+            "feedback_key": feedback_key,
+            "offset": offset,
+            "limit": limit,
+        }
+        if filters is not None:
+            body["filters"] = dict(filters)
+        if comparative_experiment_id is not None:
+            body["comparative_experiment_id"] = comparative_experiment_id
+        return await self.arequest_json(
+            "POST", f"/api/v1/datasets/{dataset_id}/runs/delta", body=body
+        )
+
+    async def aread_shared_dataset_examples_with_runs(
+        self,
+        share_token: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Async read examples and associated runs from a shared dataset."""
+
+        return await self.arequest_json(
+            "POST",
+            f"/api/v1/public/{share_token}/examples/runs",
+            body=dict(body),
+        )
+
     async def acreate_example(
         self,
         *,
@@ -1496,6 +1539,49 @@ class LangSmithAPIClient:
         """Delete one dataset and its examples."""
 
         return self.request_json("DELETE", f"/api/v1/datasets/{dataset_id}")
+
+    def read_dataset_delta(
+        self,
+        dataset_id: str,
+        *,
+        baseline_session_id: str,
+        comparison_session_ids: list[str],
+        feedback_key: str,
+        filters: Mapping[str, Any] | None = None,
+        offset: int = 0,
+        limit: int = 100,
+        comparative_experiment_id: str | None = None,
+    ) -> Any:
+        """Compare feedback regressions and improvements across sessions."""
+
+        body: dict[str, Any] = {
+            "baseline_session_id": baseline_session_id,
+            "comparison_session_ids": list(comparison_session_ids),
+            "feedback_key": feedback_key,
+            "offset": offset,
+            "limit": limit,
+        }
+        if filters is not None:
+            body["filters"] = dict(filters)
+        if comparative_experiment_id is not None:
+            body["comparative_experiment_id"] = comparative_experiment_id
+        return self.request_json(
+            "POST", f"/api/v1/datasets/{dataset_id}/runs/delta", body=body
+        )
+
+    def read_shared_dataset_examples_with_runs(
+        self,
+        share_token: str,
+        *,
+        body: Mapping[str, Any],
+    ) -> Any:
+        """Read examples and associated runs from a shared dataset."""
+
+        return self.request_json(
+            "POST",
+            f"/api/v1/public/{share_token}/examples/runs",
+            body=dict(body),
+        )
 
     def create_example(
         self,

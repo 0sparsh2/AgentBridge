@@ -73,6 +73,70 @@ def test_langsmith_api_client_supports_async_json_and_sse_facades():
     assert events == [{"event": "update"}]
 
 
+def test_langsmith_dataset_delta_and_shared_examples_are_typed_sync_and_async():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        return 200, {"content-type": "application/json"}, b'{"ok": true}'
+
+    client = LangSmithAPIClient(
+        api_key="secret",
+        base_url="https://example.test",
+        transport=transport,
+    )
+    expected_delta = {
+        "baseline_session_id": "baseline",
+        "comparison_session_ids": ["candidate"],
+        "feedback_key": "quality",
+        "filters": {"tag": "refunds"},
+        "offset": 2,
+        "limit": 10,
+        "comparative_experiment_id": "experiment-1",
+    }
+    client.read_dataset_delta(
+        "dataset-1",
+        baseline_session_id="baseline",
+        comparison_session_ids=["candidate"],
+        feedback_key="quality",
+        filters={"tag": "refunds"},
+        offset=2,
+        limit=10,
+        comparative_experiment_id="experiment-1",
+    )
+    client.read_shared_dataset_examples_with_runs(
+        "share-1", body={"dataset_id": "dataset-1", "limit": 5}
+    )
+
+    async def collect():
+        return (
+            await client.aread_dataset_delta(
+                "dataset-1",
+                baseline_session_id="baseline",
+                comparison_session_ids=["candidate"],
+                feedback_key="quality",
+                filters={"tag": "refunds"},
+                offset=2,
+                limit=10,
+                comparative_experiment_id="experiment-1",
+            ),
+            await client.aread_shared_dataset_examples_with_runs(
+                "share-1", body={"dataset_id": "dataset-1", "limit": 5}
+            ),
+        )
+
+    assert asyncio.run(collect()) == ({"ok": True}, {"ok": True})
+    assert calls[0] == (
+        "POST",
+        "https://example.test/api/v1/datasets/dataset-1/runs/delta",
+        expected_delta,
+    )
+    assert calls[1][1].endswith("/api/v1/public/share-1/examples/runs")
+    assert calls[2] == calls[0]
+    assert calls[3] == calls[1]
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 

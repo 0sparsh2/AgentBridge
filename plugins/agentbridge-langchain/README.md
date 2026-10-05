@@ -49,6 +49,8 @@ AgentBridge adapter plugin for `langchain`.
 - LangSmith dataset publishing and hosted evaluation through an optional integration module.
 - LangSmith dataset and example CRUD plus cursor-safe iteration through the dependency-free API
   client, preserving native inputs, outputs, metadata, and dataset filters.
+- LangSmith dataset regression deltas and shared-dataset examples with runs are available through
+  typed sync and async API-client helpers, preserving native comparison and sharing payloads.
 - LangSmith Agent Auth connection create/list/remove operations through the dependency-free API
   client, preserving native connection payloads and agent-scoped paths.
 - Async LangSmith governance helpers cover Agent Auth connections, platform tool registry CRUD by

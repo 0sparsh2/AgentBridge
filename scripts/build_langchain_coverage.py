@@ -44,6 +44,18 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "python-sdk",
             "action": "Keep outside the Python AgentBridge SDK scope; track a separate TypeScript SDK if needed.",
         }
+    if "/api/v1/datasets/" in url and "/runs/delta" in url:
+        return {
+            "status": "extension",
+            "owner": "evaluation",
+            "action": "Use LangSmithAPIClient.read_dataset_delta() or aread_dataset_delta() with native session, feedback, filter, and pagination fields.",
+        }
+    if "/api/v1/public/" in url and "/examples/runs" in url:
+        return {
+            "status": "extension",
+            "owner": "evaluation",
+            "action": "Use LangSmithAPIClient.read_shared_dataset_examples_with_runs() or its async equivalent with the native shared-dataset payload.",
+        }
     if any(token in lower for token in ("/agent-server-api/", "/api-reference/", "/smith-api/", "openapi.json")):
         return {
             "status": "native_only",
