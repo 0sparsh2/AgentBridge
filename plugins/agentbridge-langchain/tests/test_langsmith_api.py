@@ -276,6 +276,66 @@ def test_langsmith_bulk_examples_shared_reads_and_openai_export_preserve_paths()
     assert calls[3][1].endswith("/api/v1/datasets/dataset-1/openai_ft")
 
 
+def test_langsmith_annotation_queue_lifecycle_preserves_sync_and_async_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.create_annotation_queue(
+        name="Refund review", description="Human review", rubric_instructions="Check eligibility"
+    )
+    client.list_annotation_queues(query={"name_contains": "Refund"})
+    client.get_annotation_queue("queue-1")
+    client.update_annotation_queue("queue-1", body={"description": "Updated"})
+    client.add_runs_to_annotation_queue("queue-1", run_ids=["run-1"])
+    client.add_runs_to_annotation_queue(
+        "queue-1", runs=[{"run_id": "run-2", "session_id": "session-1"}]
+    )
+    client.list_annotation_queue_runs("queue-1", query={"status": "needs_my_review"})
+    client.get_annotation_queue_run("queue-1", 0)
+    assert client.remove_run_from_annotation_queue("queue-1", "run-1") is None
+    assert client.delete_annotation_queue("queue-1") is None
+
+    async def collect():
+        return [
+            await client.acreate_annotation_queue(name="Refund review"),
+            await client.alist_annotation_queues(query={"name_contains": "Refund"}),
+            await client.aget_annotation_queue("queue-1"),
+            await client.aupdate_annotation_queue("queue-1", body={"description": "Updated"}),
+            await client.aadd_runs_to_annotation_queue("queue-1", run_ids=["run-1"]),
+            await client.aadd_runs_to_annotation_queue(
+                "queue-1", runs=[{"run_id": "run-2", "session_id": "session-1"}]
+            ),
+            await client.alist_annotation_queue_runs(
+                "queue-1", query={"status": "needs_my_review"}
+            ),
+            await client.aget_annotation_queue_run("queue-1", 0),
+            await client.aremove_run_from_annotation_queue("queue-1", "run-1"),
+            await client.adelete_annotation_queue("queue-1"),
+        ]
+
+    values = asyncio.run(collect())
+    assert values[:8] == [{"ok": True}] * 8
+    assert values[8:] == [None, None]
+    assert calls[0][2] == {
+        "name": "Refund review",
+        "description": "Human review",
+        "rubric_instructions": "Check eligibility",
+    }
+    assert calls[4] == (
+        "POST",
+        "https://example.test/api/v1/annotation-queues/queue-1/runs",
+        ["run-1"],
+    )
+    assert calls[5][1].endswith("/api/v1/annotation-queues/queue-1/runs/by-key")
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 

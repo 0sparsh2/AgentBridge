@@ -839,6 +839,95 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/v1/fleet/auth-tokens/{token_id}")
 
+    async def acreate_annotation_queue(
+        self,
+        *,
+        name: str,
+        description: str | None = None,
+        queue_id: str | None = None,
+        rubric_instructions: str | None = None,
+        rubric_items: list[Mapping[str, Any]] | None = None,
+    ) -> Any:
+        """Async create a LangSmith human-review annotation queue."""
+
+        body: dict[str, Any] = {"name": name}
+        optional = {
+            "description": description,
+            "id": queue_id,
+            "rubric_instructions": rubric_instructions,
+            "rubric_items": rubric_items,
+        }
+        body.update({key: value for key, value in optional.items() if value is not None})
+        return await self.arequest_json("POST", "/api/v1/annotation-queues", body=body)
+
+    async def alist_annotation_queues(
+        self, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """Async list LangSmith annotation queues."""
+
+        return await self.arequest_json("GET", "/api/v1/annotation-queues", query=query)
+
+    async def aget_annotation_queue(self, queue_id: str) -> Any:
+        """Async fetch one annotation queue."""
+
+        return await self.arequest_json("GET", f"/api/v1/annotation-queues/{queue_id}")
+
+    async def aupdate_annotation_queue(
+        self, queue_id: str, *, body: Mapping[str, Any]
+    ) -> Any:
+        """Async update annotation queue metadata and rubric."""
+
+        return await self.arequest_json(
+            "PATCH", f"/api/v1/annotation-queues/{queue_id}", body=dict(body)
+        )
+
+    async def adelete_annotation_queue(self, queue_id: str) -> Any:
+        """Async delete one annotation queue."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/annotation-queues/{queue_id}")
+
+    async def aadd_runs_to_annotation_queue(
+        self,
+        queue_id: str,
+        *,
+        run_ids: list[str] | None = None,
+        runs: list[Mapping[str, Any]] | None = None,
+    ) -> Any:
+        """Async add run IDs or full run keys to an annotation queue."""
+
+        if (run_ids is None) == (runs is None):
+            raise ValueError("Provide exactly one of run_ids or runs.")
+        path = (
+            f"/api/v1/annotation-queues/{queue_id}/runs"
+            if run_ids is not None
+            else f"/api/v1/annotation-queues/{queue_id}/runs/by-key"
+        )
+        payload: Any = list(run_ids) if run_ids is not None else [dict(run) for run in runs or []]
+        return await self.arequest_json("POST", path, body=payload)
+
+    async def alist_annotation_queue_runs(
+        self, queue_id: str, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """Async list runs assigned to an annotation queue."""
+
+        return await self.arequest_json(
+            "GET", f"/api/v1/annotation-queues/{queue_id}/runs", query=query
+        )
+
+    async def aget_annotation_queue_run(self, queue_id: str, index: int) -> Any:
+        """Async fetch a queue run by its review index."""
+
+        return await self.arequest_json(
+            "GET", f"/api/v1/annotation-queues/{queue_id}/run/{index}"
+        )
+
+    async def aremove_run_from_annotation_queue(self, queue_id: str, run_id: str) -> Any:
+        """Async remove one run from an annotation queue."""
+
+        return await self.arequest_json(
+            "DELETE", f"/api/v1/annotation-queues/{queue_id}/runs/{run_id}"
+        )
+
     async def acreate_tool(self, *, body: Mapping[str, Any]) -> Any:
         """Async create for a workspace platform tool."""
 
@@ -2009,6 +2098,89 @@ class LangSmithAPIClient:
         """Revoke one Fleet Agent Auth connection token."""
 
         return self.request_json("DELETE", f"/v1/fleet/auth-tokens/{token_id}")
+
+    def create_annotation_queue(
+        self,
+        *,
+        name: str,
+        description: str | None = None,
+        queue_id: str | None = None,
+        rubric_instructions: str | None = None,
+        rubric_items: list[Mapping[str, Any]] | None = None,
+    ) -> Any:
+        """Create a LangSmith human-review annotation queue."""
+
+        body: dict[str, Any] = {"name": name}
+        optional = {
+            "description": description,
+            "id": queue_id,
+            "rubric_instructions": rubric_instructions,
+            "rubric_items": rubric_items,
+        }
+        body.update({key: value for key, value in optional.items() if value is not None})
+        return self.request_json("POST", "/api/v1/annotation-queues", body=body)
+
+    def list_annotation_queues(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List LangSmith annotation queues."""
+
+        return self.request_json("GET", "/api/v1/annotation-queues", query=query)
+
+    def get_annotation_queue(self, queue_id: str) -> Any:
+        """Fetch one annotation queue."""
+
+        return self.request_json("GET", f"/api/v1/annotation-queues/{queue_id}")
+
+    def update_annotation_queue(self, queue_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Update annotation queue metadata and rubric."""
+
+        return self.request_json(
+            "PATCH", f"/api/v1/annotation-queues/{queue_id}", body=dict(body)
+        )
+
+    def delete_annotation_queue(self, queue_id: str) -> Any:
+        """Delete one annotation queue."""
+
+        return self.request_json("DELETE", f"/api/v1/annotation-queues/{queue_id}")
+
+    def add_runs_to_annotation_queue(
+        self,
+        queue_id: str,
+        *,
+        run_ids: list[str] | None = None,
+        runs: list[Mapping[str, Any]] | None = None,
+    ) -> Any:
+        """Add run IDs or full run keys to an annotation queue."""
+
+        if (run_ids is None) == (runs is None):
+            raise ValueError("Provide exactly one of run_ids or runs.")
+        path = (
+            f"/api/v1/annotation-queues/{queue_id}/runs"
+            if run_ids is not None
+            else f"/api/v1/annotation-queues/{queue_id}/runs/by-key"
+        )
+        payload: Any = list(run_ids) if run_ids is not None else [dict(run) for run in runs or []]
+        return self.request_json("POST", path, body=payload)
+
+    def list_annotation_queue_runs(
+        self, queue_id: str, *, query: Mapping[str, Any] | None = None
+    ) -> Any:
+        """List runs assigned to an annotation queue."""
+
+        return self.request_json(
+            "GET", f"/api/v1/annotation-queues/{queue_id}/runs", query=query
+        )
+
+    def get_annotation_queue_run(self, queue_id: str, index: int) -> Any:
+        """Fetch a queue run by its review index."""
+
+        return self.request_json("GET", f"/api/v1/annotation-queues/{queue_id}/run/{index}")
+
+    def remove_run_from_annotation_queue(self, queue_id: str, run_id: str) -> Any:
+        """Remove one run from an annotation queue."""
+
+        return self.request_json(
+            "DELETE", f"/api/v1/annotation-queues/{queue_id}/runs/{run_id}"
+        )
 
     def create_tool(self, *, body: Mapping[str, Any]) -> Any:
         """Create a workspace tool in the LangSmith platform registry."""

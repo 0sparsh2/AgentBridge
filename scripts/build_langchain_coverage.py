@@ -56,6 +56,12 @@ def classify(page: dict[str, str]) -> dict[str, str]:
             "owner": "evaluation",
             "action": "Use LangSmithAPIClient.read_shared_dataset_examples_with_runs() or its async equivalent with the native shared-dataset payload.",
         }
+    if "/smith-api/annotation-queues/" in url:
+        return {
+            "status": "extension",
+            "owner": "observability",
+            "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval.",
+        }
     if any(token in lower for token in ("/agent-server-api/", "/api-reference/", "/smith-api/", "openapi.json")):
         return {
             "status": "native_only",

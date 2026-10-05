@@ -5534,189 +5534,189 @@
       "title": "Add runs to annotation queue by key",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/add-runs-to-annotation-queue.md",
       "title": "Add runs to annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/create-annotation-queue.md",
       "title": "Create annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/create-identity-annotation-queue-run-status.md",
       "title": "Create identity annotation queue run status",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/delete-annotation-queue.md",
       "title": "Delete annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/delete-annotation-queues.md",
       "title": "Delete annotation queues",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/delete-run-from-annotation-queue.md",
       "title": "Delete run from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/delete-runs-from-annotation-queue.md",
       "title": "Delete runs from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/export-annotation-queue-archived-runs.md",
       "title": "Export annotation queue archived runs",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-annotation-queue.md",
       "title": "Get annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-annotation-queues-for-run.md",
       "title": "Get annotation queues for run",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-annotation-queues.md",
       "title": "Get annotation queues",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-run-from-annotation-queue.md",
       "title": "Get run from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-runs-from-annotation-queue.md",
       "title": "Get runs from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-size-from-annotation-queue.md",
       "title": "Get size from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-total-archived-from-annotation-queue.md",
       "title": "Get total archived from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/get-total-size-from-annotation-queue.md",
       "title": "Get total size from annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/populate-annotation-queue.md",
       "title": "Populate annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/resolve-annotation-queue-run.md",
       "title": "Resolve annotation queue run",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/update-annotation-queue.md",
       "title": "Update annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation-queues/update-run-in-annotation-queue.md",
       "title": "Update run in annotation queue",
       "category": "langsmith",
       "source_index": "https://docs.langchain.com/_llms/agent-development-lifecycle/monitor/reference/lang-smith-rest-api.md",
-      "status": "native_only",
-      "owner": "langsmith-api",
-      "action": "Use the optional LangSmithAPIClient for arbitrary JSON/SSE endpoints; preserve endpoint-specific payloads until a typed integration is justified."
+      "status": "extension",
+      "owner": "observability",
+      "action": "Use LangSmithAPIClient annotation-queue helpers for queue lifecycle, rubric metadata, run assignment, and human-review retrieval."
     },
     {
       "url": "https://docs.langchain.com/langsmith/smith-api/annotation_queues/add-a-reviewer-to-an-annotation-queue.md",

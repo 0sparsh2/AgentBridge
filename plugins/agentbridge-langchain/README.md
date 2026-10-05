@@ -60,6 +60,8 @@ AgentBridge adapter plugin for `langchain`.
   client, preserving native connection payloads and agent-scoped paths.
 - LangSmith Fleet Agent Auth connection-token list/update/revoke operations are available through
   typed sync and async helpers.
+- LangSmith annotation-queue creation, rubric metadata, run assignment, review-status listing,
+  indexed retrieval, and removal are available through typed sync and async helpers.
 - Async LangSmith governance helpers cover Agent Auth connections, platform tool registry CRUD by
   ID or handle, and long-term store put/get/search/delete operations.
 - Async Fleet and Deep Agents helpers cover agent/thread CRUD, cursor iteration, MCP-server
