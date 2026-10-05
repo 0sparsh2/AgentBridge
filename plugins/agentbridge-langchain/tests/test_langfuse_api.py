@@ -169,6 +169,37 @@ def test_langfuse_dataset_item_iterator_preserves_filters_across_cursors():
     ]
 
 
+def test_langfuse_dataset_and_prompt_iterators_preserve_filters_across_cursors():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del method, headers, body
+        calls.append(url)
+        kind = "prompts" if "/prompts" in url else "datasets"
+        suffix = "-2" if "cursor=next" in url else "-1"
+        payload = {"data": [{"id": f"{kind}{suffix}"}], "meta": {}}
+        if "cursor=next" not in url:
+            payload["meta"] = {"cursor": "next"}
+        return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+
+    assert list(client.iter_datasets(query={"limit": 2})) == [
+        {"id": "datasets-1"},
+        {"id": "datasets-2"},
+    ]
+    assert list(client.iter_prompts(query={"label": "production", "type": "text"})) == [
+        {"id": "prompts-1"},
+        {"id": "prompts-2"},
+    ]
+    assert calls == [
+        "https://cloud.langfuse.com/api/public/v2/datasets?limit=2",
+        "https://cloud.langfuse.com/api/public/v2/datasets?limit=2&cursor=next",
+        "https://cloud.langfuse.com/api/public/v2/prompts?label=production&type=text",
+        "https://cloud.langfuse.com/api/public/v2/prompts?label=production&type=text&cursor=next",
+    ]
+
+
 def test_langfuse_current_telemetry_and_query_helpers_preserve_native_paths():
     calls = []
 

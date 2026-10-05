@@ -372,6 +372,26 @@ class LangfuseAPIClient:
 
         return self.request_json("GET", "/api/public/v2/prompts", query=query)
 
+    def iter_prompts(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate cursor-paginated prompts while preserving label/type filters."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_prompts(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
+
     def get_prompt(
         self,
         name: str,
@@ -488,6 +508,26 @@ class LangfuseAPIClient:
         """List datasets through the current Dataset API v2."""
 
         return self.request_json("GET", "/api/public/v2/datasets", query=query)
+
+    def iter_datasets(
+        self,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate cursor-paginated datasets without dropping filters."""
+
+        page_query = dict(query or {})
+        while True:
+            page = self.list_datasets(query=page_query)
+            if not isinstance(page, Mapping):
+                return
+            for item in page.get("data", []) or []:
+                if isinstance(item, dict):
+                    yield item
+            cursor = (page.get("meta") or {}).get("cursor")
+            if not cursor or cursor == page_query.get("cursor"):
+                return
+            page_query["cursor"] = cursor
 
     def get_dataset(self, name: str, *, version: str | None = None) -> Any:
         """Fetch a dataset, optionally at a historical item-version timestamp."""
