@@ -1206,6 +1206,31 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
 
         return self.request_json("GET", "/v2/deployments/free-count")
 
+    def create_listener(self, *, body: Mapping[str, Any]) -> Any:
+        """Create a LangSmith v2 listener."""
+
+        return self.request_json("POST", "/v2/listeners", body=dict(body))
+
+    def list_listeners(self, *, query: Mapping[str, Any] | None = None) -> Any:
+        """List LangSmith v2 listeners with native filters."""
+
+        return self.request_json("GET", "/v2/listeners", query=query)
+
+    def get_listener(self, listener_id: str) -> Any:
+        """Fetch one LangSmith v2 listener."""
+
+        return self.request_json("GET", f"/v2/listeners/{listener_id}")
+
+    def patch_listener(self, listener_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Patch one LangSmith v2 listener."""
+
+        return self.request_json("PATCH", f"/v2/listeners/{listener_id}", body=dict(body))
+
+    def delete_listener(self, listener_id: str) -> Any:
+        """Delete one LangSmith v2 listener."""
+
+        return self.request_json("DELETE", f"/v2/listeners/{listener_id}")
+
     def _request(
         self,
         method: str,

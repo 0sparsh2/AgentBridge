@@ -47,6 +47,8 @@ AgentBridge adapter plugin for `langchain`.
   client, preserving native connection payloads and agent-scoped paths.
 - LangSmith deployment control-plane revision redeploy/interruption, bulk deletion, deployment and
   revision logs, and resource/deployment-tier updates are exposed through typed helpers.
+- LangSmith v2 listener create/list/get/patch/delete operations are exposed through the same
+  dependency-free control-plane client.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.

@@ -513,6 +513,11 @@ def test_langsmith_control_plane_client_covers_deployment_and_revision_lifecycle
     client.patch_deployment_resource_tiers("deployment-1", body={"cpu": 2})
     client.patch_deployment_tier("deployment-1", body={"tier": "professional"})
     client.get_free_deployment_count()
+    client.create_listener(body={"name": "refunds", "url": "https://example.test/hook"})
+    client.list_listeners(query={"limit": 10})
+    client.get_listener("listener-1")
+    client.patch_listener("listener-1", body={"enabled": False})
+    client.delete_listener("listener-1")
     assert client.delete_deployment("deployment-1") is None
     client.delete_deployments(["deployment-1", "deployment-2"])
 
@@ -527,6 +532,9 @@ def test_langsmith_control_plane_client_covers_deployment_and_revision_lifecycle
     assert any(call[1].endswith("/revisions/revision-1/redeploy") for call in calls)
     assert any(call[1].endswith("/revisions/revision-1/interruption") for call in calls)
     assert any("/v2/deployment-logs?" in call[1] for call in calls)
+    assert any(call[1].endswith("/v2/listeners") and call[0] == "POST" for call in calls)
+    assert any(call[1].endswith("/v2/listeners?limit=10") for call in calls)
+    assert any(call[1].endswith("/v2/listeners/listener-1") for call in calls)
     delete_many = next(call for call in calls if call[0] == "DELETE" and "/v2/deployments?" in call[1])
     assert "deployment_ids=deployment-1" in delete_many[1]
     assert "deployment_ids=deployment-2" in delete_many[1]
