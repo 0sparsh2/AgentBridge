@@ -638,7 +638,7 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
                 yield from native_agent.stream_events(
                     payload,
                     config=runtime_config,
-                    version="v3",
+                    **_stream_event_options(compiled),
                     **_context_kwargs(run_input),
                 )
                 return
@@ -649,8 +649,7 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
             yield from native_agent.stream(
                 payload,
                 config=runtime_config,
-                stream_mode=["messages", "updates", "custom"],
-                version="v2",
+                **_stream_options(compiled),
                 **_context_kwargs(run_input),
             )
         except TypeError:
@@ -659,6 +658,21 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
                 config=runtime_config,
                 **_context_kwargs(run_input),
             )
+
+
+def _stream_options(compiled: CompiledLangChainAgent) -> dict[str, Any]:
+    """Return native stream controls while retaining current defaults."""
+
+    options = dict(compiled.config.get("stream_options") or {})
+    options.setdefault("stream_mode", ["messages", "updates", "custom"])
+    options.setdefault("version", "v2")
+    return options
+
+
+def _stream_event_options(compiled: CompiledLangChainAgent) -> dict[str, Any]:
+    """Return native event-stream controls while retaining the current protocol default."""
+
+    return {"version": compiled.config.get("stream_events_version") or "v3"}
 
 
 async def _native_astream(compiled: CompiledLangChainAgent, run_input: RunInput) -> AsyncIterator[Any]:
@@ -672,7 +686,7 @@ async def _native_astream(compiled: CompiledLangChainAgent, run_input: RunInput)
                 async for event in native_agent.astream_events(
                     payload,
                     config=runtime_config,
-                    version="v3",
+                    **_stream_event_options(compiled),
                     **_context_kwargs(run_input),
                 ):
                     yield event
@@ -685,8 +699,7 @@ async def _native_astream(compiled: CompiledLangChainAgent, run_input: RunInput)
                 async for chunk in native_agent.astream(
                     payload,
                     config=runtime_config,
-                    stream_mode=["messages", "updates", "custom"],
-                    version="v2",
+                    **_stream_options(compiled),
                     **_context_kwargs(run_input),
                 ):
                     yield chunk
@@ -736,6 +749,10 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         "native_options_count": len(config.get("native_options") or {}),
         "runtime_config": _safe_summary(config.get("runtime_config") or {}),
     }
+    if config.get("stream_options"):
+        summary["stream_options"] = _safe_summary(config["stream_options"])
+    if config.get("stream_events_version"):
+        summary["stream_events_version"] = config["stream_events_version"]
     if config.get("observability"):
         summary["observability"] = _safe_summary(config["observability"])
     if config.get("agentcore"):

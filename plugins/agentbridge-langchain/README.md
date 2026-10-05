@@ -20,6 +20,9 @@ AgentBridge adapter plugin for `langchain`.
 - Native per-run `RunnableConfig` controls such as `configurable`, `max_concurrency`,
   `recursion_limit`, and `run_id` can be supplied through `runtime_config`; session IDs merge into
   `configurable.thread_id` without discarding caller-provided values.
+- Native stream controls can be passed through `stream_options` (for example `stream_mode`,
+  `version`, and future LangGraph stream keywords), while `stream_events_version` selects the
+  event protocol version for `stream_events`/`astream_events`.
 - Explicit native retrievers can be exposed as agent tools with
   `LangChainExtension.config(retriever_tools=[...])`; document content and metadata are preserved
   in tool results while the original retriever remains the implementation of record.

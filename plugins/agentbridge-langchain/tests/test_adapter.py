@@ -1013,6 +1013,54 @@ def test_adapter_streams_classic_langchain_stream_updates(monkeypatch) -> None:
     assert events[1].data["content"] == "stream chunk"
 
 
+def test_adapter_forwards_custom_stream_options_and_event_version(monkeypatch) -> None:
+    class ConfiguredStreamAgent(FakeNativeAgent):
+        def stream(self, payload, config=None, stream_mode=None, version=None):
+            del payload, config
+            assert stream_mode == ["updates"]
+            assert version == "v1"
+            yield {"messages": [{"content": "configured stream"}]}
+
+    class ConfiguredEventAgent(FakeNativeAgent):
+        def stream_events(self, payload, config=None, version=None):
+            del payload, config
+            assert version == "v2"
+            yield {"type": "custom", "data": {"configured": True}}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=lambda **kwargs: ConfiguredStreamAgent(**kwargs)),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain_core.tools",
+        SimpleNamespace(StructuredTool=FakeStructuredTool),
+    )
+    adapter = Adapter()
+    configured = LangChainExtension.with_config(
+        AgentSpec(name="configured_stream", instructions="Stream.", model="openai/gpt-5"),
+        stream_options={"stream_mode": ["updates"], "version": "v1"},
+        stream_events_version="v2",
+    )
+    compiled = adapter.compile(configured)
+    assert list(adapter.stream(compiled, RunInput(input="hello")))[0].data["content"] == "configured stream"
+    assert compiled.config["stream_options"] == {"stream_mode": ["updates"], "version": "v1"}
+    assert compiled.config["stream_events_version"] == "v2"
+
+    monkeypatch.setitem(
+        sys.modules,
+        "langchain.agents",
+        SimpleNamespace(create_agent=lambda **kwargs: ConfiguredEventAgent(**kwargs)),
+    )
+    event_spec = LangChainExtension.with_config(
+        AgentSpec(name="configured_events", instructions="Events.", model="openai/gpt-5"),
+        stream_events_version="v2",
+    )
+    events = list(adapter.stream(adapter.compile(event_spec), RunInput(input="hello")))
+    assert events[0].data["data"] == {"configured": True}
+
+
 def test_adapter_runs_offline_structured_output_through_create_agent() -> None:
     class Decision(BaseModel):
         eligible: bool = True
