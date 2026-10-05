@@ -3,6 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from agentbridge import AgentSpec, EvaluationExample
+from agentbridge_langchain.langsmith_api import LangSmithAPIClient
 from agentbridge_langchain.langsmith_evaluation import evaluate_on_langsmith, publish_dataset
 
 
@@ -59,3 +60,28 @@ def test_evaluate_on_langsmith_uses_agentbridge_target():
     assert result["experiment"] == "agentbridge-refunds"
     assert result["output"]["input"] == "A123"
     assert client.evaluate_calls[0][1]["data"] == "refunds"
+
+
+def test_publish_dataset_supports_dependency_free_langsmith_api_client():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, body))
+        if method == "POST" and url.endswith("/datasets"):
+            payload = b'{"id": "dataset-1"}'
+        else:
+            payload = b'{"id": "example-1"}'
+        return 200, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    dataset = publish_dataset(
+        [EvaluationExample(input="Check A123", expected_output="eligible", metadata={"team": "support"})],
+        dataset_name="refunds",
+        description="Refund regression cases",
+        client=client,
+    )
+
+    assert dataset == {"id": "dataset-1"}
+    assert calls[0][0:2] == ("POST", "https://example.test/api/v1/datasets")
+    assert calls[1][0:2] == ("POST", "https://example.test/api/v1/examples")

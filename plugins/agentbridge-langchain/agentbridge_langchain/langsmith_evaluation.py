@@ -38,22 +38,37 @@ def publish_dataset(
     """Create a LangSmith dataset and upload AgentBridge examples."""
 
     native_client = _client_or_default(client)
-    dataset = native_client.create_dataset(
-        dataset_name,
-        description=description,
-        metadata={"source": "agentbridge", "contract": "EvaluationExample"},
-    )
-    native_client.create_examples(
-        dataset_id=getattr(dataset, "id", None),
-        examples=[
-            {
-                "inputs": {"input": example.input, "context": example.context},
-                "outputs": {"expected_output": example.expected_output},
-                "metadata": {"source": "agentbridge", **example.metadata},
-            }
-            for example in examples
-        ],
-    )
+    materialized = list(examples)
+    uses_sdk = callable(getattr(native_client, "create_examples", None))
+    if uses_sdk:
+        dataset = native_client.create_dataset(
+            dataset_name,
+            description=description,
+            metadata={"source": "agentbridge", "contract": "EvaluationExample"},
+        )
+    else:
+        dataset = native_client.create_dataset(name=dataset_name, description=description)
+    records = [
+        {
+            "inputs": {"input": example.input, "context": example.context},
+            "outputs": {"expected_output": example.expected_output},
+            "metadata": {"source": "agentbridge", **example.metadata},
+        }
+        for example in materialized
+    ]
+    if uses_sdk:
+        native_client.create_examples(dataset_id=getattr(dataset, "id", None), examples=records)
+    else:
+        dataset_id = dataset.get("id") if isinstance(dataset, dict) else getattr(dataset, "id", None)
+        if not dataset_id:
+            raise ValueError("LangSmith API dataset response did not include an id.")
+        for record in records:
+            native_client.create_example(
+                dataset_id=dataset_id,
+                inputs=record["inputs"],
+                outputs=record["outputs"],
+                metadata=record["metadata"],
+            )
     return dataset
 
 
@@ -92,4 +107,3 @@ def evaluate_on_langsmith(
         experiment_prefix=experiment_prefix,
         **evaluate_kwargs,
     )
-

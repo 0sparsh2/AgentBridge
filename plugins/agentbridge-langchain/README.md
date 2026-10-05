@@ -51,6 +51,8 @@ AgentBridge adapter plugin for `langchain`.
   dependency-free control-plane client.
 - LangSmith platform tool-registry create/list/get/update/delete operations are exposed by ID and
   handle, allowing AgentBridge tool definitions to be synchronized without the LangSmith SDK.
+- `publish_dataset()` supports both the optional native LangSmith SDK and the dependency-free
+  `LangSmithAPIClient` dataset/example transport.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into `AgentEvent` and `RunResult`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
