@@ -1,5 +1,12 @@
 from agentbridge import EvaluationExample, EvaluationReport, EvaluationCase, EvaluationScore
-from agentbridge_langchain.langfuse_evaluation import publish_dataset, publish_report_scores
+import asyncio
+
+from agentbridge_langchain.langfuse_evaluation import (
+    apublish_dataset,
+    apublish_report_scores,
+    publish_dataset,
+    publish_report_scores,
+)
 
 
 class FakeClient:
@@ -19,6 +26,15 @@ class FakeClient:
     def create_score(self, **kwargs):
         self.scores.append(kwargs)
         return {"id": "score-1"}
+
+    async def acreate_dataset(self, **kwargs):
+        return self.create_dataset(**kwargs)
+
+    async def acreate_dataset_item(self, **kwargs):
+        return self.create_dataset_item(**kwargs)
+
+    async def acreate_score(self, **kwargs):
+        return self.create_score(**kwargs)
 
 
 def test_langfuse_evaluation_bridge_publishes_examples_and_scores():
@@ -45,3 +61,35 @@ def test_langfuse_evaluation_bridge_publishes_examples_and_scores():
     assert client.items[0]["dataset_name"] == "refunds"
     assert client.scores[0]["trace_id"] == "trace-1"
     assert published == [{"id": "score-1"}]
+
+
+def test_async_langfuse_evaluation_bridge_publishes_examples_and_scores():
+    client = FakeClient()
+    report = EvaluationReport(
+        dataset_name="refunds",
+        backend="mock",
+        cases=[
+            EvaluationCase(
+                index=0,
+                example=EvaluationExample(input="A123"),
+                result="yes",
+                backend="mock",
+                scores=[EvaluationScore(key="quality", score=0.9, comment="good")],
+            )
+        ],
+    )
+
+    async def publish():
+        dataset = await apublish_dataset(
+            [EvaluationExample(input="A123", expected_output={"eligible": True})],
+            dataset_name="refunds",
+            client=client,
+        )
+        scores = await apublish_report_scores(report, trace_ids={0: "trace-1"}, client=client)
+        return dataset, scores
+
+    dataset, scores = asyncio.run(publish())
+    assert dataset == {"name": "refunds"}
+    assert scores == [{"id": "score-1"}]
+    assert client.items[-1]["dataset_name"] == "refunds"
+    assert client.scores[-1]["trace_id"] == "trace-1"

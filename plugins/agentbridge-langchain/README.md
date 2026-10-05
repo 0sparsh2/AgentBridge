@@ -80,6 +80,8 @@ AgentBridge adapter plugin for `langchain`.
   items while preserving caller filters and server cursors.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
+- The evaluation bridge also exposes async `apublish_dataset()` and `apublish_report_scores()`
+  helpers for fully asynchronous evaluation pipelines.
 - Langfuse score creation preserves typed numeric, boolean, categorical, and text values plus
   trace/session/observation/dataset-run targets, idempotency IDs, score configs, metadata, and
   environment fields.
