@@ -180,6 +180,65 @@ def test_langsmith_connection_token_lifecycle_preserves_sync_and_async_paths():
     )
 
 
+def test_langsmith_dataset_versions_splits_and_sharing_preserve_native_paths():
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        status = 204 if method == "DELETE" else 200
+        payload = b"" if status == 204 else b'{"ok": true}'
+        return status, {"content-type": "application/json"}, payload
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    client.read_dataset_version("dataset-1", tag="production")
+    client.list_dataset_versions("dataset-1", query={"limit": 5})
+    client.diff_dataset_versions("dataset-1", from_version="dev", to_version="production")
+    client.list_dataset_splits("dataset-1", as_of="production")
+    client.update_dataset_splits(
+        "dataset-1", split_name="holdout", example_ids=["example-1"], remove=True
+    )
+    client.share_dataset("dataset-1")
+    assert client.unshare_dataset("dataset-1") is None
+
+    async def collect():
+        return (
+            await client.aread_dataset_version("dataset-1", as_of="2026-01-01T00:00:00Z"),
+            await client.alist_dataset_versions("dataset-1", query={"limit": 5}),
+            await client.adiff_dataset_versions(
+                "dataset-1", from_version="dev", to_version="production"
+            ),
+            await client.alist_dataset_splits("dataset-1", as_of="production"),
+            await client.aupdate_dataset_splits(
+                "dataset-1", split_name="holdout", example_ids=["example-1"], remove=True
+            ),
+            await client.ashare_dataset("dataset-1"),
+            await client.aunshare_dataset("dataset-1"),
+        )
+
+    assert asyncio.run(collect()) == (
+        {"ok": True},
+        {"ok": True},
+        {"ok": True},
+        {"ok": True},
+        {"ok": True},
+        {"ok": True},
+        None,
+    )
+    assert calls[0][1].endswith("/api/v1/datasets/dataset-1/version?tag=production")
+    assert calls[1][1].endswith("/api/v1/datasets/dataset-1/versions?limit=5")
+    assert calls[2][1].endswith(
+        "/api/v1/datasets/dataset-1/versions/diff?from_version=dev&to_version=production"
+    )
+    assert calls[4][2] == {
+        "split_name": "holdout",
+        "examples": ["example-1"],
+        "remove": True,
+    }
+    assert calls[5][2] == {"dataset_id": "dataset-1"}
+    assert calls[6][0:2] == ("DELETE", "https://example.test/api/v1/datasets/dataset-1/share")
+
+
 def test_langsmith_async_typed_lifecycle_helpers_preserve_native_paths():
     calls = []
 

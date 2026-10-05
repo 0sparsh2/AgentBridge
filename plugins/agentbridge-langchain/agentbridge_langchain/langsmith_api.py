@@ -535,6 +535,96 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("DELETE", f"/api/v1/datasets/{dataset_id}")
 
+    async def aread_dataset_version(
+        self,
+        dataset_id: str,
+        *,
+        as_of: str | None = None,
+        tag: str | None = None,
+    ) -> Any:
+        """Async fetch a dataset version by timestamp or tag."""
+
+        if (as_of is None) == (tag is None):
+            raise ValueError("Exactly one of as_of and tag must be specified.")
+        query = {"as_of": as_of} if as_of is not None else {"tag": tag}
+        return await self.arequest_json(
+            "GET", f"/api/v1/datasets/{dataset_id}/version", query=query
+        )
+
+    async def alist_dataset_versions(
+        self,
+        dataset_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list version history for a dataset."""
+
+        return await self.arequest_json(
+            "GET", f"/api/v1/datasets/{dataset_id}/versions", query=query
+        )
+
+    async def adiff_dataset_versions(
+        self,
+        dataset_id: str,
+        *,
+        from_version: str,
+        to_version: str,
+    ) -> Any:
+        """Async return additions/removals between two dataset versions."""
+
+        return await self.arequest_json(
+            "GET",
+            f"/api/v1/datasets/{dataset_id}/versions/diff",
+            query={"from_version": from_version, "to_version": to_version},
+        )
+
+    async def alist_dataset_splits(
+        self,
+        dataset_id: str,
+        *,
+        as_of: str | None = None,
+    ) -> Any:
+        """Async list split names for a dataset version."""
+
+        query = {"as_of": as_of} if as_of is not None else None
+        return await self.arequest_json(
+            "GET", f"/api/v1/datasets/{dataset_id}/splits", query=query
+        )
+
+    async def aupdate_dataset_splits(
+        self,
+        dataset_id: str,
+        *,
+        split_name: str,
+        example_ids: list[str],
+        remove: bool = False,
+    ) -> Any:
+        """Async add or remove examples from a dataset split."""
+
+        return await self.arequest_json(
+            "PUT",
+            f"/api/v1/datasets/{dataset_id}/splits",
+            body={
+                "split_name": split_name,
+                "examples": list(example_ids),
+                "remove": remove,
+            },
+        )
+
+    async def ashare_dataset(self, dataset_id: str) -> Any:
+        """Async create or refresh a public share for a dataset."""
+
+        return await self.arequest_json(
+            "PUT",
+            f"/api/v1/datasets/{dataset_id}/share",
+            body={"dataset_id": dataset_id},
+        )
+
+    async def aunshare_dataset(self, dataset_id: str) -> Any:
+        """Async remove the public share for a dataset."""
+
+        return await self.arequest_json("DELETE", f"/api/v1/datasets/{dataset_id}/share")
+
     async def aread_dataset_delta(
         self,
         dataset_id: str,
@@ -1560,6 +1650,85 @@ class LangSmithAPIClient:
         """Delete one dataset and its examples."""
 
         return self.request_json("DELETE", f"/api/v1/datasets/{dataset_id}")
+
+    def read_dataset_version(
+        self,
+        dataset_id: str,
+        *,
+        as_of: str | None = None,
+        tag: str | None = None,
+    ) -> Any:
+        """Fetch a dataset version by timestamp or tag."""
+
+        if (as_of is None) == (tag is None):
+            raise ValueError("Exactly one of as_of and tag must be specified.")
+        query = {"as_of": as_of} if as_of is not None else {"tag": tag}
+        return self.request_json("GET", f"/api/v1/datasets/{dataset_id}/version", query=query)
+
+    def list_dataset_versions(
+        self,
+        dataset_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """List version history for a dataset."""
+
+        return self.request_json("GET", f"/api/v1/datasets/{dataset_id}/versions", query=query)
+
+    def diff_dataset_versions(
+        self,
+        dataset_id: str,
+        *,
+        from_version: str,
+        to_version: str,
+    ) -> Any:
+        """Return additions/removals between two dataset versions."""
+
+        return self.request_json(
+            "GET",
+            f"/api/v1/datasets/{dataset_id}/versions/diff",
+            query={"from_version": from_version, "to_version": to_version},
+        )
+
+    def list_dataset_splits(self, dataset_id: str, *, as_of: str | None = None) -> Any:
+        """List split names for a dataset version."""
+
+        query = {"as_of": as_of} if as_of is not None else None
+        return self.request_json("GET", f"/api/v1/datasets/{dataset_id}/splits", query=query)
+
+    def update_dataset_splits(
+        self,
+        dataset_id: str,
+        *,
+        split_name: str,
+        example_ids: list[str],
+        remove: bool = False,
+    ) -> Any:
+        """Add or remove examples from a dataset split."""
+
+        return self.request_json(
+            "PUT",
+            f"/api/v1/datasets/{dataset_id}/splits",
+            body={
+                "split_name": split_name,
+                "examples": list(example_ids),
+                "remove": remove,
+            },
+        )
+
+    def share_dataset(self, dataset_id: str) -> Any:
+        """Create or refresh a public share for a dataset."""
+
+        return self.request_json(
+            "PUT",
+            f"/api/v1/datasets/{dataset_id}/share",
+            body={"dataset_id": dataset_id},
+        )
+
+    def unshare_dataset(self, dataset_id: str) -> Any:
+        """Remove the public share for a dataset."""
+
+        return self.request_json("DELETE", f"/api/v1/datasets/{dataset_id}/share")
 
     def read_dataset_delta(
         self,
