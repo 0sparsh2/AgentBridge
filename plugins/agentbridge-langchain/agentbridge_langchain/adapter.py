@@ -633,7 +633,9 @@ def _native_stream(compiled: CompiledLangChainAgent, run_input: RunInput) -> Ite
     native_agent = compiled.native_agent
 
     with langsmith_context(compiled.config):
-        if hasattr(native_agent, "stream_events"):
+        if compiled.config.get("stream_protocol", "auto") != "stream" and hasattr(
+            native_agent, "stream_events"
+        ):
             try:
                 yield from native_agent.stream_events(
                     payload,
@@ -681,7 +683,9 @@ async def _native_astream(compiled: CompiledLangChainAgent, run_input: RunInput)
     native_agent = compiled.native_agent
 
     with langsmith_context(compiled.config):
-        if hasattr(native_agent, "astream_events"):
+        if compiled.config.get("stream_protocol", "auto") != "stream" and hasattr(
+            native_agent, "astream_events"
+        ):
             try:
                 async for event in native_agent.astream_events(
                     payload,
@@ -753,6 +757,8 @@ def _extension_summary(config: dict[str, Any]) -> dict[str, Any]:
         summary["stream_options"] = _safe_summary(config["stream_options"])
     if config.get("stream_events_version"):
         summary["stream_events_version"] = config["stream_events_version"]
+    if config.get("stream_protocol", "auto") != "auto":
+        summary["stream_protocol"] = config["stream_protocol"]
     if config.get("observability"):
         summary["observability"] = _safe_summary(config["observability"])
     if config.get("agentcore"):

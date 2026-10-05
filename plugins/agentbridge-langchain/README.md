@@ -126,7 +126,8 @@ AgentBridge adapter plugin for `langchain`.
   upserts using the same current v2/v3 paths as synchronous helpers.
 - Streaming normalization for LangChain `stream_events(..., version="v3")` event envelopes and
   `stream(..., stream_mode=["messages", "updates", "custom"], version="v2")` chunks, with
-  `stream_options` and `stream_events_version` pass-through for native overrides.
+  `stream_options`, `stream_events_version`, and `stream_protocol="auto|events|stream"` controls
+  for selecting the native transport explicitly.
 - Async normalized execution and streaming through `arun_agent()` and `astream_agent()`. When the
   native runtime exposes `ainvoke`, `astream`, or `astream_events`, the adapter uses those methods;
   otherwise it retains the dependency-free fallback contract.

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -40,6 +40,7 @@ class LangChainConfig(BaseModel):
     runtime_config: dict[str, Any] = Field(default_factory=dict)
     stream_options: dict[str, Any] = Field(default_factory=dict)
     stream_events_version: str | None = None
+    stream_protocol: Literal["auto", "events", "stream"] = "auto"
     metadata: dict[str, Any] = Field(default_factory=dict)
     observability: dict[str, Any] = Field(default_factory=dict)
     agentcore: dict[str, Any] = Field(default_factory=dict)
@@ -79,6 +80,7 @@ class LangChainExtension(FrameworkExtension):
         runtime_config: dict[str, Any] | None = None,
         stream_options: dict[str, Any] | None = None,
         stream_events_version: str | None = None,
+        stream_protocol: Literal["auto", "events", "stream"] = "auto",
         metadata: dict[str, Any] | None = None,
         observability: dict[str, Any] | None = None,
         agentcore: dict[str, Any] | None = None,
@@ -112,6 +114,7 @@ class LangChainExtension(FrameworkExtension):
             runtime_config=runtime_config or {},
             stream_options=stream_options or {},
             stream_events_version=stream_events_version,
+            stream_protocol=stream_protocol,
             metadata=metadata or {},
             observability=observability or {},
             agentcore=agentcore or {},

@@ -1015,6 +1015,9 @@ def test_adapter_streams_classic_langchain_stream_updates(monkeypatch) -> None:
 
 def test_adapter_forwards_custom_stream_options_and_event_version(monkeypatch) -> None:
     class ConfiguredStreamAgent(FakeNativeAgent):
+        def stream_events(self, payload, config=None, version=None):
+            raise AssertionError("stream_protocol=stream must not use stream_events")
+
         def stream(self, payload, config=None, stream_mode=None, version=None):
             del payload, config
             assert stream_mode == ["updates"]
@@ -1042,11 +1045,13 @@ def test_adapter_forwards_custom_stream_options_and_event_version(monkeypatch) -
         AgentSpec(name="configured_stream", instructions="Stream.", model="openai/gpt-5"),
         stream_options={"stream_mode": ["updates"], "version": "v1"},
         stream_events_version="v2",
+        stream_protocol="stream",
     )
     compiled = adapter.compile(configured)
     assert list(adapter.stream(compiled, RunInput(input="hello")))[0].data["content"] == "configured stream"
     assert compiled.config["stream_options"] == {"stream_mode": ["updates"], "version": "v1"}
     assert compiled.config["stream_events_version"] == "v2"
+    assert compiled.config["stream_protocol"] == "stream"
 
     monkeypatch.setitem(
         sys.modules,
