@@ -478,6 +478,11 @@ class LangfuseAPIClient:
         query = {"version": version} if version is not None else None
         return await self.arequest_json("GET", f"/api/public/v2/datasets/{name}", query=query)
 
+    async def adelete_dataset(self, name: str) -> Any:
+        """Async delete a Langfuse dataset and its items."""
+
+        return await self.arequest_json("DELETE", f"/api/public/v2/datasets/{name}")
+
     async def acreate_dataset_item(
         self,
         *,
@@ -504,6 +509,20 @@ class LangfuseAPIClient:
         }
         body.update({key: item for key, item in optional.items() if item is not None})
         return await self.arequest_json("POST", "/api/public/dataset-items", body=body)
+
+    async def aupdate_dataset_item(self, item_id: str, *, body: Mapping[str, Any]) -> Any:
+        """Async upsert an update for a versioned Langfuse dataset item."""
+
+        return await self.acreate_dataset_item(
+            dataset_name=str(body.get("datasetName", "")),
+            input=body.get("input"),
+            expected_output=body.get("expectedOutput"),
+            item_id=item_id,
+            metadata=body.get("metadata"),
+            source_trace_id=body.get("sourceTraceId"),
+            source_observation_id=body.get("sourceObservationId"),
+            status=body.get("status"),
+        )
 
     async def aget_trace(self, trace_id: str) -> Any:
         """Async fetch for one legacy Langfuse trace payload."""

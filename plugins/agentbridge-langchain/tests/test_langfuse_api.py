@@ -208,9 +208,13 @@ def test_langfuse_async_lifecycle_helpers_preserve_payloads_and_current_paths():
             expected_output={"eligible": True},
             status="ACTIVE",
         )
-        return prompt, created_prompt, score, dataset, fetched_dataset, item
+        updated_item = await client.aupdate_dataset_item(
+            "item-1", body={"datasetName": "refunds", "status": "ARCHIVED"}
+        )
+        deleted_dataset = await client.adelete_dataset("refunds")
+        return prompt, created_prompt, score, dataset, fetched_dataset, item, updated_item, deleted_dataset
 
-    assert asyncio.run(collect()) == ({"ok": True},) * 6
+    assert asyncio.run(collect()) == ({"ok": True},) * 8
     assert calls[0][1].endswith("/api/public/v2/prompts/refunds?label=production&type=text")
     assert json.loads(calls[1][2])["labels"] == ["production"]
     assert json.loads(calls[2][2]) == {
@@ -220,6 +224,12 @@ def test_langfuse_async_lifecycle_helpers_preserve_payloads_and_current_paths():
         "dataType": "BOOLEAN",
     }
     assert calls[5][1].endswith("/api/public/dataset-items")
+    assert json.loads(calls[6][2]) == {
+        "datasetName": "refunds",
+        "id": "item-1",
+        "status": "ARCHIVED",
+    }
+    assert calls[7][1].endswith("/api/public/v2/datasets/refunds")
 
 
 def test_langfuse_async_metrics_prompts_and_cleanup_preserve_native_paths():

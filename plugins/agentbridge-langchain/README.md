@@ -93,6 +93,8 @@ AgentBridge adapter plugin for `langchain`.
   retrieval/deletion, and dataset-item retrieval/deletion with the same native paths.
 - Async Langfuse cursor iterators now cover experiments, experiment items, datasets, and dataset
   items while preserving caller filters and server cursors.
+- Async Langfuse dataset deletion and dataset-item update/upsert now match the synchronous
+  lifecycle surface.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
 - Async `afetch_prompt()` provides the same version/label retrieval and compilation bridge without
   blocking an async application.
