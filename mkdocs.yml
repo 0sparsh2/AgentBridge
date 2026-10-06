@@ -55,6 +55,7 @@ nav:
       - Observability: observability.md
       - Model Routing: model_routing.md
       - LangChain Ecosystem Coverage: langchain_coverage.md
+      - Remote Graph Streaming: remote_streaming.md
       - Deep Agents Integration: deepagents.md
       - AgentCore Integration: agentcore.md
       - Version Policy: version_policy.md

@@ -6,11 +6,12 @@ import asyncio
 import json
 import os
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
+from contextlib import aclosing
 from typing import Any
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
-from ._sse import parse_sse
+from ._sse import async_events, response_events, stream_http
 
 
 Transport = Callable[[str, str, dict[str, str], bytes | None], tuple[int, Mapping[str, str], bytes]]
@@ -38,6 +39,7 @@ class LangSmithAPIClient:
             raise ValueError("LANGSMITH_API_KEY or api_key is required for LangSmith API calls.")
         self.base_url = base_url.rstrip("/")
         self._transport = transport or _default_transport
+        self._stream_transport = transport or stream_http
 
     def request_json(
         self,
@@ -112,10 +114,11 @@ class LangSmithAPIClient:
             query=query,
             body=body,
             headers={"Accept": "text/event-stream", **(headers or {})},
+            stream=True,
         )
         if status >= 400:
             raise RuntimeError(f"LangSmith API {status} for {method} {path}")
-        yield from parse_sse(raw)
+        yield from response_events(raw)
 
     async def arequest_json(
         self,
@@ -176,19 +179,11 @@ class LangSmithAPIClient:
     ) -> AsyncIterator[dict[str, Any]]:
         """Async-compatible SSE facade preserving the dependency-free transport."""
 
-        events = await asyncio.to_thread(
-            lambda: list(
-                self.stream_events(
-                    method,
-                    path,
-                    query=query,
-                    body=body,
-                    headers=headers,
-                )
-            )
-        )
-        for event in events:
-            yield event
+        async with aclosing(async_events(self.stream_events(
+            method, path, query=query, body=body, headers=headers
+        ))) as events:
+            async for event in events:
+                yield event
 
     async def aget_thread(self, thread_id: str) -> Any:
         """Async fetch for a deployment thread."""
@@ -2618,7 +2613,8 @@ class LangSmithAPIClient:
         query: Mapping[str, Any] | None,
         body: Any | None,
         headers: Mapping[str, str] | None,
-    ) -> tuple[int, Mapping[str, str], bytes]:
+        stream: bool = False,
+    ) -> tuple[int, Mapping[str, str], bytes | Iterator[bytes]]:
         normalized_path = path if path.startswith("/") else f"/{path}"
         query_string = urlencode(
             [(key, value) for key, value in (query or {}).items() if value is not None],
@@ -2636,7 +2632,8 @@ class LangSmithAPIClient:
         if body is not None:
             raw_body = json.dumps(body).encode("utf-8")
             request_headers.setdefault("Content-Type", "application/json")
-        return self._transport(method.upper(), url, request_headers, raw_body)
+        transport = self._stream_transport if stream else self._transport
+        return transport(method.upper(), url, request_headers, raw_body)
 
 
 class LangSmithControlPlaneClient(LangSmithAPIClient):
@@ -3052,7 +3049,8 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
         query: Mapping[str, Any] | None,
         body: Any | None,
         headers: Mapping[str, str] | None,
-    ) -> tuple[int, Mapping[str, str], bytes]:
+        stream: bool = False,
+    ) -> tuple[int, Mapping[str, str], bytes | Iterator[bytes]]:
         request_headers = {"X-Tenant-Id": self.tenant_id, **(headers or {})}
         return super()._request(
             method,
@@ -3060,6 +3058,7 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
             query=query,
             body=body,
             headers=request_headers,
+            stream=stream,
         )
 
 

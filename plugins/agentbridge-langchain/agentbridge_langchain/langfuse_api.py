@@ -8,11 +8,12 @@ import json
 import os
 import warnings
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
+from contextlib import aclosing
 from typing import Any
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from ._sse import parse_sse
+from ._sse import async_events, response_events, stream_http
 
 
 Transport = Callable[[str, str, dict[str, str], bytes | None], tuple[int, Mapping[str, str], bytes]]
@@ -35,6 +36,7 @@ class LangfuseAPIClient:
             raise ValueError("LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY are required.")
         self.base_url = base_url.rstrip("/")
         self._transport = transport or _default_transport
+        self._stream_transport = transport or stream_http
 
     def request_json(
         self,
@@ -99,11 +101,12 @@ class LangfuseAPIClient:
             query=kwargs.pop("query", None),
             body=kwargs.pop("body", None),
             headers=headers,
+            stream=True,
             **kwargs,
         )
         if status >= 400:
             raise RuntimeError(f"Langfuse API {status} for {method} {path}: {raw[:500]!r}")
-        yield from parse_sse(raw)
+        yield from response_events(raw)
 
     def iter_observations(
         self,
@@ -571,19 +574,11 @@ class LangfuseAPIClient:
     ) -> AsyncIterator[dict[str, Any]]:
         """Async-compatible SSE facade preserving the dependency-free transport."""
 
-        events = await asyncio.to_thread(
-            lambda: list(
-                self.stream_events(
-                    method,
-                    path,
-                    query=query,
-                    body=body,
-                    headers=headers,
-                )
-            )
-        )
-        for event in events:
-            yield event
+        async with aclosing(async_events(self.stream_events(
+            method, path, query=query, body=body, headers=headers
+        ))) as events:
+            async for event in events:
+                yield event
 
     def ingest(self, events: list[dict[str, Any]]) -> Any:
         """Submit native Langfuse observations/events without hiding the payload shape."""
@@ -988,6 +983,7 @@ class LangfuseAPIClient:
         body: Any | None,
         raw_body: bytes | None = None,
         headers: Mapping[str, str] | None,
+        stream: bool = False,
     ):
         url = f"{self.base_url}/{path.lstrip('/')}"
         query_string = urlencode([(key, value) for key, value in (query or {}).items() if value is not None], doseq=True)
@@ -999,7 +995,8 @@ class LangfuseAPIClient:
         if body is not None:
             encoded_body = json.dumps(body).encode("utf-8")
             request_headers.setdefault("Content-Type", "application/json")
-        return self._transport(method.upper(), url, request_headers, encoded_body)
+        transport = self._stream_transport if stream else self._transport
+        return transport(method.upper(), url, request_headers, encoded_body)
 
 
 def _default_transport(method: str, url: str, headers: dict[str, str], body: bytes | None):

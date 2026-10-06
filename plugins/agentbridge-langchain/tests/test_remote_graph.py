@@ -411,3 +411,36 @@ def test_remote_error_does_not_synthesize_success_completion():
         assert value.output is None
         assert value.metadata["status"] == "error"
         assert [event.type for event in value.events] == ["error"]
+
+
+def test_remote_stream_close_releases_sync_and_async_native_streams():
+    closed = []
+
+    class Client:
+        def stream_thread_run(self, *args, **kwargs):
+            try:
+                yield {"event": "messages", "data": {"content": "first"}}
+                raise AssertionError("read ahead")
+            finally:
+                closed.append("sync")
+
+        async def astream_events(self, *args, **kwargs):
+            try:
+                yield {"event": "messages", "data": {"content": "first"}}
+                raise AssertionError("read ahead")
+            finally:
+                closed.append("async")
+
+    remote = RemoteGraphClient(Client())
+    events = remote.stream(thread_id="thread-1", assistant_id="agent", input={})
+    assert next(events).data["content"] == "first"
+    events.close()
+    assert closed == ["sync"]
+
+    async def collect():
+        events = remote.astream(thread_id="thread-1", assistant_id="agent", input={})
+        assert (await anext(events)).data["content"] == "first"
+        await events.aclose()
+        assert closed == ["sync", "async"]
+
+    asyncio.run(collect())

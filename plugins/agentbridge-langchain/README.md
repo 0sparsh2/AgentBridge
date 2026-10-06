@@ -357,8 +357,11 @@ provider-specific payloads.
 SSE responses retain their native `event` and `id` fields, including multiline JSON data.
 `RemoteGraphClient` places these in `AgentEvent.metadata.native_event` and `sse_id`; namespaced
 message streams preserve their original namespace while emitting normalized message events.
-Data-only JSON event envelopes retain their existing response shape. The dependency-free transport
-currently buffers the response before yielding events; incremental network streaming remains pending.
+Data-only JSON event envelopes retain their existing response shape. The default HTTP transport
+streams complete frames as they arrive; async calls read one frame at a time off the event loop.
+Injected legacy transports returning bytes remain buffered. Use `closing()`/`aclosing()` to
+release the response when ending a stream early. See the
+[remote streaming guide](../../docs/remote_streaming.md) for examples and cancellation semantics.
 Remote results retain the last full `values` state when an empty `end` frame arrives. Error events
 set `RunResult.metadata.status` to `error` and do not synthesize a success completion event.
 

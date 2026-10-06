@@ -1,19 +1,35 @@
-"""Decode complete SSE responses while retaining transport event metadata."""
+"""Incremental SSE decoding and dependency-free HTTP streaming."""
 
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
+import asyncio
+from collections.abc import AsyncIterator, Iterable, Iterator, Mapping
+from itertools import chain
 from typing import Any
+from urllib.request import Request, urlopen
 
 
 def parse_sse(raw: bytes) -> Iterator[dict[str, Any]]:
     """Preserve named events; keep data-only JSON envelopes backward compatible."""
 
+    yield from parse_sse_lines(raw.decode("utf-8-sig").splitlines())
+
+
+def parse_sse_lines(lines: Iterable[bytes | str]) -> Iterator[dict[str, Any]]:
+    """Decode each completed frame without consuming later response lines."""
+
     event_name: str | None = None
     event_id: str | None = None
     data_lines: list[str] = []
-    for line in [*raw.decode("utf-8-sig").splitlines(), ""]:
+    first_line = True
+    for line in chain(lines, ("",)):
+        if isinstance(line, bytes):
+            line = line.decode("utf-8")
+        if first_line:
+            line = line.removeprefix("\ufeff")
+            first_line = False
+        line = line.rstrip("\r\n")
         if not line:
             if data_lines:
                 data = "\n".join(data_lines)
@@ -45,3 +61,55 @@ def parse_sse(raw: bytes) -> Iterator[dict[str, Any]]:
             event_id = value
         elif field == "data":
             data_lines.append(value)
+
+
+def stream_http(
+    method: str, url: str, headers: dict[str, str], body: bytes | None
+) -> tuple[int, Mapping[str, str], Iterator[bytes]]:
+    """Open an HTTP response and release it when its iterator is closed."""
+
+    response = urlopen(Request(url, data=body, headers=headers, method=method), timeout=30)
+
+    def lines() -> Iterator[bytes]:
+        try:
+            yield from response
+        finally:
+            response.close()
+
+    return response.status, dict(response.headers.items()), lines()
+
+
+def response_events(raw: bytes | Iterator[bytes]) -> Iterator[dict[str, Any]]:
+    """Decode buffered custom transports or incremental HTTP responses."""
+
+    if isinstance(raw, bytes):
+        yield from parse_sse(raw)
+        return
+    try:
+        yield from parse_sse_lines(raw)
+    finally:
+        close = getattr(raw, "close", None)
+        if callable(close):
+            close()
+
+
+async def async_events(events: Iterator[dict[str, Any]]) -> AsyncIterator[dict[str, Any]]:
+    """Read one frame at a time off-loop and close after a read finishes."""
+
+    exhausted = object()
+    try:
+        while True:
+            pending = asyncio.create_task(asyncio.to_thread(next, events, exhausted))
+            try:
+                event = await asyncio.shield(pending)
+            except asyncio.CancelledError:
+                # A Python generator cannot be closed while its worker is executing next().
+                try:
+                    await pending
+                finally:
+                    raise
+            if event is exhausted:
+                return
+            yield event
+    finally:
+        await asyncio.to_thread(events.close)

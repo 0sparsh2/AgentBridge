@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator, Mapping
+from contextlib import aclosing, closing
 from typing import Any
 
 from agentbridge.types import AgentEvent, RunResult
@@ -238,12 +239,13 @@ class RemoteGraphClient:
         assistant_id: str,
         input: Any,
     ) -> Iterator[AgentEvent]:
-        for payload in self.client.stream_thread_run(
+        with closing(self.client.stream_thread_run(
             thread_id,
             assistant_id=assistant_id,
             input=input,
-        ):
-            yield _normalize_remote_event(payload)
+        )) as events:
+            for payload in events:
+                yield _normalize_remote_event(payload)
 
     async def astream(
         self,
@@ -256,12 +258,13 @@ class RemoteGraphClient:
 
         native_stream = getattr(self.client, "astream_events", None)
         if callable(native_stream):
-            async for payload in native_stream(
+            async with aclosing(native_stream(
                 "POST",
                 f"/threads/{thread_id}/runs/stream",
                 body={"assistant_id": assistant_id, "input": input},
-            ):
-                yield _normalize_remote_event(payload)
+            )) as events:
+                async for payload in events:
+                    yield _normalize_remote_event(payload)
             return
 
         for event in await _collect_sync_stream(
