@@ -74,6 +74,11 @@
       "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_graph_discovery_helpers_preserve_native_filters_and_versions"
     },
     {
+      "name": "remote_graph_resume_transport",
+      "surfaces": ["top-level command resume payload", "sync/async API transport", "async run deletion"],
+      "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_resume_serializes_top_level_command_through_real_api_client"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

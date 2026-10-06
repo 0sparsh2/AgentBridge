@@ -379,7 +379,24 @@ and `prune_threads()`.
 
 Remote state and approval flows are available through `RemoteGraphClient.state()`,
 `RemoteGraphClient.update_state()`, and `RemoteGraphClient.resume()`, with matching async
-`acreate_thread()`, `astate()`, `aupdate_state()`, and `aresume()` methods. Langfuse evaluation publishing
+`acreate_thread()`, `astate()`, `aupdate_state()`, and `aresume()` methods. Resume sends the
+Agent Server's top-level `command` field with `input=None`, so the decision reaches the paused
+interrupt rather than becoming graph state:
+
+```python
+run = remote.resume(
+    thread_id="thread-123",
+    assistant_id="agent",
+    resume_value={"decisions": [{"type": "approve"}]},
+)
+# resume_value is defined by the graph's interrupt; parallel interrupts can use an ID/value map.
+```
+
+For streaming approval flows, use `client.create_thread_run(..., input=None,
+command={"resume": decision}, stream=True)` or its async counterpart. The async client also
+exposes `adelete_run()` for persisted run cleanup.
+
+Langfuse evaluation publishing
 is available through `publish_langfuse_dataset()` and `publish_report_scores()`.
 
 For an option that AgentBridge has not normalized yet, pass it explicitly:

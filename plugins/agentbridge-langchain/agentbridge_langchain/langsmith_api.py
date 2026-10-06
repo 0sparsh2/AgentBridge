@@ -423,10 +423,13 @@ class LangSmithAPIClient:
         assistant_id: str,
         input: Any,
         stream: bool = False,
+        command: Mapping[str, Any] | None = None,
     ) -> Any:
         """Async start of a non-streaming or SSE thread run."""
 
         body = {"assistant_id": assistant_id, "input": input}
+        if command is not None:
+            body["command"] = dict(command)
         if stream:
             return self.astream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
         return await self.arequest_json("POST", f"/threads/{thread_id}/runs", body=body)
@@ -435,6 +438,11 @@ class LangSmithAPIClient:
         """Async fetch for one thread run."""
 
         return await self.arequest_json("GET", f"/threads/{thread_id}/runs/{run_id}")
+
+    async def adelete_run(self, thread_id: str, run_id: str) -> Any:
+        """Async deletion for one persisted thread run."""
+
+        return await self.arequest_json("DELETE", f"/threads/{thread_id}/runs/{run_id}")
 
     async def alist_thread_runs(
         self,
@@ -1624,10 +1632,13 @@ class LangSmithAPIClient:
         assistant_id: str,
         input: Any,
         stream: bool = False,
+        command: Mapping[str, Any] | None = None,
     ) -> Any:
         """Start a non-streaming or streaming thread run."""
 
         body = {"assistant_id": assistant_id, "input": input}
+        if command is not None:
+            body["command"] = dict(command)
         if stream:
             return self.stream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
         return self.request_json("POST", f"/threads/{thread_id}/runs", body=body)

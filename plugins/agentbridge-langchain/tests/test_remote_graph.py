@@ -1,5 +1,7 @@
 import asyncio
+import json
 
+from agentbridge_langchain.langsmith_api import LangSmithAPIClient
 from agentbridge_langchain.remote_graph import RemoteGraphClient
 
 
@@ -86,8 +88,14 @@ class FakeClient:
     def update_thread_state(self, thread_id, *, values, as_node=None):
         return {"thread_id": thread_id, "values": values, "as_node": as_node}
 
-    def create_thread_run(self, thread_id, *, assistant_id, input, stream=False):
-        return {"thread_id": thread_id, "assistant_id": assistant_id, "input": input, "stream": stream}
+    def create_thread_run(self, thread_id, *, assistant_id, input, stream=False, command=None):
+        return {
+            "thread_id": thread_id,
+            "assistant_id": assistant_id,
+            "input": input,
+            "stream": stream,
+            "command": command,
+        }
 
     async def aget_thread(self, thread_id):
         return self.get_thread(thread_id)
@@ -161,7 +169,8 @@ def test_remote_graph_state_and_resume_helpers_preserve_native_payloads():
     assert client.state("thread-1", checkpoint_id="cp-1")["checkpoint_id"] == "cp-1"
     assert client.update_state("thread-1", values={"approved": True}, as_node="review")["as_node"] == "review"
     resumed = client.resume(thread_id="thread-1", assistant_id="agent", resume_value="approved")
-    assert resumed["input"] == {"command": {"resume": "approved"}}
+    assert resumed["input"] is None
+    assert resumed["command"] == {"resume": "approved"}
 
 
 def test_remote_graph_lifecycle_helpers_preserve_native_thread_and_run_payloads():
@@ -226,7 +235,8 @@ def test_remote_graph_async_thread_state_and_resume_helpers_use_compatibility_fa
     assert thread_id == "thread-1"
     assert state["checkpoint_id"] == "cp-2"
     assert updated["as_node"] == "review"
-    assert resumed["input"] == {"command": {"resume": "approved"}}
+    assert resumed["input"] is None
+    assert resumed["command"] == {"resume": "approved"}
 
 
 def test_remote_graph_async_lifecycle_helpers_preserve_native_payloads():
@@ -285,3 +295,58 @@ def test_remote_graph_async_discovery_helpers_preserve_native_payloads():
     assert values[6]["query"] == {"limit": 2}
     assert values[7]["version"] == 3
     assert values[8]["query"] == {"limit": 4}
+
+
+def test_remote_resume_serializes_top_level_command_through_real_api_client():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, json.loads(body) if body else None))
+        return 200, {"content-type": "application/json"}, b'{"run_id":"run-1"}'
+
+    api = LangSmithAPIClient(
+        api_key="test-key", base_url="https://server.test", transport=transport
+    )
+    remote = RemoteGraphClient(api)
+    decision = {"interrupt-1": {"approved": True}}
+    remote.resume(thread_id="thread-1", assistant_id="agent", resume_value=decision)
+
+    async def collect():
+        await remote.aresume(
+            thread_id="thread-1", assistant_id="agent", resume_value=decision
+        )
+        await remote.adelete_run(thread_id="thread-1", run_id="run-1")
+
+    asyncio.run(collect())
+    expected = (
+        "POST",
+        "https://server.test/threads/thread-1/runs",
+        {"assistant_id": "agent", "input": None, "command": {"resume": decision}},
+    )
+    assert calls[:2] == [expected, expected]
+    assert calls[2] == ("DELETE", "https://server.test/threads/thread-1/runs/run-1", None)
+
+
+def test_thread_run_stream_preserves_resume_command_for_sync_and_async_requests():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append(json.loads(body))
+        return 200, {"content-type": "text/event-stream"}, b'data: {"output":"approved"}\n\n'
+
+    api = LangSmithAPIClient(api_key="test-key", transport=transport)
+    assert list(api.create_thread_run(
+        "thread-1", assistant_id="agent", input=None, stream=True, command={"resume": False}
+    )) == [{"output": "approved"}]
+
+    async def collect():
+        stream = await api.acreate_thread_run(
+            "thread-1", assistant_id="agent", input=None, stream=True, command={"resume": False}
+        )
+        return [event async for event in stream]
+
+    assert asyncio.run(collect()) == [{"output": "approved"}]
+    assert calls == [
+        {"assistant_id": "agent", "input": None, "command": {"resume": False}},
+        {"assistant_id": "agent", "input": None, "command": {"resume": False}},
+    ]

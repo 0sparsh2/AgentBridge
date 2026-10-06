@@ -395,7 +395,8 @@ class RemoteGraphClient:
         return self.client.create_thread_run(
             thread_id,
             assistant_id=assistant_id,
-            input={"command": {"resume": resume_value}},
+            input=None,
+            command={"resume": resume_value},
         )
 
     async def aresume(
@@ -413,7 +414,8 @@ class RemoteGraphClient:
             "create_thread_run",
             thread_id,
             assistant_id=assistant_id,
-            input={"command": {"resume": resume_value}},
+            input=None,
+            command={"resume": resume_value},
         )
 
     def run_record(self, *, thread_id: str, run_id: str) -> Any:
