@@ -355,6 +355,9 @@ def test_langgraph_adapter_replays_checkpoint_through_native_async_invoke():
 
 def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -> None:
     class FakeGraph:
+        def invoke(self, payload, config=None):
+            return {"output": {"message": payload["input"]}, "route": "agent"}
+
         def stream(self, payload, config=None, **options):
             assert payload["input"] == "hello"
             assert config is None
@@ -381,6 +384,11 @@ def test_langgraph_adapter_consumes_native_sync_stream_options_and_subgraphs() -
     assert events[-1].type == "complete"
     assert events[-1].data["output"] == "from child"
     assert any(event.data.get("namespace") == ("child",) for event in events)
+    result = LangGraphAdapter().run(compiled, RunInput(input="hello"))
+    assert result.metadata["stream_options"] == {"stream_mode": ["updates"]}
+    assert result.metadata["run_diagnostics"]["stream_options"] == {
+        "stream_mode": ["updates"]
+    }
 
 
 def test_langgraph_adapter_uses_extension_config_when_available() -> None:
