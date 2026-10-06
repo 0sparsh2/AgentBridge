@@ -63,6 +63,12 @@ provider-routing abstractions.
 
 ## Relationship To Feature Parity
 
+Regular push and pull-request CI runs the LangChain plugin suite on Python 3.11 and 3.12.
+This includes dependency-free API request contracts, incremental HTTP streaming against a local
+server, remote interruption/reconnect normalization, and real local LangGraph checkpoint/resume
+tests. It also executes the offline streaming and approval examples. Credentialed hosted smoke
+checks remain separately gated.
+
 Conformance is the floor. Feature parity is tracked through capability reports, adapter docs, and
 framework-specific issues.
 

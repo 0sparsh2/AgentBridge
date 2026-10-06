@@ -6,6 +6,28 @@ on:
   pull_request:
 
 jobs:
+  langchain-conformance:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install LangChain conformance dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,langgraph]" -e plugins/agentbridge-langchain
+      - name: Run LangChain and remote transport conformance
+        run: python -m pytest -q plugins/agentbridge-langchain/tests
+      - name: Run offline streaming and approval examples
+        run: |
+          python examples/remote_graph_stream.py --async --max-events 2
+          python examples/remote_graph_approval.py
+
   test:
     runs-on: ubuntu-latest
     strategy:
