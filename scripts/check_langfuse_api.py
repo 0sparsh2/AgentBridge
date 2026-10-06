@@ -18,6 +18,8 @@ ENDPOINTS = (
     "/api/public/v2/observations", "/api/public/v3/scores",
     "/api/public/experiments", "/api/public/experiment-items",
     "/api/public/v2/prompts", "/api/public/v2/datasets", "/api/public/dataset-items",
+    "/api/public/score-configs", "/api/public/annotation-queues",
+    "/api/public/annotation-queues/{queueId}/items",
 )
 
 
@@ -81,7 +83,7 @@ def extract_contracts(spec: dict) -> dict:
 def render_report(adopted: dict, current: dict) -> tuple[str, bool]:
     lines = ["# Langfuse API Pagination Compatibility", "",
              f"Source: {SOURCE}", "",
-             "Only the seven adopted list/pagination contracts are checked; this is not whole-API conformance.", ""]
+             f"Only the {len(ENDPOINTS)} adopted list/pagination contracts are checked; this is not whole-API conformance.", ""]
     drifted = False
     for path in sorted(set(adopted) | set(current)):
         changed = adopted.get(path) != current.get(path)

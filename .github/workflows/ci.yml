@@ -29,6 +29,7 @@ jobs:
           python examples/remote_graph_approval.py
           python examples/langfuse_typed_evaluation.py
           python examples/langfuse_paginated_export.py
+          python examples/langfuse_review_queue.py
 
   test:
     runs-on: ubuntu-latest

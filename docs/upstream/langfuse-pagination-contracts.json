@@ -1,5 +1,125 @@
 {
   "contracts": {
+    "/api/public/annotation-queues": {
+      "data_type": "array",
+      "metadata": {
+        "limit": {
+          "type": "integer"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit",
+        "page",
+        "totalItems",
+        "totalPages"
+      ],
+      "query_pagination": {
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        },
+        "page": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/annotation-queues/{queueId}/items": {
+      "data_type": "array",
+      "metadata": {
+        "limit": {
+          "type": "integer"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit",
+        "page",
+        "totalItems",
+        "totalPages"
+      ],
+      "query_pagination": {
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        },
+        "page": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/score-configs": {
+      "data_type": "array",
+      "metadata": {
+        "limit": {
+          "type": "integer"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit",
+        "page",
+        "totalItems",
+        "totalPages"
+      ],
+      "query_pagination": {
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        },
+        "page": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
     "/api/public/dataset-items": {
       "data_type": "array",
       "metadata": {

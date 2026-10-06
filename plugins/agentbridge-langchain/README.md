@@ -111,6 +111,13 @@ AgentBridge adapter plugin for `langchain`.
 - Async `afetch_prompt()` provides the same version/label retrieval and compilation bridge without
   blocking an async application.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
+- Score config creation/read/update/archive, annotation queue creation/read, reviewer
+  assignment/removal, and queue-item creation/read/completion/deletion have sync/async helpers.
+  Their list iterators use native numbered pagination. Native update bodies preserve nulls and
+  false values, and identifiers are escaped as path segments.
+- Report publishers accept `score_config_ids` to connect evaluator dimensions to native score
+  configs. `examples/langfuse_review_queue.py` exercises a stateful offline review workflow;
+  annotation queues are evaluation governance, not interrupted-agent approval/resume.
 - Report publication preserves explicit evaluator values, comments, and metadata, including
   false booleans, zero, and empty text. `score_types` supports categorical strings; dataset
   publication preserves example metadata. Scalar validation runs before score writes begin.

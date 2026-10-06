@@ -37,6 +37,8 @@ def run_demo():
             }
             if "metadata" in payload:
                 record["metadata"] = payload["metadata"]
+            if "configId" in payload:
+                record["configId"] = payload["configId"]
             records.append(record)
             response = {"id": record["id"]}
         else:
@@ -51,13 +53,16 @@ def run_demo():
     client = LangfuseAPIClient(public_key="offline", secret_key="offline", transport=transport)
     report = build_report()
     score_types = {"verdict": "CATEGORICAL"}
-    publish_report_scores(report, trace_ids={0: "trace-demo"}, client=client, score_types=score_types)
+    score_config_ids = {"verdict": "existing-verdict-config"}
+    publish_report_scores(report, trace_ids={0: "trace-demo"}, client=client,
+                          score_types=score_types, score_config_ids=score_config_ids)
     synchronous = list(client.iter_scores_v3(query={"fields": "details,subject"}))
     records.clear()
 
     async def collect():
         await apublish_report_scores(
-            report, trace_ids={0: "trace-demo"}, client=client, score_types=score_types
+            report, trace_ids={0: "trace-demo"}, client=client,
+            score_types=score_types, score_config_ids=score_config_ids,
         )
         return [item async for item in client.aiter_scores_v3(query={"fields": "details,subject"})]
 

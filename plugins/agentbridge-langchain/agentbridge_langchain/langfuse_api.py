@@ -10,7 +10,7 @@ import warnings
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
 from contextlib import aclosing
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 from ._sse import async_events, response_events, stream_http
@@ -728,6 +728,324 @@ class LangfuseAPIClient:
         body.update({key: item for key, item in optional.items() if item is not None})
         return self.request_json("POST", "/api/public/scores", body=body)
 
+    def list_score_configs(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """list score configs through the native public API."""
+
+        return self.request_json(
+            "GET", "/api/public/score-configs", query=query,
+        )
+
+    async def alist_score_configs(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list score configs through the native public API."""
+
+        return await self.arequest_json(
+            "GET", "/api/public/score-configs", query=query,
+        )
+
+    def get_score_config(
+        self, config_id: str,
+    ) -> Any:
+        """get score config through the native public API."""
+
+        return self.request_json(
+            "GET", f"/api/public/score-configs/{_path_id(config_id)}",
+        )
+
+    async def aget_score_config(
+        self, config_id: str,
+    ) -> Any:
+        """Async get score config through the native public API."""
+
+        return await self.arequest_json(
+            "GET", f"/api/public/score-configs/{_path_id(config_id)}",
+        )
+
+    def create_score_config(
+        self, *, name: str, data_type: str,
+        categories: list[Mapping[str, Any]] | None = None,
+        min_value: float | None = None, max_value: float | None = None,
+        description: str | None = None,
+    ) -> Any:
+        """create score config through the native public API."""
+
+        body = _score_config_body(
+            name=name, data_type=data_type, categories=categories,
+            min_value=min_value, max_value=max_value, description=description,
+        )
+        return self.request_json("POST", "/api/public/score-configs", body=body)
+
+    async def acreate_score_config(
+        self, *, name: str, data_type: str,
+        categories: list[Mapping[str, Any]] | None = None,
+        min_value: float | None = None, max_value: float | None = None,
+        description: str | None = None,
+    ) -> Any:
+        """Async create score config through the native public API."""
+
+        body = _score_config_body(
+            name=name, data_type=data_type, categories=categories,
+            min_value=min_value, max_value=max_value, description=description,
+        )
+        return await self.arequest_json("POST", "/api/public/score-configs", body=body)
+
+    def update_score_config(
+        self, config_id: str, *, body: Mapping[str, Any],
+    ) -> Any:
+        """update score config through the native public API."""
+
+        return self.request_json(
+            "PATCH", f"/api/public/score-configs/{_path_id(config_id)}", body=dict(body),
+        )
+
+    async def aupdate_score_config(
+        self, config_id: str, *, body: Mapping[str, Any],
+    ) -> Any:
+        """Async update score config through the native public API."""
+
+        return await self.arequest_json(
+            "PATCH", f"/api/public/score-configs/{_path_id(config_id)}", body=dict(body),
+        )
+
+    def list_annotation_queues(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """list annotation queues through the native public API."""
+
+        return self.request_json(
+            "GET", "/api/public/annotation-queues", query=query,
+        )
+
+    async def alist_annotation_queues(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list annotation queues through the native public API."""
+
+        return await self.arequest_json(
+            "GET", "/api/public/annotation-queues", query=query,
+        )
+
+    def get_annotation_queue(
+        self, queue_id: str,
+    ) -> Any:
+        """get annotation queue through the native public API."""
+
+        return self.request_json(
+            "GET", f"/api/public/annotation-queues/{_path_id(queue_id)}",
+        )
+
+    async def aget_annotation_queue(
+        self, queue_id: str,
+    ) -> Any:
+        """Async get annotation queue through the native public API."""
+
+        return await self.arequest_json(
+            "GET", f"/api/public/annotation-queues/{_path_id(queue_id)}",
+        )
+
+    def create_annotation_queue(
+        self, *, name: str, score_config_ids: list[str], description: str | None = None,
+    ) -> Any:
+        """create annotation queue through the native public API."""
+
+        return self.request_json(
+            "POST", "/api/public/annotation-queues", body={"name": name, "scoreConfigIds": list(score_config_ids),
+                  **({"description": description} if description is not None else {})},
+        )
+
+    async def acreate_annotation_queue(
+        self, *, name: str, score_config_ids: list[str], description: str | None = None,
+    ) -> Any:
+        """Async create annotation queue through the native public API."""
+
+        return await self.arequest_json(
+            "POST", "/api/public/annotation-queues", body={"name": name, "scoreConfigIds": list(score_config_ids),
+                  **({"description": description} if description is not None else {})},
+        )
+
+    def list_annotation_queue_items(
+        self, queue_id: str, *, query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """list annotation queue items through the native public API."""
+
+        return self.request_json(
+            "GET", f"/api/public/annotation-queues/{_path_id(queue_id)}/items", query=query,
+        )
+
+    async def alist_annotation_queue_items(
+        self, queue_id: str, *, query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list annotation queue items through the native public API."""
+
+        return await self.arequest_json(
+            "GET", f"/api/public/annotation-queues/{_path_id(queue_id)}/items", query=query,
+        )
+
+    def get_annotation_queue_item(
+        self, queue_id: str, item_id: str,
+    ) -> Any:
+        """get annotation queue item through the native public API."""
+
+        return self.request_json(
+            "GET", f"/api/public/annotation-queues/{_path_id(queue_id)}/items/{_path_id(item_id)}",
+        )
+
+    async def aget_annotation_queue_item(
+        self, queue_id: str, item_id: str,
+    ) -> Any:
+        """Async get annotation queue item through the native public API."""
+
+        return await self.arequest_json(
+            "GET", f"/api/public/annotation-queues/{_path_id(queue_id)}/items/{_path_id(item_id)}",
+        )
+
+    def create_annotation_queue_item(
+        self, queue_id: str, *, object_id: str, object_type: str, status: str | None = None,
+    ) -> Any:
+        """create annotation queue item through the native public API."""
+
+        return self.request_json(
+            "POST", f"/api/public/annotation-queues/{_path_id(queue_id)}/items", body={"objectId": object_id, "objectType": object_type,
+                  **({"status": status} if status is not None else {})},
+        )
+
+    async def acreate_annotation_queue_item(
+        self, queue_id: str, *, object_id: str, object_type: str, status: str | None = None,
+    ) -> Any:
+        """Async create annotation queue item through the native public API."""
+
+        return await self.arequest_json(
+            "POST", f"/api/public/annotation-queues/{_path_id(queue_id)}/items", body={"objectId": object_id, "objectType": object_type,
+                  **({"status": status} if status is not None else {})},
+        )
+
+    def update_annotation_queue_item(
+        self, queue_id: str, item_id: str, *, body: Mapping[str, Any],
+    ) -> Any:
+        """update annotation queue item through the native public API."""
+
+        return self.request_json(
+            "PATCH", f"/api/public/annotation-queues/{_path_id(queue_id)}/items/{_path_id(item_id)}", body=dict(body),
+        )
+
+    async def aupdate_annotation_queue_item(
+        self, queue_id: str, item_id: str, *, body: Mapping[str, Any],
+    ) -> Any:
+        """Async update annotation queue item through the native public API."""
+
+        return await self.arequest_json(
+            "PATCH", f"/api/public/annotation-queues/{_path_id(queue_id)}/items/{_path_id(item_id)}", body=dict(body),
+        )
+
+    def delete_annotation_queue_item(
+        self, queue_id: str, item_id: str,
+    ) -> Any:
+        """delete annotation queue item through the native public API."""
+
+        return self.request_json(
+            "DELETE", f"/api/public/annotation-queues/{_path_id(queue_id)}/items/{_path_id(item_id)}",
+        )
+
+    async def adelete_annotation_queue_item(
+        self, queue_id: str, item_id: str,
+    ) -> Any:
+        """Async delete annotation queue item through the native public API."""
+
+        return await self.arequest_json(
+            "DELETE", f"/api/public/annotation-queues/{_path_id(queue_id)}/items/{_path_id(item_id)}",
+        )
+
+    def create_annotation_queue_assignment(
+        self, queue_id: str, *, user_id: str,
+    ) -> Any:
+        """create annotation queue assignment through the native public API."""
+
+        return self.request_json(
+            "POST", f"/api/public/annotation-queues/{_path_id(queue_id)}/assignments", body={"userId": user_id},
+        )
+
+    async def acreate_annotation_queue_assignment(
+        self, queue_id: str, *, user_id: str,
+    ) -> Any:
+        """Async create annotation queue assignment through the native public API."""
+
+        return await self.arequest_json(
+            "POST", f"/api/public/annotation-queues/{_path_id(queue_id)}/assignments", body={"userId": user_id},
+        )
+
+    def delete_annotation_queue_assignment(
+        self, queue_id: str, *, user_id: str,
+    ) -> Any:
+        """delete annotation queue assignment through the native public API."""
+
+        return self.request_json(
+            "DELETE", f"/api/public/annotation-queues/{_path_id(queue_id)}/assignments", body={"userId": user_id},
+        )
+
+    async def adelete_annotation_queue_assignment(
+        self, queue_id: str, *, user_id: str,
+    ) -> Any:
+        """Async delete annotation queue assignment through the native public API."""
+
+        return await self.arequest_json(
+            "DELETE", f"/api/public/annotation-queues/{_path_id(queue_id)}/assignments", body={"userId": user_id},
+        )
+
+    def iter_score_configs(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate native numbered pages of score configs."""
+
+        yield from _iter_numbered_pages(self.list_score_configs, query=query)
+
+    async def aiter_score_configs(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Iterate native numbered pages of score configs."""
+
+        async for item in _aiter_numbered_pages(self.alist_score_configs, query=query):
+            yield item
+
+    def iter_annotation_queues(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate native numbered pages of annotation queues."""
+
+        yield from _iter_numbered_pages(self.list_annotation_queues, query=query)
+
+    async def aiter_annotation_queues(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Iterate native numbered pages of annotation queues."""
+
+        async for item in _aiter_numbered_pages(self.alist_annotation_queues, query=query):
+            yield item
+
+    def iter_annotation_queue_items(
+        self, queue_id: str, *, query: Mapping[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Iterate queue items while preserving status and pagination filters."""
+
+        def fetch(*, query):
+            return self.list_annotation_queue_items(queue_id, query=query)
+
+        yield from _iter_numbered_pages(fetch, query=query)
+
+    async def aiter_annotation_queue_items(
+        self, queue_id: str, *, query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Iterate queue items while preserving status and pagination filters."""
+
+        def fetch(*, query):
+            return self.alist_annotation_queue_items(queue_id, query=query)
+
+        async for item in _aiter_numbered_pages(fetch, query=query):
+            yield item
+
+
     def get_trace(self, trace_id: str) -> Any:
         """Retrieve one legacy trace payload for compatibility.
 
@@ -868,6 +1186,25 @@ class LangfuseAPIClient:
             request_headers.setdefault("Content-Type", "application/json")
         transport = self._stream_transport if stream else self._transport
         return transport(method.upper(), url, request_headers, encoded_body)
+
+
+def _path_id(value: str) -> str:
+    if not isinstance(value, str) or not value or value in (".", ".."):
+        raise ValueError("Langfuse resource identifier must be a non-empty string.")
+    return quote(value, safe="")
+
+
+def _score_config_body(
+    *, name: str, data_type: str, categories: list[Mapping[str, Any]] | None,
+    min_value: float | None, max_value: float | None, description: str | None,
+) -> dict[str, Any]:
+    body: dict[str, Any] = {"name": name, "dataType": data_type}
+    optional = {
+        "categories": [dict(category) for category in categories] if categories is not None else None,
+        "minValue": min_value, "maxValue": max_value, "description": description,
+    }
+    body.update({key: value for key, value in optional.items() if value is not None})
+    return body
 
 
 def _numbered_query(query: Mapping[str, Any] | None) -> dict[str, Any]:

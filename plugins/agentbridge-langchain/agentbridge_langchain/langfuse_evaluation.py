@@ -37,10 +37,13 @@ def publish_report_scores(
     trace_ids: Mapping[int, str],
     client: LangfuseAPIClient,
     score_types: Mapping[str, str] | None = None,
+    score_config_ids: Mapping[str, str] | None = None,
 ) -> list[Any]:
     """Publish normalized evaluation scores against known Langfuse trace IDs."""
 
-    payloads = _report_score_payloads(report, trace_ids=trace_ids, score_types=score_types)
+    payloads = _report_score_payloads(
+        report, trace_ids=trace_ids, score_types=score_types, score_config_ids=score_config_ids,
+    )
     return [client.create_score(**payload) for payload in payloads]
 
 
@@ -71,15 +74,19 @@ async def apublish_report_scores(
     trace_ids: Mapping[int, str],
     client: LangfuseAPIClient,
     score_types: Mapping[str, str] | None = None,
+    score_config_ids: Mapping[str, str] | None = None,
 ) -> list[Any]:
     """Async publish normalized evaluation scores against Langfuse traces."""
 
-    payloads = _report_score_payloads(report, trace_ids=trace_ids, score_types=score_types)
+    payloads = _report_score_payloads(
+        report, trace_ids=trace_ids, score_types=score_types, score_config_ids=score_config_ids,
+    )
     return [await client.acreate_score(**payload) for payload in payloads]
 
 
 def _report_score_payloads(
     report: EvaluationReport, *, trace_ids: Mapping[int, str], score_types: Mapping[str, str] | None,
+    score_config_ids: Mapping[str, str] | None,
 ) -> list[dict[str, Any]]:
     """Validate publishable scores before starting network writes."""
 
@@ -92,6 +99,9 @@ def _report_score_payloads(
             payload = _score_payload(score, trace_id=trace_id, score_types=score_types)
             if payload is None:
                 continue
+            config_id = (score_config_ids or {}).get(score.key)
+            if config_id is not None:
+                payload["config_id"] = config_id
             payloads.append(payload)
     return payloads
 

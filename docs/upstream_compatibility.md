@@ -12,7 +12,7 @@ The weekly `Upstream Compatibility` workflow performs these checks:
 - Runs core AgentBridge tests and conformance checks on supported Python versions.
 - Installs each external adapter in an isolated job and runs its plugin contract tests.
 - Follows LangChain's official recursive documentation indexes and detects page additions or removals.
-- Compares the seven adopted Langfuse list/pagination contracts with the published OpenAPI schema.
+- Compares the ten adopted Langfuse list/pagination contracts with the published OpenAPI schema.
 
 If an upstream release leaves the adopted range, the scheduled check fails and uploads a version
 report. That failure is a compatibility-review signal, not proof that the new release is broken.
@@ -29,7 +29,8 @@ Langfuse's cloud API can change independently of a Python SDK package release.
 The adopted snapshot in `docs/upstream/langfuse-pagination-contracts.json`
 records pagination query types, required query fields, response requirements,
 and pagination metadata for observations, scores, experiments, experiment items,
-prompts, datasets, and dataset items. It resolves local schema references and
+prompts, datasets, dataset items, score configs, annotation queues, and queue
+items. It resolves local schema references and
 `allOf` inheritance from the official
 [OpenAPI schema](https://cloud.langfuse.com/generated/api/openapi.yml).
 

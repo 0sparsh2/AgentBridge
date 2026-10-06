@@ -129,10 +129,12 @@ def test_score_publication_preserves_typed_values_metadata_and_explicit_categori
                        scores=[EvaluationScore(key="unmapped_trace", value=True)]),
     ])
     publish_report_scores(report, trace_ids={0: "trace-1"}, client=client,
-                          score_types={"verdict": "CATEGORICAL"})
+                          score_types={"verdict": "CATEGORICAL"},
+                          score_config_ids={"verdict": "verdict-config"})
     synchronous = list(requests)
     asyncio.run(exported_apublish_report_scores(
-        report, trace_ids={0: "trace-1"}, client=client, score_types={"verdict": "CATEGORICAL"}
+        report, trace_ids={0: "trace-1"}, client=client, score_types={"verdict": "CATEGORICAL"},
+        score_config_ids={"verdict": "verdict-config"},
     ))
     assert requests[4:] == synchronous
     assert [(item["name"], item["dataType"], item["value"]) for item in synchronous] == [
@@ -140,6 +142,8 @@ def test_score_publication_preserves_typed_values_metadata_and_explicit_categori
         ("verdict", "CATEGORICAL", "reject"), ("explanation", "TEXT", ""),
     ]
     assert synchronous[2]["metadata"] == {"policy": "v2"}
+    assert synchronous[2]["configId"] == "verdict-config"
+    assert all("configId" not in item for index, item in enumerate(synchronous) if index != 2)
     assert all(item["traceId"] == "trace-1" for item in synchronous)
 
 

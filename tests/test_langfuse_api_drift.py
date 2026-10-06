@@ -30,14 +30,14 @@ def test_adopted_pagination_contracts_distinguish_numbered_and_cursor_endpoints(
     assert checker.extract_contracts(spec) == adopted
     for path in checker.ENDPOINTS:
         keys = adopted[path]["query_pagination"]
-        if path.endswith(("prompts", "datasets", "dataset-items")):
+        if path.endswith(("prompts", "datasets", "dataset-items", "score-configs", "annotation-queues", "/items")):
             assert "page" in keys and "cursor" not in keys
             assert adopted[path]["metadata_required"] == ["limit", "page", "totalItems", "totalPages"]
         else:
             assert "cursor" in keys and "page" not in keys
     report, drifted = checker.render_report(adopted, checker.extract_contracts(spec))
     assert not drifted
-    assert report.count("unchanged") == 7
+    assert report.count("unchanged") == len(checker.ENDPOINTS)
 
 
 def test_contract_extraction_resolves_native_refs_and_inherited_metadata():

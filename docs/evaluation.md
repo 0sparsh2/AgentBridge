@@ -167,3 +167,86 @@ experiment items using cursor pagination. Supply a bounded time range for
 hosted exports; the experiment APIs require `fromStartTime`. The scheduled
 [API contract drift check](upstream_compatibility.md#langfuse-api-contract-drift)
 detects changes to these adopted pagination contracts.
+
+## Langfuse Human Review Governance
+
+The plugin exposes Langfuse's native
+[annotation queues](https://langfuse.com/docs/evaluation/evaluation-methods/annotation-queues)
+and score-configuration operations through `LangfuseAPIClient`. These queues
+organize evaluations of existing traces, observations, or sessions. They are
+not execution-blocking AgentBridge approvals and do not resume an interrupted
+agent run.
+
+```mermaid
+flowchart LR
+    C[Score Config] --> Q[Annotation Queue]
+    T[Existing Trace / Observation / Session] --> I[Pending Queue Item]
+    Q --> I
+    R[Assigned Reviewer] --> S[Configured Score]
+    I --> R
+    S --> D[Completed Queue Item]
+```
+
+```python
+from agentbridge_langchain import LangfuseAPIClient, publish_report_scores
+
+client = LangfuseAPIClient(base_url="https://cloud.langfuse.com")
+config = client.create_score_config(name="refund_approved", data_type="BOOLEAN")
+queue = client.create_annotation_queue(
+    name="refund_review", score_config_ids=[config["id"]],
+)
+client.create_annotation_queue_assignment(queue["id"], user_id="existing-project-user-id")
+item = client.create_annotation_queue_item(
+    queue["id"], object_id="existing-trace-id", object_type="TRACE",
+)
+pending = list(client.iter_annotation_queue_items(queue["id"], query={"status": "PENDING"}))
+
+# Publish scores from an existing evaluation report against this scoring dimension.
+publish_report_scores(
+    report, trace_ids={0: "existing-trace-id"}, client=client,
+    score_config_ids={"refund_approved": config["id"]},
+)
+```
+
+After the actual reviewer submits a score, update the item using
+`update_annotation_queue_item(queue_id, item_id, body={"status": "COMPLETED"})`.
+Submitting a score and marking the queue item complete are separate operations;
+the bridge does not infer completion or impersonate a human reviewer.
+
+| Resource | Supported Helpers |
+| --- | --- |
+| Score configs | `create_score_config`, `get_score_config`, `update_score_config`, `list_score_configs`, `iter_score_configs` |
+| Queues | `create_annotation_queue`, `get_annotation_queue`, `list_annotation_queues`, `iter_annotation_queues` |
+| Queue items | `create_annotation_queue_item`, `get_annotation_queue_item`, `update_annotation_queue_item`, `delete_annotation_queue_item`, `list_annotation_queue_items`, `iter_annotation_queue_items` |
+| Reviewer assignments | `create_annotation_queue_assignment`, `delete_annotation_queue_assignment` |
+
+Every helper has an async counterpart prefixed with `a`. List iterators use
+native numbered pagination and preserve filters. Identifier path segments are
+URL-escaped, and empty or traversal identifiers are rejected before requests.
+Update payloads preserve explicit nulls and false values. Numeric config bounds,
+categorical labels/values, descriptions, and config archive state retain their
+native representation. Server-side validation, project membership, and API-key
+permissions still apply.
+
+Both report publishers accept `score_config_ids` keyed by evaluator name. This
+forwards `configId` but does not fetch configs or automatically reconcile their
+types with evaluator values. Use matching evaluator types and dimensions.
+
+For cleanup, remove queue items or reviewer assignments and archive a config
+with `update_score_config(config_id, body={"isArchived": True})`. The current
+public API does not expose queue deletion or score-config deletion, so the
+bridge does not invent such endpoints. Operations are not transactional;
+network failures can leave partial state, and retries require application-owned
+reconciliation.
+
+Run the stateful no-key workflow and sync/async comparison:
+
+```bash
+python examples/langfuse_review_queue.py
+```
+
+Its rejection is an explicit fixture decision, not a real human review. The
+example uses no hosted service and does not establish production authorization
+or annotation UI behavior. The weekly schema check now also covers pagination
+for score configs, queues, and queue items; write-operation behavior is covered
+by the HTTP contract tests, not by that pagination-only drift check.
