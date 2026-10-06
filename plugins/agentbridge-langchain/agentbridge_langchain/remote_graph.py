@@ -81,6 +81,21 @@ class RemoteGraphClient:
 
         return await _async_client_call(self.client, "acopy_thread", "copy_thread", thread_id)
 
+    def search_threads(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Search remote threads using native Agent Server filters."""
+
+        return self.client.search_threads(body=body)
+
+    async def asearch_threads(self, *, body: Mapping[str, Any] | None = None) -> Any:
+        """Async search for remote threads."""
+
+        return await _async_client_call(
+            self.client,
+            "asearch_threads",
+            "search_threads",
+            body=body,
+        )
+
     def prune_threads(self, *, thread_ids: list[str], strategy: str) -> Any:
         """Prune remote checkpoints/threads with the server-native strategy."""
 
@@ -95,6 +110,125 @@ class RemoteGraphClient:
             "prune_threads",
             thread_ids=thread_ids,
             strategy=strategy,
+        )
+
+    def resolve_interrupt(self, thread_id: str) -> Any:
+        """Resolve a pending remote human-in-the-loop interrupt."""
+
+        return self.client.resolve_interrupt(thread_id)
+
+    async def aresolve_interrupt(self, thread_id: str) -> Any:
+        """Async resolution for a pending remote interrupt."""
+
+        return await _async_client_call(
+            self.client,
+            "aresolve_interrupt",
+            "resolve_interrupt",
+            thread_id,
+        )
+
+    def assistant(self, assistant_id: str) -> Any:
+        """Read a deployed assistant's native configuration."""
+
+        return self.client.get_assistant(assistant_id)
+
+    async def aassistant(self, assistant_id: str) -> Any:
+        """Async read for a deployed assistant's configuration."""
+
+        return await _async_client_call(self.client, "aget_assistant", "get_assistant", assistant_id)
+
+    def assistant_graph(self, assistant_id: str, *, xray: bool | int | None = None) -> Any:
+        """Read the deployed assistant graph, optionally including subgraph detail."""
+
+        return self.client.get_assistant_graph(assistant_id, xray=xray)
+
+    async def aassistant_graph(self, assistant_id: str, *, xray: bool | int | None = None) -> Any:
+        """Async read for the deployed assistant graph."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_assistant_graph",
+            "get_assistant_graph",
+            assistant_id,
+            xray=xray,
+        )
+
+    def assistant_schemas(self, assistant_id: str) -> Any:
+        """Read the deployed assistant input, output, and config schemas."""
+
+        return self.client.get_assistant_schemas(assistant_id)
+
+    async def aassistant_schemas(self, assistant_id: str) -> Any:
+        """Async read for deployed assistant schemas."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_assistant_schemas",
+            "get_assistant_schemas",
+            assistant_id,
+        )
+
+    def assistant_subgraphs(self, assistant_id: str, *, namespace: str | None = None) -> Any:
+        """Read all deployed subgraphs or one native namespace."""
+
+        return self.client.get_assistant_subgraphs(assistant_id, namespace=namespace)
+
+    async def aassistant_subgraphs(
+        self,
+        assistant_id: str,
+        *,
+        namespace: str | None = None,
+    ) -> Any:
+        """Async read for deployed assistant subgraphs."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_assistant_subgraphs",
+            "get_assistant_subgraphs",
+            assistant_id,
+            namespace=namespace,
+        )
+
+    def assistant_versions(
+        self,
+        assistant_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """List deployed assistant versions with native filters."""
+
+        return self.client.get_assistant_versions(assistant_id, query=query)
+
+    async def aassistant_versions(
+        self,
+        assistant_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list for deployed assistant versions."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_assistant_versions",
+            "get_assistant_versions",
+            assistant_id,
+            query=query,
+        )
+
+    def set_latest_assistant_version(self, assistant_id: str, version: int) -> Any:
+        """Select the active version for a deployed assistant."""
+
+        return self.client.set_latest_assistant_version(assistant_id, version)
+
+    async def aset_latest_assistant_version(self, assistant_id: str, version: int) -> Any:
+        """Async select for the active deployed assistant version."""
+
+        return await _async_client_call(
+            self.client,
+            "aset_latest_assistant_version",
+            "set_latest_assistant_version",
+            assistant_id,
+            version,
         )
 
     def stream(
@@ -302,6 +436,32 @@ class RemoteGraphClient:
         """Read persisted events for one remote run."""
 
         return self.client.list_run_events(thread_id, run_id)
+
+    def thread_runs(
+        self,
+        thread_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """List persisted runs belonging to a remote thread."""
+
+        return self.client.list_thread_runs(thread_id, query=query)
+
+    async def athread_runs(
+        self,
+        thread_id: str,
+        *,
+        query: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """Async list for persisted runs belonging to a remote thread."""
+
+        return await _async_client_call(
+            self.client,
+            "alist_thread_runs",
+            "list_thread_runs",
+            thread_id,
+            query=query,
+        )
 
     async def arun_events(self, *, thread_id: str, run_id: str) -> Any:
         """Async read for persisted events for one remote run."""

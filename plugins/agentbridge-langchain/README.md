@@ -92,7 +92,8 @@ AgentBridge adapter plugin for `langchain`.
   retaining the workspace tenant header.
 - Remote LangGraph/Agent Server thread and run streaming through `RemoteGraphClient`, normalized into
   `AgentEvent` and `RunResult`; thread history/copy/pruning, checkpoint snapshots, and run
-  inspection/events/join/cancel/delete are available through sync and async lifecycle helpers.
+  inspection/events/join/cancel/delete, assistant graph/schema/version discovery, thread search,
+  and interrupt resolution are available through sync and async lifecycle helpers.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
 - Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.

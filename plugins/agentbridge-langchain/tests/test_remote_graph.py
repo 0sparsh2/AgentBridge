@@ -28,6 +28,30 @@ class FakeClient:
     def prune_threads(self, *, thread_ids, strategy):
         return {"thread_ids": thread_ids, "strategy": strategy}
 
+    def search_threads(self, *, body=None):
+        return {"body": body, "threads": []}
+
+    def resolve_interrupt(self, thread_id):
+        return {"thread_id": thread_id, "resolved": True}
+
+    def get_assistant(self, assistant_id):
+        return {"assistant_id": assistant_id, "graph_id": "refund"}
+
+    def get_assistant_graph(self, assistant_id, *, xray=None):
+        return {"assistant_id": assistant_id, "xray": xray, "nodes": []}
+
+    def get_assistant_schemas(self, assistant_id):
+        return {"assistant_id": assistant_id, "input_schema": {}}
+
+    def get_assistant_subgraphs(self, assistant_id, *, namespace=None):
+        return {"assistant_id": assistant_id, "namespace": namespace, "subgraphs": []}
+
+    def get_assistant_versions(self, assistant_id, *, query=None):
+        return {"assistant_id": assistant_id, "query": query, "versions": []}
+
+    def set_latest_assistant_version(self, assistant_id, version):
+        return {"assistant_id": assistant_id, "version": version}
+
     def get_thread_state_at_checkpoint(self, thread_id, checkpoint_id, *, subgraphs=None):
         return {
             "thread_id": thread_id,
@@ -40,6 +64,9 @@ class FakeClient:
 
     def list_run_events(self, thread_id, run_id):
         return [{"thread_id": thread_id, "run_id": run_id, "event": "done"}]
+
+    def list_thread_runs(self, thread_id, *, query=None):
+        return {"thread_id": thread_id, "query": query, "runs": []}
 
     def join_run(self, thread_id, run_id):
         return {"thread_id": thread_id, "run_id": run_id, "output": "hello"}
@@ -74,6 +101,30 @@ class FakeClient:
     async def aprune_threads(self, *, thread_ids, strategy):
         return self.prune_threads(thread_ids=thread_ids, strategy=strategy)
 
+    async def asearch_threads(self, *, body=None):
+        return self.search_threads(body=body)
+
+    async def aresolve_interrupt(self, thread_id):
+        return self.resolve_interrupt(thread_id)
+
+    async def aget_assistant(self, assistant_id):
+        return self.get_assistant(assistant_id)
+
+    async def aget_assistant_graph(self, assistant_id, *, xray=None):
+        return self.get_assistant_graph(assistant_id, xray=xray)
+
+    async def aget_assistant_schemas(self, assistant_id):
+        return self.get_assistant_schemas(assistant_id)
+
+    async def aget_assistant_subgraphs(self, assistant_id, *, namespace=None):
+        return self.get_assistant_subgraphs(assistant_id, namespace=namespace)
+
+    async def aget_assistant_versions(self, assistant_id, *, query=None):
+        return self.get_assistant_versions(assistant_id, query=query)
+
+    async def aset_latest_assistant_version(self, assistant_id, version):
+        return self.set_latest_assistant_version(assistant_id, version)
+
     async def aget_thread_state_at_checkpoint(self, thread_id, checkpoint_id, *, subgraphs=None):
         return self.get_thread_state_at_checkpoint(thread_id, checkpoint_id, subgraphs=subgraphs)
 
@@ -82,6 +133,9 @@ class FakeClient:
 
     async def alist_run_events(self, thread_id, run_id):
         return self.list_run_events(thread_id, run_id)
+
+    async def alist_thread_runs(self, thread_id, *, query=None):
+        return self.list_thread_runs(thread_id, query=query)
 
     async def ajoin_run(self, thread_id, run_id):
         return self.join_run(thread_id, run_id)
@@ -126,6 +180,20 @@ def test_remote_graph_lifecycle_helpers_preserve_native_thread_and_run_payloads(
     assert client.join_run(thread_id="thread-1", run_id="run-1")["output"] == "hello"
     assert client.cancel_run(thread_id="thread-1", run_id="run-1")["cancelled"] is True
     assert client.delete_run(thread_id="thread-1", run_id="run-1")["deleted"] is True
+
+
+def test_remote_graph_discovery_helpers_preserve_native_filters_and_versions():
+    client = RemoteGraphClient(FakeClient())
+
+    assert client.search_threads(body={"metadata": {"team": "support"}})["threads"] == []
+    assert client.resolve_interrupt("thread-1")["resolved"] is True
+    assert client.assistant("agent")["graph_id"] == "refund"
+    assert client.assistant_graph("agent", xray=True)["xray"] is True
+    assert client.assistant_schemas("agent")["input_schema"] == {}
+    assert client.assistant_subgraphs("agent", namespace="review")["namespace"] == "review"
+    assert client.assistant_versions("agent", query={"limit": 2})["query"] == {"limit": 2}
+    assert client.set_latest_assistant_version("agent", 3)["version"] == 3
+    assert client.thread_runs("thread-1", query={"limit": 4})["query"] == {"limit": 4}
 
 
 def test_remote_graph_supports_async_native_event_stream():
@@ -189,3 +257,31 @@ def test_remote_graph_async_lifecycle_helpers_preserve_native_payloads():
     assert values[7]["output"] == "hello"
     assert values[8]["cancelled"] is True
     assert values[9]["deleted"] is True
+
+
+def test_remote_graph_async_discovery_helpers_preserve_native_payloads():
+    client = RemoteGraphClient(FakeClient())
+
+    async def collect():
+        return (
+            await client.asearch_threads(body={"limit": 1}),
+            await client.aresolve_interrupt("thread-1"),
+            await client.aassistant("agent"),
+            await client.aassistant_graph("agent", xray=2),
+            await client.aassistant_schemas("agent"),
+            await client.aassistant_subgraphs("agent", namespace="review"),
+            await client.aassistant_versions("agent", query={"limit": 2}),
+            await client.aset_latest_assistant_version("agent", 3),
+            await client.athread_runs("thread-1", query={"limit": 4}),
+        )
+
+    values = asyncio.run(collect())
+    assert values[0]["body"] == {"limit": 1}
+    assert values[1]["resolved"] is True
+    assert values[2]["assistant_id"] == "agent"
+    assert values[3]["xray"] == 2
+    assert values[4]["input_schema"] == {}
+    assert values[5]["namespace"] == "review"
+    assert values[6]["query"] == {"limit": 2}
+    assert values[7]["version"] == 3
+    assert values[8]["query"] == {"limit": 4}

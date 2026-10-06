@@ -69,6 +69,11 @@
       "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_graph_lifecycle_helpers_preserve_native_thread_and_run_payloads"
     },
     {
+      "name": "remote_graph_discovery",
+      "surfaces": ["thread search", "interrupt resolution", "assistant graph/schema/subgraph/version discovery", "run listing"],
+      "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_graph_discovery_helpers_preserve_native_filters_and_versions"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
