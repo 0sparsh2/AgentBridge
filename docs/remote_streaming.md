@@ -65,6 +65,42 @@ The decision is sent in the top-level run `command` field. Its shape follows the
 interrupt schema. For streaming resumes, use `api.create_thread_run(..., input=None,
 command={"resume": decision}, stream=True)` or its async counterpart.
 
+Dynamic `__interrupt__` payloads become workflow events with `phase="interrupted"`. They retain
+their native payload in `data.native_data` and their approval details in `data.interrupts`.
+Run results report `metadata.status="interrupted"`, `interrupted=True`, and the unique interrupt
+payloads, including native IDs, values, and namespaces. When the stream includes a metadata
+frame, the result also retains its `run_id` for inspection and reconnecting.
+
+An interrupted or failed run's native `end` frame becomes a workflow `stream_ended` event. It
+does not produce a successful completion event. Error status takes precedence if an interrupt
+is followed by an error, with approval diagnostics retained. A new resumed execution starts with
+fresh lifecycle state, allowing its result to report `completed` once the graph finishes.
+
+Static breakpoints emit an empty `__interrupt__` update. These report `interrupted` with an empty
+approval list. Continue them with `input=None` on the same thread. Static breakpoints are useful
+for debugging; dynamic interrupts are the intended approval mechanism. See the
+[native server HITL guide](https://docs.langchain.com/langsmith/add-human-in-the-loop).
+
+```mermaid
+flowchart LR
+    Run[Remote run] --> Pause[Interrupt workflow event]
+    Pause --> End[Stream ends: status interrupted]
+    End --> Decision[Application supplies resume decision]
+    Decision --> Resume[Same thread, command.resume]
+    Resume --> Done[Graph finishes: status completed]
+```
+
+Run the native local approval example without a key:
+
+```bash
+uv run python examples/remote_graph_approval.py
+```
+
+It executes a real local LangGraph with `InMemorySaver` and `interrupt()` through an injected
+SSE transport, then resumes it using the native interrupt ID. The report includes both results
+and serialized requests. It verifies local graph semantics and remote normalization; hosted
+Agent Server execution remains a separate credentialed check.
+
 ## Native Run Options And Checkpoint Replay
 
 `stream()`, `astream()`, `run()`, and `arun()` accept `run_options`. These fields go into the

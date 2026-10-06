@@ -557,3 +557,144 @@ def test_async_sync_only_client_streams_without_collecting_later_frames():
         assert closed == [True]
 
     asyncio.run(collect())
+
+
+@pytest.mark.parametrize("event_name", ["updates", "values", "updates|review"])
+def test_remote_interrupt_preserves_payload_and_never_reports_success(event_name):
+    interrupt = {
+        "id": "approval-1", "value": {"action": "refund", "amount": 25},
+        "resumable": True, "ns": ["review:task-1"],
+    }
+    state = {"order_id": "A123", "__interrupt__": [interrupt]}
+
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: metadata\ndata: {"run_id":"run-1"}\n\n'
+            + f'event: {event_name}\nid: run-1-2\ndata: {json.dumps(state)}\n\n'.encode()
+            + b'event: end\ndata: null\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    result = remote.run(thread_id="thread-1", assistant_id="agent", input={})
+
+    async def collect():
+        return await remote.arun(thread_id="thread-1", assistant_id="agent", input={})
+
+    async_result = asyncio.run(collect())
+    for value in (result, async_result):
+        assert value.metadata["status"] == "interrupted"
+        assert value.metadata["interrupted"] is True
+        assert value.metadata["interrupts"] == [interrupt]
+        assert value.metadata["run_id"] == "run-1"
+        assert not any(event.type == "complete" for event in value.events)
+        paused = value.events[1]
+        assert paused.data == {"phase": "interrupted", "interrupts": [interrupt], "native_data": state}
+        assert paused.metadata["native_event"] == event_name
+        assert paused.metadata["sse_id"] == "run-1-2"
+        assert value.events[-1].data["status"] == "interrupted"
+        if event_name == "values":
+            assert value.output == state
+
+
+def test_remote_interrupt_can_resume_to_completed_result_without_stale_pause_state():
+    calls = []
+
+    def transport(method, url, headers, body):
+        request = json.loads(body)
+        calls.append(request)
+        if "command" in request:
+            response = b'event: values\ndata: {"refunded":true}\n\nevent: end\ndata: null\n\n'
+        else:
+            response = (
+                b'event: updates\ndata: {"__interrupt__":[{"id":"approval-1","value":"Approve?"}]}\n\n'
+                b'event: end\ndata: null\n\n'
+            )
+        return 200, {"content-type": "text/event-stream"}, response
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    first = remote.run(thread_id="thread-1", assistant_id="agent", input={})
+    second = remote.run(thread_id="thread-1", assistant_id="agent", input=None,
+                        command={"resume": {"approval-1": True}})
+    assert first.metadata["status"] == "interrupted"
+    assert second.metadata["status"] == "completed"
+    assert "interrupted" not in second.metadata
+    assert second.output == {"refunded": True}
+    assert second.events[-1].type == "complete"
+    assert calls[-1]["command"] == {"resume": {"approval-1": True}}
+
+
+def test_remote_application_state_fields_do_not_trigger_interrupt_status():
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: values\ndata: {"phase":"interrupted","value":25,"__interrupt__":[]}\n\n'
+            b'event: end\ndata: null\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    result = remote.run(thread_id="thread-1", assistant_id="agent", input={})
+    assert result.metadata["status"] == "completed"
+    assert result.output == {"phase": "interrupted", "value": 25, "__interrupt__": []}
+
+
+def test_remote_error_after_interrupt_takes_precedence_and_preserves_diagnostics():
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: interrupts\ndata: [{"id":"approval-1","value":false}]\n\n'
+            b'event: error\ndata: {"message":"checkpoint failed"}\n\n'
+            b'event: end\ndata: null\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    result = remote.run(thread_id="thread-1", assistant_id="agent", input={})
+    assert result.metadata["status"] == "error"
+    assert result.metadata["interrupts"] == [{"id": "approval-1", "value": False}]
+    assert not any(event.type == "complete" for event in result.events)
+    assert result.events[-1].data["status"] == "error"
+
+
+def test_native_local_graph_approval_demo_preserves_checkpoint_resume_semantics():
+    pytest.importorskip("langgraph")
+    from examples.remote_graph_approval import run_demo
+
+    report = run_demo()
+    assert report["initial"]["metadata"]["status"] == "interrupted"
+    assert report["initial"]["metadata"]["interrupts"][0]["value"] == {
+        "order_id": "A123", "amount": 25,
+    }
+    assert report["resumed"]["metadata"]["status"] == "completed"
+    assert report["resumed"]["output"] == {"order_id": "A123", "refunded": True}
+    assert len(report["requests"]) == 2
+    assert report["requests"][1]["input"] is None
+
+
+def test_native_static_breakpoint_is_interrupted_with_no_approval_payload():
+    pytest.importorskip("langgraph")
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langgraph.graph import END, START, StateGraph
+
+    builder = StateGraph(dict)
+    builder.add_node("step", lambda state: {"value": state["value"] + 1})
+    builder.add_edge(START, "step")
+    builder.add_edge("step", END)
+    graph = builder.compile(checkpointer=InMemorySaver(), interrupt_before=["step"])
+
+    def transport(method, url, headers, body):
+        request = json.loads(body)
+        frames = []
+        for mode, chunk in graph.stream(
+            request["input"], {"configurable": {"thread_id": "static-demo"}},
+            stream_mode=["values", "updates"],
+        ):
+            frames.append(f'event: {mode}\ndata: {json.dumps(chunk)}\n\n'.encode())
+        frames.append(b'event: end\ndata: null\n\n')
+        return 200, {"content-type": "text/event-stream"}, b"".join(frames)
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    paused = remote.run(thread_id="static-demo", assistant_id="agent", input={"value": 1})
+    assert paused.metadata["status"] == "interrupted"
+    assert paused.metadata["interrupts"] == []
+    assert paused.output == {"value": 1}
+    assert not any(event.type == "complete" for event in paused.events)
+    continued = remote.run(thread_id="static-demo", assistant_id="agent", input=None)
+    assert continued.metadata["status"] == "completed"
+    assert continued.output == {"value": 2}

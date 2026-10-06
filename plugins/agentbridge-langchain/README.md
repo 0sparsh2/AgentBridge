@@ -367,6 +367,10 @@ stream-mode, resumability, and governance fields. `reconnect()`/`areconnect()` j
 stream with `Last-Event-ID` and selected stream modes, without starting a replacement run.
 Remote results retain the last full `values` state when an empty `end` frame arrives. Error events
 set `RunResult.metadata.status` to `error` and do not synthesize a success completion event.
+Dynamic approval interrupts and empty static-breakpoint updates report `status="interrupted"`
+with preserved payloads/IDs. Interrupted and failed runs retain terminal stream frames as workflow
+events. `examples/remote_graph_approval.py` verifies checkpointed approval/resume through a real
+local LangGraph and an injected SSE transport.
 
 The same client exposes assistant lifecycle and graph/schema/subgraph/version introspection, thread
 search/history/patch/copy/interrupts, run listing/events/join/cancellation, run feedback, long-term

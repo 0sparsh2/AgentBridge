@@ -249,6 +249,7 @@ class RemoteGraphClient:
             options["command"] = command
         if run_options is not None:
             options["run_options"] = run_options
+        lifecycle = _RemoteLifecycle()
         with closing(self.client.stream_thread_run(
             thread_id,
             assistant_id=assistant_id,
@@ -256,7 +257,7 @@ class RemoteGraphClient:
             **options,
         )) as events:
             for payload in events:
-                yield _normalize_remote_event(payload)
+                yield lifecycle.normalize(payload)
 
     async def astream(
         self,
@@ -271,13 +272,14 @@ class RemoteGraphClient:
 
         native_stream = getattr(self.client, "astream_events", None)
         if callable(native_stream):
+            lifecycle = _RemoteLifecycle()
             async with aclosing(native_stream(
                 "POST",
                 f"/threads/{thread_id}/runs/stream",
                 body=run_body(assistant_id, input, command=command, run_options=run_options),
             )) as events:
                 async for payload in events:
-                    yield _normalize_remote_event(payload)
+                    yield lifecycle.normalize(payload)
             return
 
         async with aclosing(async_events(self.stream(
@@ -303,19 +305,7 @@ class RemoteGraphClient:
             thread_id=thread_id, assistant_id=assistant_id, input=input,
             command=command, run_options=run_options,
         ))
-        output = _output_from_events(events)
-        failed = any(event.type == "error" for event in events)
-        if not failed and (not events or events[-1].type != "complete"):
-            events.append(AgentEvent(type="complete", backend=self.backend_name, data={"output": output}))
-        return RunResult(
-            output=output,
-            backend=self.backend_name,
-            events=events,
-            metadata={
-                "thread_id": thread_id, "assistant_id": assistant_id,
-                "remote": True, "status": "error" if failed else "completed",
-            },
-        )
+        return _remote_result(events, thread_id=thread_id, assistant_id=assistant_id)
 
     async def arun(
         self,
@@ -338,19 +328,7 @@ class RemoteGraphClient:
                 run_options=run_options,
             )
         ]
-        output = _output_from_events(events)
-        failed = any(event.type == "error" for event in events)
-        if not failed and (not events or events[-1].type != "complete"):
-            events.append(AgentEvent(type="complete", backend=self.backend_name, data={"output": output}))
-        return RunResult(
-            output=output,
-            backend=self.backend_name,
-            events=events,
-            metadata={
-                "thread_id": thread_id, "assistant_id": assistant_id,
-                "remote": True, "async": True, "status": "error" if failed else "completed",
-            },
-        )
+        return _remote_result(events, thread_id=thread_id, assistant_id=assistant_id, is_async=True)
 
     def state(self, thread_id: str, *, checkpoint_id: str | None = None) -> Any:
         """Read remote graph state, including an optional checkpoint snapshot."""
@@ -527,12 +505,13 @@ class RemoteGraphClient:
     ) -> Iterator[AgentEvent]:
         """Rejoin an existing resumable run without starting another run."""
 
+        lifecycle = _RemoteLifecycle()
         with closing(self.client.join_run_stream(
             thread_id, run_id, last_event_id=last_event_id, stream_mode=stream_mode,
             cancel_on_disconnect=cancel_on_disconnect,
         )) as events:
             for event in events:
-                yield _normalize_remote_event(event)
+                yield lifecycle.normalize(event)
 
     async def areconnect(
         self, *, thread_id: str, run_id: str, last_event_id: str | None = None,
@@ -540,12 +519,13 @@ class RemoteGraphClient:
     ) -> AsyncIterator[AgentEvent]:
         """Async rejoin for an existing resumable run."""
 
+        lifecycle = _RemoteLifecycle()
         async with aclosing(self.client.ajoin_run_stream(
             thread_id, run_id, last_event_id=last_event_id, stream_mode=stream_mode,
             cancel_on_disconnect=cancel_on_disconnect,
         )) as events:
             async for event in events:
-                yield _normalize_remote_event(event)
+                yield lifecycle.normalize(event)
 
     def cancel_run(self, *, thread_id: str, run_id: str) -> Any:
         """Cancel one remote run."""
@@ -568,14 +548,80 @@ class RemoteGraphClient:
         return await _async_client_call(self.client, "adelete_run", "delete_run", thread_id, run_id)
 
 
+class _RemoteLifecycle:
+    """Keep terminal stream frames consistent with pauses and errors seen in this stream."""
+
+    def __init__(self):
+        self.status = "completed"
+
+    def normalize(self, payload: Mapping[str, Any]) -> AgentEvent:
+        event = _normalize_remote_event(payload)
+        if event.type == "error":
+            self.status = "error"
+        elif event.metadata.get("interrupted") and self.status != "error":
+            self.status = "interrupted"
+        if event.type == "complete" and self.status != "completed":
+            return event.model_copy(update={
+                "type": "workflow",
+                "data": {"phase": "stream_ended", "status": self.status, "native_data": event.data},
+                "metadata": {**event.metadata, "stream_ended": True},
+            })
+        return event
+
+
+def _remote_result(
+    events: list[AgentEvent], *, thread_id: str, assistant_id: str, is_async: bool = False,
+) -> RunResult:
+    """Apply the same lifecycle/result contract to synchronous and asynchronous runs."""
+
+    interrupted = any(event.metadata.get("interrupted") for event in events)
+    failed = any(event.type == "error" for event in events)
+    status = "error" if failed else "interrupted" if interrupted else "completed"
+    output = _output_from_events(events)
+    if status == "completed" and (not events or events[-1].type != "complete"):
+        events.append(AgentEvent(
+            type="complete", backend=RemoteGraphClient.backend_name, data={"output": output}
+        ))
+    metadata: dict[str, Any] = {
+        "thread_id": thread_id, "assistant_id": assistant_id, "remote": True, "status": status,
+    }
+    if is_async:
+        metadata["async"] = True
+    if interrupted:
+        metadata["interrupted"] = True
+        interrupts = []
+        for event in events:
+            if not event.metadata.get("interrupted"):
+                continue
+            native = event.data.get("interrupts", [])
+            for item in native if isinstance(native, list) else ([] if native is None else [native]):
+                if item not in interrupts:
+                    interrupts.append(item)
+        metadata["interrupts"] = interrupts
+    for event in events:
+        if event.metadata.get("native_event") == "metadata" and event.data.get("run_id"):
+            metadata["run_id"] = event.data["run_id"]
+    return RunResult(
+        output=output, backend=RemoteGraphClient.backend_name, events=events, metadata=metadata
+    )
+
+
 def _normalize_remote_event(payload: Mapping[str, Any]) -> AgentEvent:
     event_name = str(payload.get("event") or payload.get("type") or "updates")
     data = payload.get("data", payload)
     if not isinstance(data, dict):
         data = {"value": data}
     normalized = event_name.lower().split("|", 1)[0]
+    interrupts = data.get("__interrupt__")
+    is_interrupt = normalized in {"interrupt", "interrupts", "interrupted"}
+    has_interrupt = bool(interrupts) or (normalized == "updates" and "__interrupt__" in data)
     if "error" in normalized:
         event_type = "error"
+    elif has_interrupt or is_interrupt:
+        event_type = "workflow"
+        if is_interrupt:
+            interrupts = data.get("interrupts", data.get("value", data))
+        data = {"phase": "interrupted", "interrupts": interrupts, "native_data": data}
     elif "tool" in normalized and "result" in normalized:
         event_type = "tool_result"
     elif "tool" in normalized:
@@ -587,6 +633,10 @@ def _normalize_remote_event(payload: Mapping[str, Any]) -> AgentEvent:
     else:
         event_type = "workflow"
     metadata = {"native_event": event_name}
+    if has_interrupt or is_interrupt:
+        metadata["interrupted"] = True
+    if normalized == "values" and not isinstance(payload.get("data", payload), dict):
+        metadata["wrapped_value"] = True
     if "id" in payload:
         metadata["sse_id"] = payload["id"]
     return AgentEvent(
@@ -599,12 +649,15 @@ def _output_from_events(events: list[AgentEvent]) -> Any:
         if event.type == "error":
             continue
         if event.metadata.get("native_event", "").split("|", 1)[0] == "values":
-            return event.data.get("value", event.data)
+            native = event.data.get("native_data", event.data)
+            return native.get("value") if event.metadata.get("wrapped_value") else native
         if event.type in {"message", "complete"}:
             if event.data == {"value": None} or not event.data:
                 continue
             return event.data.get("output", event.data.get("content", event.data))
     for event in reversed(events):
+        if event.metadata.get("stream_ended"):
+            continue
         if event.type != "error" and event.data != {"value": None}:
             return event.data
     return None
