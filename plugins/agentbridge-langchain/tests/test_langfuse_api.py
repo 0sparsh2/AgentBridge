@@ -215,7 +215,7 @@ def test_langfuse_async_typed_queries_preserve_current_paths_and_cursors():
     assert calls[2].endswith("/api/public/v3/scores?dataType=NUMERIC")
 
 
-def test_langfuse_async_cursor_iterators_preserve_filters_across_resources():
+def test_langfuse_async_iterators_preserve_native_pagination_across_resources():
     calls = []
 
     def transport(method, url, headers, body):
@@ -226,7 +226,11 @@ def test_langfuse_async_cursor_iterators_preserve_filters_across_resources():
             for name in ("experiments", "experiment-items", "datasets", "dataset-items")
             if f"/{name}" in url
         )
-        if "cursor=next" not in url:
+        if resource in ("datasets", "dataset-items"):
+            number = int(parse_qs(urlparse(url).query).get("page", ["1"])[0])
+            payload = {"data": [{"resource": resource, "page": number}],
+                       "meta": {"page": number, "limit": 1, "totalItems": 2, "totalPages": 2}}
+        elif "cursor=next" not in url:
             payload = {"data": [{"resource": resource, "page": 1}], "meta": {"cursor": "next"}}
         else:
             payload = {"data": [{"resource": resource, "page": 2}], "meta": {}}
@@ -318,10 +322,10 @@ def test_langfuse_async_metrics_prompts_and_cleanup_preserve_native_paths():
     def transport(method, url, headers, body):
         del headers
         calls.append((method, url, body))
-        if "/prompts" in url and "cursor=next" not in url:
-            payload = {"data": [{"name": "refunds"}], "meta": {"cursor": "next"}}
-        elif "/prompts" in url:
-            payload = {"data": [{"name": "support"}], "meta": {}}
+        if "/prompts" in url:
+            number = int(parse_qs(urlparse(url).query).get("page", ["1"])[0])
+            payload = {"data": [{"name": "refunds" if number == 1 else "support"}],
+                       "meta": {"page": number, "limit": 1, "totalItems": 2, "totalPages": 2}}
         else:
             payload = {"ok": True}
         status = 204 if method == "DELETE" else 200
@@ -346,7 +350,7 @@ def test_langfuse_async_metrics_prompts_and_cleanup_preserve_native_paths():
     assert item == {"ok": True}
     assert calls[0][1].endswith("/api/public/v2/metrics?view=traces")
     assert calls[1][1].endswith("/api/public/v2/prompts?limit=1")
-    assert calls[2][1].endswith("/api/public/v2/prompts?limit=1&cursor=next")
+    assert calls[2][1].endswith("/api/public/v2/prompts?limit=1&page=2")
     assert calls[-1][1].endswith("/api/public/dataset-items/item-1")
 
 
@@ -401,16 +405,15 @@ def test_langfuse_dataset_v2_and_item_lifecycle_helpers_preserve_current_paths()
     assert calls[-1][1].endswith("/api/public/traces/delete")
 
 
-def test_langfuse_dataset_item_iterator_preserves_filters_across_cursors():
+def test_langfuse_dataset_item_iterator_preserves_filters_across_pages():
     calls = []
 
     def transport(method, url, headers, body):
         del method, headers, body
         calls.append(url)
-        if "cursor=next" in url:
-            payload = {"data": [{"id": "item-2"}], "meta": {}}
-        else:
-            payload = {"data": [{"id": "item-1"}], "meta": {"cursor": "next"}}
+        number = int(parse_qs(urlparse(url).query).get("page", ["1"])[0])
+        payload = {"data": [{"id": f"item-{number}"}],
+                   "meta": {"page": number, "limit": 1, "totalItems": 2, "totalPages": 2}}
         return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
 
     client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
@@ -421,21 +424,20 @@ def test_langfuse_dataset_item_iterator_preserves_filters_across_cursors():
     ]
     assert calls == [
         "https://cloud.langfuse.com/api/public/dataset-items?datasetName=refunds&version=v1",
-        "https://cloud.langfuse.com/api/public/dataset-items?datasetName=refunds&version=v1&cursor=next",
+        "https://cloud.langfuse.com/api/public/dataset-items?datasetName=refunds&version=v1&page=2",
     ]
 
 
-def test_langfuse_dataset_and_prompt_iterators_preserve_filters_across_cursors():
+def test_langfuse_dataset_and_prompt_iterators_preserve_filters_across_pages():
     calls = []
 
     def transport(method, url, headers, body):
         del method, headers, body
         calls.append(url)
         kind = "prompts" if "/prompts" in url else "datasets"
-        suffix = "-2" if "cursor=next" in url else "-1"
-        payload = {"data": [{"id": f"{kind}{suffix}"}], "meta": {}}
-        if "cursor=next" not in url:
-            payload["meta"] = {"cursor": "next"}
+        number = int(parse_qs(urlparse(url).query).get("page", ["1"])[0])
+        payload = {"data": [{"id": f"{kind}-{number}"}],
+                   "meta": {"page": number, "limit": 2, "totalItems": 4, "totalPages": 2}}
         return 200, {"content-type": "application/json"}, json.dumps(payload).encode()
 
     client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
@@ -444,15 +446,15 @@ def test_langfuse_dataset_and_prompt_iterators_preserve_filters_across_cursors()
         {"id": "datasets-1"},
         {"id": "datasets-2"},
     ]
-    assert list(client.iter_prompts(query={"label": "production", "type": "text"})) == [
+    assert list(client.iter_prompts(query={"label": "production", "tag": "refunds"})) == [
         {"id": "prompts-1"},
         {"id": "prompts-2"},
     ]
     assert calls == [
         "https://cloud.langfuse.com/api/public/v2/datasets?limit=2",
-        "https://cloud.langfuse.com/api/public/v2/datasets?limit=2&cursor=next",
-        "https://cloud.langfuse.com/api/public/v2/prompts?label=production&type=text",
-        "https://cloud.langfuse.com/api/public/v2/prompts?label=production&type=text&cursor=next",
+        "https://cloud.langfuse.com/api/public/v2/datasets?limit=2&page=2",
+        "https://cloud.langfuse.com/api/public/v2/prompts?label=production&tag=refunds",
+        "https://cloud.langfuse.com/api/public/v2/prompts?label=production&tag=refunds&page=2",
     ]
 
 

@@ -97,10 +97,11 @@ AgentBridge adapter plugin for `langchain`.
 - Langfuse callback wiring plus a dependency-free JSON/SSE/raw API transport for telemetry and export endpoints.
 - Langfuse OTLP trace ingestion with the v4 ingestion header, cursor-safe Observations v2 and Scores v3 iteration, Metrics v2, Experiments API, trace, score, dataset, and dataset-item helpers.
 - Langfuse current v2 dataset and versioned dataset-item lifecycle operations, including archive/upsert and trace cleanup helpers.
-- Async Langfuse facades also cover Metrics v2, prompt listing/cursor iteration, legacy trace
+- Async Langfuse facades also cover Metrics v2, prompt listing/numbered-page iteration, legacy trace
   retrieval/deletion, and dataset-item retrieval/deletion with the same native paths.
-- Async Langfuse cursor iterators now cover experiments, experiment items, datasets, and dataset
-  items while preserving caller filters and server cursors.
+- Async Langfuse cursor iterators cover experiments and experiment items. Prompts, datasets,
+  and dataset items use native numbered-page iterators with server metadata validation; both
+  styles preserve caller filters.
 - Async Langfuse dataset deletion and dataset-item update/upsert now match the synchronous
   lifecycle surface.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.
@@ -127,7 +128,7 @@ AgentBridge adapter plugin for `langchain`.
   exports and CI regression gates without dropping the original filters between pages.
 - Cursor-safe `iter_dataset_items()` supports versioned dataset exports without dropping dataset
   or version filters between pages.
-- Cursor-safe `iter_datasets()` and `iter_prompts()` support complete Langfuse evaluation and
+- Numbered-page `iter_datasets()` and `iter_prompts()` support complete Langfuse evaluation and
   prompt-management exports without dropping caller filters.
 - Async Langfuse query facades cover observations, scores, experiments, datasets, and dataset items;
   `aiter_observations()` preserves the current cursor contract.

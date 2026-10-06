@@ -122,3 +122,36 @@ Both iterators preserve caller filters, follow opaque server cursors, and raise
 an explicit incomplete-export error for cursor cycles or malformed pages.
 Records already yielded before an error are partial results, not a complete
 export. Request suitable filters to avoid exporting the whole project.
+
+## Langfuse Dataset And Prompt Pagination
+
+Unlike Scores v3, the prompt, dataset, and dataset-item list endpoints use
+numbered pages. Their sync and async iterators follow `meta.page` and
+`meta.totalPages`, preserve filters and historical dataset-item versions,
+and leave the caller's query unchanged. This follows the
+[Langfuse OpenAPI schema](https://cloud.langfuse.com/generated/api/openapi.yml).
+
+```python
+items = list(client.iter_dataset_items(query={
+    "datasetName": "refunds", "version": "2026-01-21T14:35:42Z",
+    "page": 2, "limit": 100,
+}))
+prompts = list(client.iter_prompts(query={"label": "production", "tag": "refunds"}))
+datasets = list(client.iter_datasets(query={"limit": 100}))
+```
+
+Use `aiter_dataset_items()`, `aiter_prompts()`, and `aiter_datasets()` in async
+pipelines. Starting pages must be positive integers. These endpoints do not
+accept a cursor; the iterators reject it before making a request. Unexpected
+page numbers or malformed records/pagination metadata raise an explicit
+incomplete-export error instead of silently returning the first page.
+
+Run the no-key sync/async example:
+
+```bash
+python examples/langfuse_paginated_export.py
+```
+
+These are sequential list reads, not snapshot isolation. Pin a dataset-item
+version when reproducible historical item membership is required; prompts and
+datasets can change during an export.

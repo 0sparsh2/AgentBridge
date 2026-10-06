@@ -119,6 +119,11 @@
       "test": "plugins/agentbridge-langchain/tests/test_langfuse_api.py::test_sync_async_score_exports_preserve_typed_values_subjects_and_filters"
     },
     {
+      "name": "langfuse_numbered_pagination",
+      "surfaces": ["native prompt/dataset/dataset-item pagination", "server metadata validation", "filter/version preservation", "sync/async parity", "offline example"],
+      "test": "plugins/agentbridge-langchain/tests/test_langfuse_pagination.py"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

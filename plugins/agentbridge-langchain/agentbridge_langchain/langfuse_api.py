@@ -329,20 +329,10 @@ class LangfuseAPIClient:
         *,
         query: Mapping[str, Any] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
-        """Async cursor iterator for prompts while preserving filters."""
+        """Async numbered-page iterator preserving native filters."""
 
-        page_query = dict(query or {})
-        while True:
-            page = await self.alist_prompts(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        async for item in _aiter_numbered_pages(self.alist_prompts, query=query):
+            yield item
 
     async def alist_datasets(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for Langfuse Dataset API v2."""
@@ -354,20 +344,10 @@ class LangfuseAPIClient:
         *,
         query: Mapping[str, Any] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
-        """Async cursor iterator for datasets."""
+        """Async numbered-page iterator preserving native filters."""
 
-        page_query = dict(query or {})
-        while True:
-            page = await self.alist_datasets(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        async for item in _aiter_numbered_pages(self.alist_datasets, query=query):
+            yield item
 
     async def alist_dataset_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for versioned dataset items."""
@@ -379,20 +359,10 @@ class LangfuseAPIClient:
         *,
         query: Mapping[str, Any] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
-        """Async cursor iterator for dataset items."""
+        """Async numbered-page iterator preserving native filters."""
 
-        page_query = dict(query or {})
-        while True:
-            page = await self.alist_dataset_items(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        async for item in _aiter_numbered_pages(self.alist_dataset_items, query=query):
+            yield item
 
     async def aiter_observations(
         self,
@@ -754,20 +724,9 @@ class LangfuseAPIClient:
         *,
         query: Mapping[str, Any] | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """Iterate cursor-paginated prompts while preserving label/type filters."""
+        """Iterate numbered pages while preserving native filters."""
 
-        page_query = dict(query or {})
-        while True:
-            page = self.list_prompts(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        yield from _iter_numbered_pages(self.list_prompts, query=query)
 
     def get_prompt(
         self,
@@ -891,20 +850,9 @@ class LangfuseAPIClient:
         *,
         query: Mapping[str, Any] | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """Iterate cursor-paginated datasets without dropping filters."""
+        """Iterate numbered pages while preserving native filters."""
 
-        page_query = dict(query or {})
-        while True:
-            page = self.list_datasets(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        yield from _iter_numbered_pages(self.list_datasets, query=query)
 
     def get_dataset(self, name: str, *, version: str | None = None) -> Any:
         """Fetch a dataset, optionally at a historical item-version timestamp."""
@@ -968,20 +916,9 @@ class LangfuseAPIClient:
         *,
         query: Mapping[str, Any] | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """Iterate cursor-paginated dataset items while preserving filters."""
+        """Iterate numbered pages while preserving native filters."""
 
-        page_query = dict(query or {})
-        while True:
-            page = self.list_dataset_items(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        yield from _iter_numbered_pages(self.list_dataset_items, query=query)
 
     def get_dataset_item(self, item_id: str) -> Any:
         """Fetch one dataset item."""
@@ -1016,6 +953,64 @@ class LangfuseAPIClient:
             request_headers.setdefault("Content-Type", "application/json")
         transport = self._stream_transport if stream else self._transport
         return transport(method.upper(), url, request_headers, encoded_body)
+
+
+def _numbered_query(query: Mapping[str, Any] | None) -> dict[str, Any]:
+    page_query = dict(query or {})
+    if page_query.get("cursor") is not None:
+        raise ValueError("This Langfuse endpoint uses page numbers, not cursors.")
+    page_query.pop("cursor", None)
+    page = page_query.get("page", 1)
+    if type(page) is not int or page < 1:
+        raise ValueError("Langfuse page must be a positive integer.")
+    return page_query
+
+
+def _numbered_page(response: Any, *, requested_page: int) -> tuple[list[dict[str, Any]], int | None]:
+    """Validate server pagination before declaring an export complete."""
+
+    if not isinstance(response, Mapping) or not isinstance(response.get("data"), list):
+        raise RuntimeError("Invalid Langfuse page; export is incomplete.")
+    items, meta = response["data"], response.get("meta")
+    if not all(isinstance(item, dict) for item in items) or not isinstance(meta, Mapping):
+        raise RuntimeError("Invalid Langfuse records or metadata; export is incomplete.")
+    for key in ("page", "limit", "totalItems", "totalPages"):
+        minimum = 1 if key in ("page", "limit") else 0
+        if type(meta.get(key)) is not int or meta[key] < minimum:
+            raise RuntimeError("Invalid Langfuse page metadata; export is incomplete.")
+    if meta["page"] != requested_page:
+        raise RuntimeError("Langfuse returned an unexpected page; export is incomplete.")
+    next_page = requested_page + 1 if requested_page < meta["totalPages"] else None
+    return items, next_page
+
+
+def _iter_numbered_pages(
+    fetch: Callable[..., Any], *, query: Mapping[str, Any] | None,
+) -> Iterator[dict[str, Any]]:
+    page_query = _numbered_query(query)
+    while True:
+        items, next_page = _numbered_page(
+            fetch(query=page_query), requested_page=page_query.get("page", 1),
+        )
+        yield from items
+        if next_page is None:
+            return
+        page_query["page"] = next_page
+
+
+async def _aiter_numbered_pages(
+    fetch: Callable[..., Any], *, query: Mapping[str, Any] | None,
+) -> AsyncIterator[dict[str, Any]]:
+    page_query = _numbered_query(query)
+    while True:
+        items, next_page = _numbered_page(
+            await fetch(query=page_query), requested_page=page_query.get("page", 1),
+        )
+        for item in items:
+            yield item
+        if next_page is None:
+            return
+        page_query["page"] = next_page
 
 
 def _score_page(page: Any) -> tuple[list[dict[str, Any]], str | None]:

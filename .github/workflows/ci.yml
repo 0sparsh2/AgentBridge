@@ -28,6 +28,7 @@ jobs:
           python examples/remote_graph_stream.py --async --max-events 2
           python examples/remote_graph_approval.py
           python examples/langfuse_typed_evaluation.py
+          python examples/langfuse_paginated_export.py
 
   test:
     runs-on: ubuntu-latest
