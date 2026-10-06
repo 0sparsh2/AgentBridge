@@ -41,6 +41,18 @@ AgentBridge adapters must document the framework versions they target. Agent fra
 - If upstream APIs break within a range, tighten the range and update this document in the same change.
 - Never claim full adapter support for a framework version unless a contract test runs against that exact version.
 
+## Hosted API Contracts
+
+Hosted API verification is separate from SDK package version verification.
+The Langfuse pagination baseline was checked against the published cloud
+OpenAPI schema on 2026-10-06 and is recorded in
+`docs/upstream/langfuse-pagination-contracts.json`. It covers seven list
+endpoints, including native numbered pagination for prompts/datasets/items
+and cursor pagination for observations/scores/experiments/items. The weekly
+[API drift check](upstream_compatibility.md#langfuse-api-contract-drift) tracks
+these contracts independently of installed Langfuse SDK versions. Offline
+tests and the live schema comparison do not prove hosted execution.
+
 ## Future Framework Matrix
 
 Before adding a new framework adapter, document:

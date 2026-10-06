@@ -115,18 +115,7 @@ class LangfuseAPIClient:
     ) -> Iterator[dict[str, Any]]:
         """Iterate through all Observations API v2 pages using its cursor contract."""
 
-        page_query = dict(query or {})
-        while True:
-            page = self.list_observations(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        yield from _iter_cursor_pages(self.list_observations, query=query)
 
     def iter_scores_v3(
         self,
@@ -135,18 +124,7 @@ class LangfuseAPIClient:
     ) -> Iterator[dict[str, Any]]:
         """Iterate through all Scores API v3 pages using its cursor contract."""
 
-        page_query = dict(query or {})
-        seen_cursors = {page_query["cursor"]} if page_query.get("cursor") else set()
-        while True:
-            page = self.list_scores_v3(query=page_query)
-            items, cursor = _score_page(page)
-            yield from items
-            if not cursor:
-                return
-            if cursor in seen_cursors:
-                raise RuntimeError("Langfuse score pagination repeated a cursor; export is incomplete.")
-            seen_cursors.add(cursor)
-            page_query["cursor"] = cursor
+        yield from _iter_cursor_pages(self.list_scores_v3, query=query)
 
     async def arequest_json(
         self,
@@ -245,19 +223,8 @@ class LangfuseAPIClient:
     ) -> AsyncIterator[dict[str, Any]]:
         """Export typed Scores v3 records, preserving filters and detecting cursor cycles."""
 
-        page_query = dict(query or {})
-        seen_cursors = {page_query["cursor"]} if page_query.get("cursor") else set()
-        while True:
-            page = await self.alist_scores_v3(query=page_query)
-            items, cursor = _score_page(page)
-            for item in items:
-                yield item
-            if not cursor:
-                return
-            if cursor in seen_cursors:
-                raise RuntimeError("Langfuse score pagination repeated a cursor; export is incomplete.")
-            seen_cursors.add(cursor)
-            page_query["cursor"] = cursor
+        async for item in _aiter_cursor_pages(self.alist_scores_v3, query=query):
+            yield item
 
     async def aget_score(self, score_id: str, *, fields: str | None = None) -> Any:
         """Async current-v4 score lookup."""
@@ -281,18 +248,8 @@ class LangfuseAPIClient:
     ) -> AsyncIterator[dict[str, Any]]:
         """Async cursor iterator for hosted experiments."""
 
-        page_query = dict(query or {})
-        while True:
-            page = await self.alist_experiments(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        async for item in _aiter_cursor_pages(self.alist_experiments, query=query):
+            yield item
 
     async def alist_experiment_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async query facade for experiment inputs, outputs, and scores."""
@@ -306,18 +263,8 @@ class LangfuseAPIClient:
     ) -> AsyncIterator[dict[str, Any]]:
         """Async cursor iterator for experiment items."""
 
-        page_query = dict(query or {})
-        while True:
-            page = await self.alist_experiment_items(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        async for item in _aiter_cursor_pages(self.alist_experiment_items, query=query):
+            yield item
 
     async def alist_prompts(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """Async list for Langfuse Prompt Management API v2."""
@@ -371,18 +318,8 @@ class LangfuseAPIClient:
     ) -> AsyncIterator[dict[str, Any]]:
         """Async cursor iterator for Observations API v2."""
 
-        page_query = dict(query or {})
-        while True:
-            page = await self.alist_observations(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        async for item in _aiter_cursor_pages(self.alist_observations, query=query):
+            yield item
 
     async def aget_prompt(
         self,
@@ -676,18 +613,7 @@ class LangfuseAPIClient:
     ) -> Iterator[dict[str, Any]]:
         """Iterate through cursor-paginated current experiment responses."""
 
-        page_query = dict(query or {})
-        while True:
-            page = self.list_experiments(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        yield from _iter_cursor_pages(self.list_experiments, query=query)
 
     def list_experiment_items(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """List experiment inputs, outputs, expected outputs, and scores."""
@@ -701,18 +627,7 @@ class LangfuseAPIClient:
     ) -> Iterator[dict[str, Any]]:
         """Iterate through cursor-paginated current experiment-item responses."""
 
-        page_query = dict(query or {})
-        while True:
-            page = self.list_experiment_items(query=page_query)
-            if not isinstance(page, Mapping):
-                return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
-            page_query["cursor"] = cursor
+        yield from _iter_cursor_pages(self.list_experiment_items, query=query)
 
     def list_prompts(self, *, query: Mapping[str, Any] | None = None) -> Any:
         """List prompts through Langfuse Prompt Management API v2."""
@@ -1013,20 +928,64 @@ async def _aiter_numbered_pages(
         page_query["page"] = next_page
 
 
-def _score_page(page: Any) -> tuple[list[dict[str, Any]], str | None]:
-    """Reject malformed score pages rather than reporting a truncated export as complete."""
+def _cursor_query(query: Mapping[str, Any] | None) -> dict[str, Any]:
+    page_query = dict(query or {})
+    cursor = page_query.get("cursor")
+    if cursor is not None and not isinstance(cursor, str):
+        raise ValueError("Langfuse cursor must be an opaque string.")
+    if page_query.get("page") is not None:
+        raise ValueError("This Langfuse endpoint uses cursors, not page numbers.")
+    page_query.pop("page", None)
+    return page_query
+
+
+def _iter_cursor_pages(
+    fetch: Callable[..., Any], *, query: Mapping[str, Any] | None,
+) -> Iterator[dict[str, Any]]:
+    page_query = _cursor_query(query)
+    seen_cursors = {page_query["cursor"]} if page_query.get("cursor") else set()
+    while True:
+        items, cursor = _cursor_page(fetch(query=page_query))
+        yield from items
+        if not cursor:
+            return
+        if cursor in seen_cursors:
+            raise RuntimeError("Langfuse pagination repeated a cursor; export is incomplete.")
+        seen_cursors.add(cursor)
+        page_query["cursor"] = cursor
+
+
+async def _aiter_cursor_pages(
+    fetch: Callable[..., Any], *, query: Mapping[str, Any] | None,
+) -> AsyncIterator[dict[str, Any]]:
+    page_query = _cursor_query(query)
+    seen_cursors = {page_query["cursor"]} if page_query.get("cursor") else set()
+    while True:
+        items, cursor = _cursor_page(await fetch(query=page_query))
+        for item in items:
+            yield item
+        if not cursor:
+            return
+        if cursor in seen_cursors:
+            raise RuntimeError("Langfuse pagination repeated a cursor; export is incomplete.")
+        seen_cursors.add(cursor)
+        page_query["cursor"] = cursor
+
+
+def _cursor_page(page: Any) -> tuple[list[dict[str, Any]], str | None]:
+    """Reject malformed cursor pages rather than reporting truncated exports as complete."""
 
     if not isinstance(page, Mapping) or not isinstance(page.get("data"), list):
-        raise RuntimeError("Invalid Langfuse score page; export is incomplete.")
+        raise RuntimeError("Invalid Langfuse page; export is incomplete.")
     items = page["data"]
     if not all(isinstance(item, dict) for item in items):
-        raise RuntimeError("Invalid Langfuse score record; export is incomplete.")
-    meta = page.get("meta", {})
+        raise RuntimeError("Invalid Langfuse record; export is incomplete.")
+    meta = page.get("meta")
     if not isinstance(meta, Mapping):
-        raise RuntimeError("Invalid Langfuse score metadata; export is incomplete.")
+        raise RuntimeError("Invalid Langfuse metadata; export is incomplete.")
     cursor = meta.get("cursor")
     if cursor is not None and not isinstance(cursor, str):
-        raise RuntimeError("Invalid Langfuse score cursor; export is incomplete.")
+        raise RuntimeError("Invalid Langfuse cursor; export is incomplete.")
     return items, cursor
 
 

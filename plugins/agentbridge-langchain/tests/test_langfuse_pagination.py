@@ -8,6 +8,7 @@ from agentbridge_langchain import LangfuseAPIClient
 
 
 RESOURCES = ("prompts", "datasets", "dataset_items")
+CURSOR_RESOURCES = ("observations", "scores_v3", "experiments", "experiment_items")
 
 
 def collect(client, resource, query, asynchronous):
@@ -112,3 +113,76 @@ def test_numbered_export_example_preserves_sync_async_parity():
     result = run_demo()
     assert result["parity"] is True
     assert all(len(records) == 3 for records in result["sync"].values())
+
+
+@pytest.mark.parametrize("resource", CURSOR_RESOURCES)
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_cursor_exports_preserve_opaque_cursors_filters_and_records(resource, asynchronous):
+    calls = []
+    filters = {"fromStartTime": "2026-01-01T00:00:00Z", "fields": "details,subject", "limit": 1}
+    original = dict(filters)
+
+    def transport(method, url, headers, body):
+        query = parse_qs(urlparse(url).query)
+        calls.append(query)
+        second = "cursor" in query
+        if second:
+            assert query["cursor"] == ["opaque/+ ="]
+        response = {"data": [{"id": "second" if second else "first", "value": False}],
+                    "meta": {} if second else {"cursor": "opaque/+ ="}}
+        return 200, {"content-type": "application/json"}, json.dumps(response).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    assert collect(client, resource, filters, asynchronous) == [
+        {"id": "first", "value": False}, {"id": "second", "value": False},
+    ]
+    assert len(calls) == 2
+    assert filters == original
+    for query in calls:
+        assert "page" not in query
+        for key, value in filters.items():
+            assert query[key] == [str(value)]
+
+
+@pytest.mark.parametrize("resource", CURSOR_RESOURCES)
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("initial_cursor", [None, "a"])
+def test_cursor_exports_reject_longer_cycles_in_all_resources(resource, asynchronous, initial_cursor):
+    calls = []
+
+    def transport(method, url, headers, body):
+        cursor = parse_qs(urlparse(url).query).get("cursor", [None])[0]
+        calls.append(cursor)
+        response = {"data": [{"id": str(cursor)}], "meta": {"cursor": {None: "a", "a": "b", "b": "a"}[cursor]}}
+        return 200, {"content-type": "application/json"}, json.dumps(response).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    filters = {"cursor": initial_cursor} if initial_cursor else None
+    with pytest.raises(RuntimeError, match="export is incomplete"):
+        collect(client, resource, filters, asynchronous)
+    assert calls == (["a", "b"] if initial_cursor else [None, "a", "b"])
+
+
+@pytest.mark.parametrize("resource", CURSOR_RESOURCES)
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("response", [{"data": []}, {"data": [None], "meta": {}},
+                                      {"data": [], "meta": {"cursor": []}}])
+def test_cursor_exports_reject_malformed_native_responses(resource, asynchronous, response):
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "application/json"}, json.dumps(response).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    with pytest.raises(RuntimeError, match="export is incomplete"):
+        collect(client, resource, None, asynchronous)
+
+
+@pytest.mark.parametrize("resource", CURSOR_RESOURCES)
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("query", [{"cursor": []}, {"cursor": True}, {"page": 1}])
+def test_cursor_exports_reject_invalid_queries_before_requests(resource, asynchronous, query):
+    def transport(*args):
+        pytest.fail("Invalid pagination must not make an HTTP request")
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    with pytest.raises(ValueError, match="cursor"):
+        collect(client, resource, query, asynchronous)

@@ -1,0 +1,242 @@
+{
+  "contracts": {
+    "/api/public/dataset-items": {
+      "data_type": "array",
+      "metadata": {
+        "limit": {
+          "type": "integer"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit",
+        "page",
+        "totalItems",
+        "totalPages"
+      ],
+      "query_pagination": {
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        },
+        "page": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/experiment-items": {
+      "data_type": "array",
+      "metadata": {
+        "cursor": {
+          "nullable": true,
+          "type": "string"
+        }
+      },
+      "metadata_required": [],
+      "query_pagination": {
+        "cursor": {
+          "nullable": true,
+          "required": false,
+          "type": "string"
+        },
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [
+        "fromStartTime"
+      ],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/experiments": {
+      "data_type": "array",
+      "metadata": {
+        "cursor": {
+          "nullable": true,
+          "type": "string"
+        }
+      },
+      "metadata_required": [],
+      "query_pagination": {
+        "cursor": {
+          "nullable": true,
+          "required": false,
+          "type": "string"
+        },
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [
+        "fromStartTime"
+      ],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/v2/datasets": {
+      "data_type": "array",
+      "metadata": {
+        "limit": {
+          "type": "integer"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit",
+        "page",
+        "totalItems",
+        "totalPages"
+      ],
+      "query_pagination": {
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        },
+        "page": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/v2/observations": {
+      "data_type": "array",
+      "metadata": {
+        "cursor": {
+          "nullable": true,
+          "type": "string"
+        }
+      },
+      "metadata_required": [],
+      "query_pagination": {
+        "cursor": {
+          "nullable": true,
+          "required": false,
+          "type": "string"
+        },
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/v2/prompts": {
+      "data_type": "array",
+      "metadata": {
+        "limit": {
+          "type": "integer"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "totalItems": {
+          "type": "integer"
+        },
+        "totalPages": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit",
+        "page",
+        "totalItems",
+        "totalPages"
+      ],
+      "query_pagination": {
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        },
+        "page": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    },
+    "/api/public/v3/scores": {
+      "data_type": "array",
+      "metadata": {
+        "cursor": {
+          "nullable": true,
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer"
+        }
+      },
+      "metadata_required": [
+        "limit"
+      ],
+      "query_pagination": {
+        "cursor": {
+          "nullable": true,
+          "required": false,
+          "type": "string"
+        },
+        "limit": {
+          "nullable": true,
+          "required": false,
+          "type": "integer"
+        }
+      },
+      "required_query": [],
+      "response_required": [
+        "data",
+        "meta"
+      ]
+    }
+  },
+  "source": "https://cloud.langfuse.com/generated/api/openapi.yml"
+}

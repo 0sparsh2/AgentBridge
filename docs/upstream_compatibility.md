@@ -6,12 +6,13 @@ exact verified version, the feature inventory, and the adapter tests must move t
 
 ## Scheduled Checks
 
-The weekly `Upstream Compatibility` workflow performs three checks:
+The weekly `Upstream Compatibility` workflow performs these checks:
 
 - Queries PyPI for the latest release of every adopted framework package.
 - Runs core AgentBridge tests and conformance checks on supported Python versions.
 - Installs each external adapter in an isolated job and runs its plugin contract tests.
 - Follows LangChain's official recursive documentation indexes and detects page additions or removals.
+- Compares the seven adopted Langfuse list/pagination contracts with the published OpenAPI schema.
 
 If an upstream release leaves the adopted range, the scheduled check fails and uploads a version
 report. That failure is a compatibility-review signal, not proof that the new release is broken.
@@ -21,6 +22,33 @@ Run the same version check locally:
 ```bash
 python scripts/check_upstream_versions.py --fail-on-drift
 ```
+
+## Langfuse API Contract Drift
+
+Langfuse's cloud API can change independently of a Python SDK package release.
+The adopted snapshot in `docs/upstream/langfuse-pagination-contracts.json`
+records pagination query types, required query fields, response requirements,
+and pagination metadata for observations, scores, experiments, experiment items,
+prompts, datasets, and dataset items. It resolves local schema references and
+`allOf` inheritance from the official
+[OpenAPI schema](https://cloud.langfuse.com/generated/api/openapi.yml).
+
+```bash
+python scripts/check_langfuse_api.py --fail-on-drift
+python scripts/check_langfuse_api.py --schema /tmp/openapi.yml --fail-on-drift
+python scripts/check_langfuse_api.py --snapshot --output /tmp/proposed-langfuse-contracts.json
+```
+
+The weekly job uploads a field-level diff. A drift failure means review is
+needed; it is not automatically proof of breakage. Fetch/parse failures and
+missing endpoints return a separate failed-check status, never a compatibility
+success. Description-only changes are ignored. Snapshot mode produces a
+proposal and does not overwrite the adopted baseline automatically.
+
+Review API changes against the sync/async pagination tests and
+`examples/langfuse_paginated_export.py` before updating the baseline.
+This check covers pagination, not every Langfuse endpoint or record field;
+hosted execution and broader API conformance remain separate work.
 
 ## Release Review Order
 
@@ -52,7 +80,7 @@ Every documented framework capability must have one of these explicit outcomes:
 - `native_only`: available through the raw backend object with documented escape-hatch access.
 - `unsupported`: tracked as a known gap with an issue or roadmap item.
 
-The current LangChain inventory tracks 1,663 official pages across 13 recursive indexes. Every page
+The current LangChain inventory tracks 1,678 official pages across 13 recursive indexes. Every page
 has an owner, action, and explicit decision in `docs/upstream/langchain-coverage.json`; no page is
 left unassigned. Runtime pages map to adapter contracts or native escape hatches, while hosted
 control-plane and product pages remain explicitly external rather than being misrepresented as

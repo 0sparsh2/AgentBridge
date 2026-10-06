@@ -122,6 +122,12 @@ Both iterators preserve caller filters, follow opaque server cursors, and raise
 an explicit incomplete-export error for cursor cycles or malformed pages.
 Records already yielded before an error are partial results, not a complete
 export. Request suitable filters to avoid exporting the whole project.
+Observations, experiments, and experiment items use the same cursor validation
+in `iter_observations()`, `iter_experiments()`, `iter_experiment_items()`, and
+their async counterparts. Missing metadata is rejected, while native terminal
+metadata with an omitted or null cursor is accepted. Cursor strings are opaque
+and URL-encoded without being interpreted; numbered-page queries are rejected
+on these cursor endpoints before making a request.
 
 ## Langfuse Dataset And Prompt Pagination
 
@@ -155,3 +161,9 @@ python examples/langfuse_paginated_export.py
 These are sequential list reads, not snapshot isolation. Pin a dataset-item
 version when reproducible historical item membership is required; prompts and
 datasets can change during an export.
+
+The offline example also exports observations, scores, experiments, and
+experiment items using cursor pagination. Supply a bounded time range for
+hosted exports; the experiment APIs require `fromStartTime`. The scheduled
+[API contract drift check](upstream_compatibility.md#langfuse-api-contract-drift)
+detects changes to these adopted pagination contracts.

@@ -124,6 +124,11 @@
       "test": "plugins/agentbridge-langchain/tests/test_langfuse_pagination.py"
     },
     {
+      "name": "langfuse_cursor_pagination",
+      "surfaces": ["opaque cursor encoding", "observation/score/experiment/item export", "cursor cycles", "malformed metadata", "sync/async parity"],
+      "test": "plugins/agentbridge-langchain/tests/test_langfuse_pagination.py"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

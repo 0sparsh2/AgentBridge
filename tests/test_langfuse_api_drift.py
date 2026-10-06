@@ -1,0 +1,117 @@
+import copy
+import json
+
+import pytest
+
+from scripts import check_langfuse_api as checker
+
+
+def schema_fixture():
+    adopted = json.loads(checker.BASELINE.read_text())["contracts"]
+    paths = {}
+    for path, contract in adopted.items():
+        parameters = [{"name": name, "in": "query", "required": value["required"],
+                       "schema": {key: item for key, item in value.items() if key != "required"}}
+                      for name, value in contract["query_pagination"].items()]
+        parameters += [{"name": name, "in": "query", "required": True, "schema": {"type": "string"}}
+                       for name in contract["required_query"] if name not in contract["query_pagination"]]
+        meta = {"type": "object", "required": contract["metadata_required"],
+                "properties": copy.deepcopy(contract["metadata"])}
+        response = {"type": "object", "required": contract["response_required"],
+                    "properties": {"data": {"type": contract["data_type"]}, "meta": meta}}
+        paths[path] = {"get": {"parameters": parameters, "responses": {
+            "200": {"content": {"application/json": {"schema": response}}},
+        }}}
+    return {"paths": paths}, adopted
+
+
+def test_adopted_pagination_contracts_distinguish_numbered_and_cursor_endpoints():
+    spec, adopted = schema_fixture()
+    assert checker.extract_contracts(spec) == adopted
+    for path in checker.ENDPOINTS:
+        keys = adopted[path]["query_pagination"]
+        if path.endswith(("prompts", "datasets", "dataset-items")):
+            assert "page" in keys and "cursor" not in keys
+            assert adopted[path]["metadata_required"] == ["limit", "page", "totalItems", "totalPages"]
+        else:
+            assert "cursor" in keys and "page" not in keys
+    report, drifted = checker.render_report(adopted, checker.extract_contracts(spec))
+    assert not drifted
+    assert report.count("unchanged") == 7
+
+
+def test_contract_extraction_resolves_native_refs_and_inherited_metadata():
+    spec, adopted = schema_fixture()
+    response = spec["paths"][checker.ENDPOINTS[0]]["get"]["responses"]["200"]["content"]["application/json"]
+    meta = response["schema"]["properties"]["meta"]
+    spec["components"] = {"schemas": {"Meta": meta, "Response": response["schema"]}}
+    response["schema"] = {"$ref": "#/components/schemas/Response"}
+    spec["components"]["schemas"]["Response"]["properties"]["meta"] = {
+        "allOf": [{"$ref": "#/components/schemas/Meta"}],
+    }
+    assert checker.extract_contracts(spec) == adopted
+
+
+@pytest.mark.parametrize("change", ["required_query", "cursor_type", "metadata", "response_required"])
+def test_pagination_drift_reports_actual_field_diff(change):
+    spec, adopted = schema_fixture()
+    operation = spec["paths"][checker.ENDPOINTS[0]]["get"]
+    schema = operation["responses"]["200"]["content"]["application/json"]["schema"]
+    if change == "required_query":
+        operation["parameters"].append({"name": "newRequired", "in": "query", "required": True,
+                                        "schema": {"type": "string"}})
+    elif change == "cursor_type":
+        next(item for item in operation["parameters"] if item["name"] == "cursor")["schema"]["type"] = "integer"
+    elif change == "metadata":
+        schema["properties"]["meta"]["properties"]["nextCursor"] = {"type": "string"}
+    else:
+        schema["required"] = ["data"]
+    report, drifted = checker.render_report(adopted, checker.extract_contracts(spec))
+    assert drifted
+    assert report.count("review needed") == 1
+    assert "```diff" in report
+
+
+def test_unrelated_description_drift_does_not_change_pagination_contract():
+    spec, adopted = schema_fixture()
+    original = copy.deepcopy(spec)
+    spec["paths"][checker.ENDPOINTS[0]]["get"]["description"] = "New documentation"
+    assert checker.extract_contracts(spec) == checker.extract_contracts(original) == adopted
+
+
+@pytest.mark.parametrize("reference", ["https://example.invalid/schema.json", "#/components/schemas/Cycle"])
+def test_resolver_rejects_external_or_cyclic_references(reference):
+    spec = {"components": {"schemas": {"Cycle": {"$ref": "#/components/schemas/Cycle"}}}}
+    with pytest.raises(ValueError, match="reference"):
+        checker.resolve_schema(spec, {"$ref": reference})
+
+
+def test_cli_local_replay_and_drift_exit_status(tmp_path, monkeypatch):
+    spec, _ = schema_fixture()
+    source = tmp_path / "openapi.json"
+    output = tmp_path / "report.md"
+    source.write_text(json.dumps(spec))
+    monkeypatch.setattr("sys.argv", ["check", "--schema", str(source), "--output", str(output), "--fail-on-drift"])
+    assert checker.main() == 0
+    del spec["paths"][checker.ENDPOINTS[0]]["get"]["parameters"][0]["schema"]["nullable"]
+    source.write_text(json.dumps(spec))
+    assert checker.main() == 1
+    assert "review needed" in output.read_text()
+
+
+def test_cli_fetch_failure_is_unverified_and_never_success(tmp_path, monkeypatch):
+    def fail(*args, **kwargs):
+        raise OSError("upstream unavailable")
+
+    output = tmp_path / "report.md"
+    monkeypatch.setattr(checker, "urlopen", fail)
+    monkeypatch.setattr("sys.argv", ["check", "--output", str(output)])
+    assert checker.main() == 2
+    assert "unverified" in output.read_text()
+
+
+def test_cli_missing_endpoint_is_a_failed_check(tmp_path, monkeypatch):
+    source = tmp_path / "openapi.json"
+    source.write_text('{"paths": {}}')
+    monkeypatch.setattr("sys.argv", ["check", "--schema", str(source)])
+    assert checker.main() == 2
