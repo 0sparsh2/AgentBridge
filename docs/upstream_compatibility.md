@@ -30,7 +30,9 @@ The adopted snapshot in `docs/upstream/langfuse-pagination-contracts.json`
 records pagination query types, required query fields, response requirements,
 and pagination metadata for observations, scores, experiments, experiment items,
 prompts, datasets, dataset items, score configs, annotation queues, and queue
-items. It resolves local schema references and
+items. It also records eight adopted governance write contracts for score configs
+and annotation queues: request fields, path/query parameter types, and success
+response fields. It resolves local schema references and
 `allOf` inheritance from the official
 [OpenAPI schema](https://cloud.langfuse.com/generated/api/openapi.yml).
 
@@ -48,8 +50,9 @@ proposal and does not overwrite the adopted baseline automatically.
 
 Review API changes against the sync/async pagination tests and
 `examples/langfuse_paginated_export.py` before updating the baseline.
-This check covers pagination, not every Langfuse endpoint or record field;
-hosted execution and broader API conformance remain separate work.
+This check covers adopted list and governance-write contracts, not every Langfuse
+endpoint or record field; hosted execution and broader API conformance remain
+separate work.
 
 ## Release Review Order
 

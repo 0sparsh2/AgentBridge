@@ -247,6 +247,6 @@ python examples/langfuse_review_queue.py
 
 Its rejection is an explicit fixture decision, not a real human review. The
 example uses no hosted service and does not establish production authorization
-or annotation UI behavior. The weekly schema check now also covers pagination
-for score configs, queues, and queue items; write-operation behavior is covered
-by the HTTP contract tests, not by that pagination-only drift check.
+or annotation UI behavior. The weekly schema check covers pagination for score
+configs, queues, and queue items, plus the eight adopted governance write
+contracts; it does not cover every Langfuse endpoint.

@@ -49,7 +49,9 @@ OpenAPI schema on 2026-10-06 and is recorded in
 `docs/upstream/langfuse-pagination-contracts.json`. It covers ten list
 endpoints, including native numbered pagination for prompts/datasets/items
 and cursor pagination for observations/scores/experiments/items. Score-config,
-annotation-queue, and queue-item pagination are included too. The weekly
+annotation-queue, and queue-item pagination are included too. Eight adopted
+score-config and annotation-queue write contracts are tracked for request,
+parameter, and successful response shape changes. The weekly
 [API drift check](upstream_compatibility.md#langfuse-api-contract-drift) tracks
 these contracts independently of installed Langfuse SDK versions. Offline
 tests and the live schema comparison do not prove hosted execution.

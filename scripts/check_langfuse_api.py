@@ -1,4 +1,4 @@
-"""Detect drift in the Langfuse pagination contracts used by AgentBridge."""
+"""Detect drift in adopted Langfuse list and governance write contracts."""
 
 from __future__ import annotations
 
@@ -20,6 +20,16 @@ ENDPOINTS = (
     "/api/public/v2/prompts", "/api/public/v2/datasets", "/api/public/dataset-items",
     "/api/public/score-configs", "/api/public/annotation-queues",
     "/api/public/annotation-queues/{queueId}/items",
+)
+GOVERNANCE_OPERATIONS = (
+    ("POST", "/api/public/score-configs"),
+    ("PATCH", "/api/public/score-configs/{configId}"),
+    ("POST", "/api/public/annotation-queues"),
+    ("POST", "/api/public/annotation-queues/{queueId}/items"),
+    ("PATCH", "/api/public/annotation-queues/{queueId}/items/{itemId}"),
+    ("DELETE", "/api/public/annotation-queues/{queueId}/items/{itemId}"),
+    ("POST", "/api/public/annotation-queues/{queueId}/assignments"),
+    ("DELETE", "/api/public/annotation-queues/{queueId}/assignments"),
 )
 
 
@@ -80,8 +90,54 @@ def extract_contracts(spec: dict) -> dict:
     return contracts
 
 
+def _properties_contract(spec: dict, schema: dict) -> dict:
+    resolved = resolve_schema(spec, schema)
+    return {
+        "required": sorted(resolved.get("required", [])),
+        "properties": {
+            key: scalar_contract(spec, value)
+            for key, value in sorted(resolved.get("properties", {}).items())
+        },
+    }
+
+
+def extract_governance_operations(spec: dict) -> dict:
+    """Extract the native write operations represented by explicit client helpers."""
+
+    contracts = {}
+    for verb, path in GOVERNANCE_OPERATIONS:
+        operation = spec["paths"][path][verb.lower()]
+        parameters = [resolve_schema(spec, item) for item in operation.get("parameters", [])]
+        request = operation.get("requestBody")
+        body_contract = None
+        if request is not None:
+            request = resolve_schema(spec, request)
+            body_schema = request["content"]["application/json"]["schema"]
+            body_contract = {
+                "required": request.get("required", False),
+                **_properties_contract(spec, body_schema),
+            }
+        successes = {}
+        for status, response in sorted(operation.get("responses", {}).items()):
+            if not status.startswith("2"):
+                continue
+            response = resolve_schema(spec, response)
+            content = response.get("content", {}).get("application/json")
+            successes[status] = _properties_contract(spec, content["schema"]) if content else None
+        contracts[f"{verb} {path}"] = {
+            "path_and_query": {
+                item["name"]: {"in": item.get("in"), "required": item.get("required", False),
+                               **scalar_contract(spec, item["schema"])}
+                for item in parameters if item.get("in") in ("path", "query")
+            },
+            "request": body_contract,
+            "successes": successes,
+        }
+    return contracts
+
+
 def render_report(adopted: dict, current: dict) -> tuple[str, bool]:
-    lines = ["# Langfuse API Pagination Compatibility", "",
+    lines = ["# Langfuse API Compatibility", "",
              f"Source: {SOURCE}", "",
              f"Only the {len(ENDPOINTS)} adopted list/pagination contracts are checked; this is not whole-API conformance.", ""]
     drifted = False
@@ -92,6 +148,22 @@ def render_report(adopted: dict, current: dict) -> tuple[str, bool]:
         if changed:
             before = json.dumps(adopted.get(path), indent=2, sort_keys=True).splitlines()
             after = json.dumps(current.get(path), indent=2, sort_keys=True).splitlines()
+            lines.extend(["", "```diff", *difflib.unified_diff(
+                before, after, fromfile="adopted", tofile="current", lineterm="",
+            ), "```", ""])
+    return "\n".join(lines) + "\n", drifted
+
+
+def render_operations_report(adopted: dict, current: dict) -> tuple[str, bool]:
+    lines = ["", "## Governance Write Contracts", ""]
+    drifted = False
+    for operation in sorted(set(adopted) | set(current)):
+        changed = adopted.get(operation) != current.get(operation)
+        drifted |= changed
+        lines.append(f"- `{operation}`: {'review needed' if changed else 'unchanged'}")
+        if changed:
+            before = json.dumps(adopted.get(operation), indent=2, sort_keys=True).splitlines()
+            after = json.dumps(current.get(operation), indent=2, sort_keys=True).splitlines()
             lines.extend(["", "```diff", *difflib.unified_diff(
                 before, after, fromfile="adopted", tofile="current", lineterm="",
             ), "```", ""])
@@ -112,15 +184,21 @@ def main() -> int:
         else:
             with urlopen(SOURCE, timeout=30) as response:
                 spec = yaml.safe_load(response.read())
-        current = extract_contracts(spec)
+        current = {"contracts": extract_contracts(spec),
+                   "operations": extract_governance_operations(spec)}
         if args.snapshot:
-            report = json.dumps({"source": SOURCE, "contracts": current}, indent=2, sort_keys=True) + "\n"
+            report = json.dumps({"source": SOURCE, **current}, indent=2, sort_keys=True) + "\n"
             drifted = False
         else:
-            adopted = json.loads(args.baseline.read_text(encoding="utf-8"))["contracts"]
-            report, drifted = render_report(adopted, current)
+            adopted = json.loads(args.baseline.read_text(encoding="utf-8"))
+            report, pagination_drifted = render_report(adopted["contracts"], current["contracts"])
+            operation_report, operation_drifted = render_operations_report(
+                adopted.get("operations", {}), current["operations"],
+            )
+            report += operation_report
+            drifted = pagination_drifted or operation_drifted
     except (OSError, ValueError, KeyError, TypeError, yaml.YAMLError) as exc:
-        report = f"# Langfuse API Pagination Compatibility\n\nCheck failed; compatibility is unverified: {exc}\n"
+        report = f"# Langfuse API Compatibility\n\nCheck failed; compatibility is unverified: {exc}\n"
         if args.output:
             args.output.write_text(report, encoding="utf-8")
         print(report, file=sys.stderr)

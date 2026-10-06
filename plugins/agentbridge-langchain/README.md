@@ -104,7 +104,8 @@ AgentBridge adapter plugin for `langchain`.
   styles preserve caller filters.
 - Observation, score, experiment, and experiment-item cursor exports share malformed-page
   validation and full cursor-cycle detection, including sync/async parity. The weekly upstream
-  workflow checks adopted pagination contracts against Langfuse's published OpenAPI schema.
+  workflow checks adopted pagination and governance write contracts against Langfuse's published
+  OpenAPI schema.
 - Async Langfuse dataset deletion and dataset-item update/upsert now match the synchronous
   lifecycle surface.
 - Langfuse prompt version/label retrieval and text/chat variable compilation through `LangfusePrompt`.

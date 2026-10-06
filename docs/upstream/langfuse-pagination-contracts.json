@@ -358,5 +358,536 @@
       ]
     }
   },
+  "operations": {
+    "DELETE /api/public/annotation-queues/{queueId}/assignments": {
+      "path_and_query": {
+        "queueId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "request": {
+        "properties": {
+          "userId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ]
+        }
+      }
+    },
+    "DELETE /api/public/annotation-queues/{queueId}/items/{itemId}": {
+      "path_and_query": {
+        "itemId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        },
+        "queueId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "request": null,
+      "successes": {
+        "200": {
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "message",
+            "success"
+          ]
+        }
+      }
+    },
+    "PATCH /api/public/annotation-queues/{queueId}/items/{itemId}": {
+      "path_and_query": {
+        "itemId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        },
+        "queueId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "request": {
+        "properties": {
+          "status": {
+            "enum": [
+              "PENDING",
+              "COMPLETED"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "completedAt": {
+              "format": "date-time",
+              "nullable": true,
+              "type": "string"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "objectId": {
+              "type": "string"
+            },
+            "objectType": {
+              "enum": [
+                "TRACE",
+                "OBSERVATION",
+                "SESSION"
+              ],
+              "type": "string"
+            },
+            "queueId": {
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "PENDING",
+                "COMPLETED"
+              ],
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "createdAt",
+            "id",
+            "objectId",
+            "objectType",
+            "queueId",
+            "status",
+            "updatedAt"
+          ]
+        }
+      }
+    },
+    "PATCH /api/public/score-configs/{configId}": {
+      "path_and_query": {
+        "configId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "request": {
+        "properties": {
+          "categories": {
+            "nullable": true,
+            "type": "array"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "isArchived": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "maxValue": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "minValue": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "name": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "categories": {
+              "nullable": true,
+              "type": "array"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "dataType": {
+              "enum": [
+                "NUMERIC",
+                "BOOLEAN",
+                "CATEGORICAL",
+                "TEXT"
+              ],
+              "type": "string"
+            },
+            "description": {
+              "nullable": true,
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "isArchived": {
+              "type": "boolean"
+            },
+            "maxValue": {
+              "format": "double",
+              "nullable": true,
+              "type": "number"
+            },
+            "minValue": {
+              "format": "double",
+              "nullable": true,
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            },
+            "projectId": {
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "createdAt",
+            "dataType",
+            "id",
+            "isArchived",
+            "name",
+            "projectId",
+            "updatedAt"
+          ]
+        }
+      }
+    },
+    "POST /api/public/annotation-queues": {
+      "path_and_query": {},
+      "request": {
+        "properties": {
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scoreConfigIds": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "scoreConfigIds"
+        ]
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "description": {
+              "nullable": true,
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "scoreConfigIds": {
+              "type": "array"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "createdAt",
+            "description",
+            "id",
+            "name",
+            "scoreConfigIds",
+            "updatedAt"
+          ]
+        }
+      }
+    },
+    "POST /api/public/annotation-queues/{queueId}/assignments": {
+      "path_and_query": {
+        "queueId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "request": {
+        "properties": {
+          "userId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "projectId": {
+              "type": "string"
+            },
+            "queueId": {
+              "type": "string"
+            },
+            "userId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "projectId",
+            "queueId",
+            "userId"
+          ]
+        }
+      }
+    },
+    "POST /api/public/annotation-queues/{queueId}/items": {
+      "path_and_query": {
+        "queueId": {
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      },
+      "request": {
+        "properties": {
+          "objectId": {
+            "type": "string"
+          },
+          "objectType": {
+            "enum": [
+              "TRACE",
+              "OBSERVATION",
+              "SESSION"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "COMPLETED"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "objectId",
+          "objectType"
+        ]
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "completedAt": {
+              "format": "date-time",
+              "nullable": true,
+              "type": "string"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "objectId": {
+              "type": "string"
+            },
+            "objectType": {
+              "enum": [
+                "TRACE",
+                "OBSERVATION",
+                "SESSION"
+              ],
+              "type": "string"
+            },
+            "queueId": {
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "PENDING",
+                "COMPLETED"
+              ],
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "createdAt",
+            "id",
+            "objectId",
+            "objectType",
+            "queueId",
+            "status",
+            "updatedAt"
+          ]
+        }
+      }
+    },
+    "POST /api/public/score-configs": {
+      "path_and_query": {},
+      "request": {
+        "properties": {
+          "categories": {
+            "nullable": true,
+            "type": "array"
+          },
+          "dataType": {
+            "enum": [
+              "NUMERIC",
+              "BOOLEAN",
+              "CATEGORICAL",
+              "TEXT"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "maxValue": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "minValue": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataType",
+          "name"
+        ]
+      },
+      "successes": {
+        "200": {
+          "properties": {
+            "categories": {
+              "nullable": true,
+              "type": "array"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "dataType": {
+              "enum": [
+                "NUMERIC",
+                "BOOLEAN",
+                "CATEGORICAL",
+                "TEXT"
+              ],
+              "type": "string"
+            },
+            "description": {
+              "nullable": true,
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "isArchived": {
+              "type": "boolean"
+            },
+            "maxValue": {
+              "format": "double",
+              "nullable": true,
+              "type": "number"
+            },
+            "minValue": {
+              "format": "double",
+              "nullable": true,
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            },
+            "projectId": {
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "createdAt",
+            "dataType",
+            "id",
+            "isArchived",
+            "name",
+            "projectId",
+            "updatedAt"
+          ]
+        }
+      }
+    }
+  },
   "source": "https://cloud.langfuse.com/generated/api/openapi.yml"
 }
