@@ -10,6 +10,8 @@ from typing import Any
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
+from ._sse import parse_sse
+
 
 Transport = Callable[[str, str, dict[str, str], bytes | None], tuple[int, Mapping[str, str], bytes]]
 
@@ -102,7 +104,7 @@ class LangSmithAPIClient:
         body: Any | None = None,
         headers: Mapping[str, str] | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """Parse newline-delimited SSE data from a streaming endpoint."""
+        """Decode SSE frames, preserving native event names and resume IDs."""
 
         status, _response_headers, raw = self._request(
             method,
@@ -113,12 +115,7 @@ class LangSmithAPIClient:
         )
         if status >= 400:
             raise RuntimeError(f"LangSmith API {status} for {method} {path}")
-        for line in raw.decode("utf-8").splitlines():
-            if not line.startswith("data:"):
-                continue
-            payload = line.removeprefix("data:").strip()
-            if payload and payload != "[DONE]":
-                yield json.loads(payload)
+        yield from parse_sse(raw)
 
     async def arequest_json(
         self,

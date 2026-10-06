@@ -79,6 +79,11 @@
       "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_resume_serializes_top_level_command_through_real_api_client"
     },
     {
+      "name": "remote_graph_wire_events",
+      "surfaces": ["named SSE frames", "subgraph message namespaces", "event IDs", "sync/async normalization"],
+      "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_graph_normalizes_wire_event_names_and_resume_ids"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

@@ -354,6 +354,14 @@ result = remote.run(
 The native thread/run API remains available through `LangSmithAPIClient` for endpoints that need
 provider-specific payloads.
 
+SSE responses retain their native `event` and `id` fields, including multiline JSON data.
+`RemoteGraphClient` places these in `AgentEvent.metadata.native_event` and `sse_id`; namespaced
+message streams preserve their original namespace while emitting normalized message events.
+Data-only JSON event envelopes retain their existing response shape. The dependency-free transport
+currently buffers the response before yielding events; incremental network streaming remains pending.
+Remote results retain the last full `values` state when an empty `end` frame arrives. Error events
+set `RunResult.metadata.status` to `error` and do not synthesize a success completion event.
+
 The same client exposes assistant lifecycle and graph/schema/subgraph/version introspection, thread
 search/history/patch/copy/interrupts, run listing/events/join/cancellation, run feedback, long-term
 store operations, thread-state helpers, Fleet/Managed Deep Agent CRUD, managed-agent thread metadata,

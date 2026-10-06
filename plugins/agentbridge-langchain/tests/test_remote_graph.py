@@ -350,3 +350,64 @@ def test_thread_run_stream_preserves_resume_command_for_sync_and_async_requests(
         {"assistant_id": "agent", "input": None, "command": {"resume": False}},
         {"assistant_id": "agent", "input": None, "command": {"resume": False}},
     ]
+
+
+def test_remote_graph_normalizes_wire_event_names_and_resume_ids():
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: metadata\nid: run-1-0\ndata: {"run_id":"run-1"}\n\n'
+            b'event: messages-tuple|review\nid: run-1-1\n'
+            b'data: [{"content":"hello"},{"node":"review"}]\n\n'
+            b'event: error\nid: run-1-2\ndata: {"message":"failed"}\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    events = list(remote.stream(thread_id="thread-1", assistant_id="agent", input={}))
+
+    async def collect():
+        return [event async for event in remote.astream(
+            thread_id="thread-1", assistant_id="agent", input={}
+        )]
+
+    async_events = asyncio.run(collect())
+    assert [event.type for event in events] == ["workflow", "message", "error"]
+    assert [event.model_dump() for event in async_events] == [
+        event.model_dump() for event in events
+    ]
+    assert events[1].data["value"][0]["content"] == "hello"
+    assert events[1].metadata == {
+        "native_event": "messages-tuple|review", "sse_id": "run-1-1"
+    }
+    assert events[2].metadata["sse_id"] == "run-1-2"
+
+
+def test_remote_run_preserves_final_state_when_end_frame_has_no_payload():
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: values\ndata: {"answer":"approved"}\n\n'
+            b'event: end\ndata: null\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    result = remote.run(thread_id="thread-1", assistant_id="agent", input={})
+    assert result.output == {"answer": "approved"}
+    assert result.metadata["status"] == "completed"
+
+
+def test_remote_error_does_not_synthesize_success_completion():
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: error\ndata: {"message":"model failed"}\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    result = remote.run(thread_id="thread-1", assistant_id="agent", input={})
+
+    async def collect():
+        return await remote.arun(thread_id="thread-1", assistant_id="agent", input={})
+
+    async_result = asyncio.run(collect())
+    for value in (result, async_result):
+        assert value.output is None
+        assert value.metadata["status"] == "error"
+        assert [event.type for event in value.events] == ["error"]

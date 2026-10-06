@@ -281,13 +281,17 @@ class RemoteGraphClient:
     ) -> RunResult:
         events = list(self.stream(thread_id=thread_id, assistant_id=assistant_id, input=input))
         output = _output_from_events(events)
-        if not events or events[-1].type != "complete":
+        failed = any(event.type == "error" for event in events)
+        if not failed and (not events or events[-1].type != "complete"):
             events.append(AgentEvent(type="complete", backend=self.backend_name, data={"output": output}))
         return RunResult(
             output=output,
             backend=self.backend_name,
             events=events,
-            metadata={"thread_id": thread_id, "assistant_id": assistant_id, "remote": True},
+            metadata={
+                "thread_id": thread_id, "assistant_id": assistant_id,
+                "remote": True, "status": "error" if failed else "completed",
+            },
         )
 
     async def arun(
@@ -308,13 +312,17 @@ class RemoteGraphClient:
             )
         ]
         output = _output_from_events(events)
-        if not events or events[-1].type != "complete":
+        failed = any(event.type == "error" for event in events)
+        if not failed and (not events or events[-1].type != "complete"):
             events.append(AgentEvent(type="complete", backend=self.backend_name, data={"output": output}))
         return RunResult(
             output=output,
             backend=self.backend_name,
             events=events,
-            metadata={"thread_id": thread_id, "assistant_id": assistant_id, "remote": True, "async": True},
+            metadata={
+                "thread_id": thread_id, "assistant_id": assistant_id,
+                "remote": True, "async": True, "status": "error" if failed else "completed",
+            },
         )
 
     def state(self, thread_id: str, *, checkpoint_id: str | None = None) -> Any:
@@ -512,27 +520,41 @@ def _normalize_remote_event(payload: Mapping[str, Any]) -> AgentEvent:
     data = payload.get("data", payload)
     if not isinstance(data, dict):
         data = {"value": data}
-    normalized = event_name.lower()
+    normalized = event_name.lower().split("|", 1)[0]
     if "error" in normalized:
         event_type = "error"
     elif "tool" in normalized and "result" in normalized:
         event_type = "tool_result"
     elif "tool" in normalized:
         event_type = "tool_call"
-    elif normalized in {"message", "messages", "tokens", "chunk"}:
+    elif normalized in {"message", "messages", "messages-tuple", "tokens", "chunk"}:
         event_type = "message"
     elif normalized in {"complete", "end", "done"}:
         event_type = "complete"
     else:
         event_type = "workflow"
-    return AgentEvent(type=event_type, backend=RemoteGraphClient.backend_name, data=data)
+    metadata = {"native_event": event_name}
+    if "id" in payload:
+        metadata["sse_id"] = payload["id"]
+    return AgentEvent(
+        type=event_type, backend=RemoteGraphClient.backend_name, data=data, metadata=metadata
+    )
 
 
 def _output_from_events(events: list[AgentEvent]) -> Any:
     for event in reversed(events):
+        if event.type == "error":
+            continue
+        if event.metadata.get("native_event", "").split("|", 1)[0] == "values":
+            return event.data.get("value", event.data)
         if event.type in {"message", "complete"}:
+            if event.data == {"value": None} or not event.data:
+                continue
             return event.data.get("output", event.data.get("content", event.data))
-    return events[-1].data if events else None
+    for event in reversed(events):
+        if event.type != "error" and event.data != {"value": None}:
+            return event.data
+    return None
 
 
 async def _collect_sync_stream(

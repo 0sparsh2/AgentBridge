@@ -12,6 +12,8 @@ from typing import Any
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from ._sse import parse_sse
+
 
 Transport = Callable[[str, str, dict[str, str], bytes | None], tuple[int, Mapping[str, str], bytes]]
 
@@ -91,12 +93,17 @@ class LangfuseAPIClient:
         """Parse SSE data for ingestion or export endpoints that stream events."""
 
         headers = {"Accept": "text/event-stream", **(kwargs.pop("headers", {}) or {})}
-        raw = self._request(method, path, query=kwargs.pop("query", None), headers=headers, **kwargs)[2]
-        for line in raw.decode("utf-8").splitlines():
-            if line.startswith("data:"):
-                payload = line.removeprefix("data:").strip()
-                if payload and payload != "[DONE]":
-                    yield json.loads(payload)
+        status, _response_headers, raw = self._request(
+            method,
+            path,
+            query=kwargs.pop("query", None),
+            body=kwargs.pop("body", None),
+            headers=headers,
+            **kwargs,
+        )
+        if status >= 400:
+            raise RuntimeError(f"Langfuse API {status} for {method} {path}: {raw[:500]!r}")
+        yield from parse_sse(raw)
 
     def iter_observations(
         self,
