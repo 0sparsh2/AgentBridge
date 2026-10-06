@@ -535,7 +535,7 @@ def test_langsmith_async_assistant_and_run_lifecycle_preserves_native_paths():
 
     def transport(method, url, headers, body):
         calls.append((method, url, body))
-        if url.endswith("/join") and headers.get("Accept") == "text/event-stream":
+        if "/stream?" in url and headers.get("Accept") == "text/event-stream":
             return 200, {"content-type": "text/event-stream"}, b'data: {"event":"done"}\n\ndata: [DONE]\n'
         status = 204 if method == "DELETE" else 200
         payload = b"" if status == 204 else b'{"ok": true}'
@@ -720,7 +720,7 @@ def test_langsmith_assistant_introspection_and_thread_run_lifecycle_paths():
     def transport(method, url, headers, body):
         del headers
         calls.append((method, url, body))
-        if url.endswith("/join"):
+        if url.endswith("/join") or "/stream?" in url:
             return 200, {"content-type": "text/event-stream"}, b'data: {"event":"done"}\n\ndata: [DONE]\n'
         return 200, {"content-type": "application/json"}, b'{"ok": true}'
 

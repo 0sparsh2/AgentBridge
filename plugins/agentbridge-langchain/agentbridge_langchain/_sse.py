@@ -6,7 +6,7 @@ import json
 import asyncio
 from collections.abc import AsyncIterator, Iterable, Iterator, Mapping
 from itertools import chain
-from typing import Any
+from typing import Any, TypeVar
 from urllib.request import Request, urlopen
 
 
@@ -93,7 +93,10 @@ def response_events(raw: bytes | Iterator[bytes]) -> Iterator[dict[str, Any]]:
             close()
 
 
-async def async_events(events: Iterator[dict[str, Any]]) -> AsyncIterator[dict[str, Any]]:
+EventT = TypeVar("EventT")
+
+
+async def async_events(events: Iterator[EventT]) -> AsyncIterator[EventT]:
     """Read one frame at a time off-loop and close after a read finishes."""
 
     exhausted = object()

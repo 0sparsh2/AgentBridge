@@ -12,6 +12,7 @@ from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 from ._sse import async_events, response_events, stream_http
+from ._remote_runs import run_body
 
 
 Transport = Callable[[str, str, dict[str, str], bytes | None], tuple[int, Mapping[str, str], bytes]]
@@ -416,12 +417,11 @@ class LangSmithAPIClient:
         input: Any,
         stream: bool = False,
         command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> Any:
         """Async start of a non-streaming or SSE thread run."""
 
-        body = {"assistant_id": assistant_id, "input": input}
-        if command is not None:
-            body["command"] = dict(command)
+        body = run_body(assistant_id, input, command=command, run_options=run_options)
         if stream:
             return self.astream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
         return await self.arequest_json("POST", f"/threads/{thread_id}/runs", body=body)
@@ -456,11 +456,19 @@ class LangSmithAPIClient:
 
         return await self.arequest_json("GET", f"/threads/{thread_id}/runs/{run_id}/join")
 
-    async def ajoin_run_stream(self, thread_id: str, run_id: str) -> AsyncIterator[dict[str, Any]]:
+    async def ajoin_run_stream(
+        self, thread_id: str, run_id: str, *, last_event_id: str | None = None,
+        stream_mode: str | list[str] | None = None, cancel_on_disconnect: bool = False,
+    ) -> AsyncIterator[dict[str, Any]]:
         """Async stream for the final result of one thread run."""
 
-        async for event in self.astream_events("GET", f"/threads/{thread_id}/runs/{run_id}/join"):
-            yield event
+        async with aclosing(self.astream_events(
+            "GET", f"/threads/{thread_id}/runs/{run_id}/stream",
+            query={"stream_mode": stream_mode, "cancel_on_disconnect": cancel_on_disconnect},
+            headers={"Last-Event-ID": last_event_id} if last_event_id is not None else None,
+        )) as events:
+            async for event in events:
+                yield event
 
     async def acancel_runs(
         self,
@@ -1537,13 +1545,15 @@ class LangSmithAPIClient:
         *,
         assistant_id: str,
         input: Any,
+        command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> Iterator[dict[str, Any]]:
         """Stream a deployed LangGraph run through the native SSE endpoint."""
 
         return self.stream_events(
             "POST",
             f"/threads/{thread_id}/runs/stream",
-            body={"assistant_id": assistant_id, "input": input},
+            body=run_body(assistant_id, input, command=command, run_options=run_options),
         )
 
     def create_assistant(self, *, graph_id: str, config: Mapping[str, Any] | None = None) -> Any:
@@ -1625,12 +1635,11 @@ class LangSmithAPIClient:
         input: Any,
         stream: bool = False,
         command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> Any:
         """Start a non-streaming or streaming thread run."""
 
-        body = {"assistant_id": assistant_id, "input": input}
-        if command is not None:
-            body["command"] = dict(command)
+        body = run_body(assistant_id, input, command=command, run_options=run_options)
         if stream:
             return self.stream_events("POST", f"/threads/{thread_id}/runs/stream", body=body)
         return self.request_json("POST", f"/threads/{thread_id}/runs", body=body)
@@ -1793,10 +1802,17 @@ class LangSmithAPIClient:
 
         return self.request_json("GET", f"/threads/{thread_id}/runs/{run_id}/join")
 
-    def join_run_stream(self, thread_id: str, run_id: str) -> Iterator[dict[str, Any]]:
+    def join_run_stream(
+        self, thread_id: str, run_id: str, *, last_event_id: str | None = None,
+        stream_mode: str | list[str] | None = None, cancel_on_disconnect: bool = False,
+    ) -> Iterator[dict[str, Any]]:
         """Stream a persisted thread run to completion."""
 
-        return self.stream_events("GET", f"/threads/{thread_id}/runs/{run_id}/join")
+        return self.stream_events(
+            "GET", f"/threads/{thread_id}/runs/{run_id}/stream",
+            query={"stream_mode": stream_mode, "cancel_on_disconnect": cancel_on_disconnect},
+            headers={"Last-Event-ID": last_event_id} if last_event_id is not None else None,
+        )
 
     def cancel_runs(self, thread_id: str, *, body: Mapping[str, Any] | None = None) -> Any:
         """Cancel multiple active runs in a thread."""

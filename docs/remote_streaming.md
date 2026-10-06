@@ -3,6 +3,10 @@
 Use `RemoteGraphClient` to consume a deployed LangGraph or Agent Server graph through AgentBridge
 events. Install the `agentbridge-langchain` plugin and set `LANGSMITH_API_KEY` in your environment.
 The API client's `base_url` must point to your Agent Server deployment.
+Run-option and reconnect request shapes were reviewed against the installed `langgraph-sdk==0.4.4`
+implementation. These helpers do not require that SDK package at runtime. The tests verify request
+serialization and local streaming behavior; hosted checkpoint replay and event-retention behavior
+still require the credentialed deployment lane.
 
 ## Receive Events As They Arrive
 
@@ -61,6 +65,58 @@ The decision is sent in the top-level run `command` field. Its shape follows the
 interrupt schema. For streaming resumes, use `api.create_thread_run(..., input=None,
 command={"resume": decision}, stream=True)` or its async counterpart.
 
+## Native Run Options And Checkpoint Replay
+
+`stream()`, `astream()`, `run()`, and `arun()` accept `run_options`. These fields go into the
+native Agent Server request without discarding provider or server-specific settings:
+
+```python
+result = remote.run(
+    thread_id="existing-thread-id",
+    assistant_id="agent",
+    input=None,
+    run_options={
+        "checkpoint": {"checkpoint_id": "saved-checkpoint-id", "checkpoint_ns": ""},
+        "stream_mode": ["values", "messages"],
+        "stream_resumable": True,
+        "durability": "sync",
+        "context": {"customer_id": "123"},
+        "metadata": {"project": "refunds"},
+        "interrupt_before": ["issue_refund"],
+    },
+)
+```
+
+Using `input=None` with a saved checkpoint replays from that snapshot. Execution may repeat
+downstream model/tool calls; the server and graph determine persistence and side effects. Use
+`command={"resume": decision}` for an interrupt response instead. Supply `assistant_id`, `input`,
+and `command` directly, since `run_options` rejects overriding those fields. Other options such
+as `config`, `on_disconnect`, `on_completion`, `webhook`, and `multitask_strategy` are preserved.
+The server validates them against its version and configuration.
+
+## Reconnect An Existing Run
+
+Start a run with `run_options={"stream_resumable": True}`. Keep the native `run_id` from the
+metadata event and the latest `sse_id` from received event metadata. Reconnect explicitly:
+
+```python
+with closing(remote.reconnect(
+    thread_id="existing-thread-id",
+    run_id="saved-run-id",
+    last_event_id="saved-sse-id",
+    stream_mode=["values", "messages"],
+)) as events:
+    for event in events:
+        print(event.type, event.data)
+```
+
+`areconnect()` provides the matching async iterator. Reconnecting joins the existing run at
+`/threads/{thread_id}/runs/{run_id}/stream`; it does not submit a new run. It sends `Last-Event-ID`
+and preserves requested stream modes. Modes must be a subset of the original run's modes.
+`cancel_on_disconnect` defaults to `False`; set it explicitly if disconnecting should cancel the
+run. Server retention and resumability settings determine whether old events can be replayed.
+Automatic reconnect/retry policies remain application-owned.
+
 ## Run The Example
 
 The wire-format demo needs no keys or network access:
@@ -68,6 +124,8 @@ The wire-format demo needs no keys or network access:
 ```bash
 uv run python examples/remote_graph_stream.py
 uv run python examples/remote_graph_stream.py --async --max-events 2
+uv run python examples/remote_graph_stream.py --resumable --stream-mode values messages
+uv run python examples/remote_graph_stream.py --run-id demo --last-event-id demo-1 --async
 ```
 
 To execute a deployed graph, supply its URL, assistant, and an existing thread:

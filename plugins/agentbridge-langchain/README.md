@@ -362,6 +362,9 @@ streams complete frames as they arrive; async calls read one frame at a time off
 Injected legacy transports returning bytes remain buffered. Use `closing()`/`aclosing()` to
 release the response when ending a stream early. See the
 [remote streaming guide](../../docs/remote_streaming.md) for examples and cancellation semantics.
+Remote execution accepts `run_options` for native checkpoint, context, durability, interrupt,
+stream-mode, resumability, and governance fields. `reconnect()`/`areconnect()` join an existing run
+stream with `Last-Event-ID` and selected stream modes, without starting a replacement run.
 Remote results retain the last full `values` state when an empty `end` frame arrives. Error events
 set `RunResult.metadata.status` to `error` and do not synthesize a success completion event.
 

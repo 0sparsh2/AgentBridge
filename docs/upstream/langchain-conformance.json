@@ -89,6 +89,16 @@
       "test": "plugins/agentbridge-langchain/tests/test_sse.py::test_http_stream_delivers_first_frame_before_response_finishes"
     },
     {
+      "name": "remote_native_run_options",
+      "surfaces": ["checkpoint replay request", "stream modes/resumability", "durability/context/config/metadata/interrupt options", "sync/async parity"],
+      "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_run_options_and_checkpoint_replay_preserve_sync_async_request_bodies"
+    },
+    {
+      "name": "remote_reconnect",
+      "surfaces": ["existing run stream endpoint", "Last-Event-ID header", "stream modes", "disconnect cancellation policy", "sync/async parity"],
+      "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_remote_reconnect_uses_existing_run_stream_with_last_event_id"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

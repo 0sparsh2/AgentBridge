@@ -1,5 +1,8 @@
 import asyncio
 import json
+from urllib.parse import parse_qs, urlparse
+
+import pytest
 
 from agentbridge_langchain.langsmith_api import LangSmithAPIClient
 from agentbridge_langchain.remote_graph import RemoteGraphClient
@@ -442,5 +445,115 @@ def test_remote_stream_close_releases_sync_and_async_native_streams():
         assert (await anext(events)).data["content"] == "first"
         await events.aclose()
         assert closed == ["sync", "async"]
+
+    asyncio.run(collect())
+
+
+def test_remote_run_options_and_checkpoint_replay_preserve_sync_async_request_bodies():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, json.loads(body)))
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: values\ndata: {"eligible":true}\n\nevent: end\ndata: null\n\n'
+        )
+
+    api = LangSmithAPIClient(api_key="test", transport=transport)
+    remote = RemoteGraphClient(api)
+    options = {
+        "stream_mode": ["values", "messages"], "stream_resumable": True,
+        "checkpoint": {"checkpoint_id": "cp-1", "checkpoint_ns": "review"},
+        "context": {"customer": "123"}, "metadata": {"project": "refunds"},
+        "config": {"configurable": {"policy": "refund"}}, "durability": "sync",
+        "interrupt_before": ["issue_refund"], "on_disconnect": "continue",
+    }
+    decision = {"resume": {"approved": True}}
+    result = remote.run(
+        thread_id="thread-1", assistant_id="agent", input=None,
+        command=decision, run_options=options,
+    )
+
+    async def collect():
+        return await remote.arun(
+            thread_id="thread-1", assistant_id="agent", input=None,
+            command=decision, run_options=options,
+        )
+
+    assert result.output == asyncio.run(collect()).output == {"eligible": True}
+    expected = {"assistant_id": "agent", "input": None, "command": decision, **options}
+    assert [call[2] for call in calls] == [expected, expected]
+    assert "assistant_id" not in options
+
+
+@pytest.mark.parametrize("reserved", ["assistant_id", "input", "command"])
+def test_remote_run_options_reject_reserved_overrides_before_transport(reserved):
+    def transport(*args):
+        raise AssertionError("invalid request reached transport")
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    with pytest.raises(ValueError, match="reserved fields"):
+        remote.run(thread_id="thread-1", assistant_id="agent", input={},
+                   run_options={reserved: "override"})
+
+    async def collect():
+        return await remote.arun(thread_id="thread-1", assistant_id="agent", input={},
+                                 run_options={reserved: "override"})
+
+    with pytest.raises(ValueError, match="reserved fields"):
+        asyncio.run(collect())
+
+
+def test_remote_reconnect_uses_existing_run_stream_with_last_event_id():
+    calls = []
+
+    def transport(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        return 200, {"content-type": "text/event-stream"}, (
+            b'event: messages\nid: run-1-3\ndata: {"content":"resumed stream"}\n\n'
+        )
+
+    remote = RemoteGraphClient(LangSmithAPIClient(api_key="test", transport=transport))
+    args = {
+        "thread_id": "thread-1", "run_id": "run-1", "last_event_id": "run-1-2",
+        "stream_mode": ["values", "messages"], "cancel_on_disconnect": True,
+    }
+    events = list(remote.reconnect(**args))
+
+    async def collect():
+        return [event async for event in remote.areconnect(**args)]
+
+    assert events[0].model_dump() == asyncio.run(collect())[0].model_dump()
+    assert events[0].metadata["sse_id"] == "run-1-3"
+    for method, url, headers, body in calls:
+        parsed = urlparse(url)
+        assert method == "GET"
+        assert parsed.path == "/threads/thread-1/runs/run-1/stream"
+        assert parse_qs(parsed.query) == {
+            "stream_mode": ["values", "messages"], "cancel_on_disconnect": ["True"]
+        }
+        assert headers["Last-Event-ID"] == "run-1-2"
+        assert body is None
+
+
+def test_async_sync_only_client_streams_without_collecting_later_frames():
+    closed = []
+
+    class Client:
+        def stream_thread_run(self, thread_id, *, assistant_id, input, run_options=None):
+            assert run_options == {"stream_resumable": True}
+            try:
+                yield {"event": "messages", "data": {"content": "first"}}
+                raise AssertionError("sync compatibility path collected the rest of the stream")
+            finally:
+                closed.append(True)
+
+    async def collect():
+        events = RemoteGraphClient(Client()).astream(
+            thread_id="thread-1", assistant_id="agent", input={},
+            run_options={"stream_resumable": True},
+        )
+        assert (await anext(events)).data["content"] == "first"
+        await events.aclose()
+        assert closed == [True]
 
     asyncio.run(collect())

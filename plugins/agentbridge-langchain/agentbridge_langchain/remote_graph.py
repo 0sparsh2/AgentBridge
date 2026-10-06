@@ -9,6 +9,8 @@ from typing import Any
 from agentbridge.types import AgentEvent, RunResult
 
 from .langsmith_api import LangSmithAPIClient
+from ._remote_runs import run_body
+from ._sse import async_events
 
 
 class RemoteGraphClient:
@@ -238,11 +240,20 @@ class RemoteGraphClient:
         thread_id: str,
         assistant_id: str,
         input: Any,
+        command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> Iterator[AgentEvent]:
+        # Omit new keywords when unused to retain compatibility with older client implementations.
+        options = {}
+        if command is not None:
+            options["command"] = command
+        if run_options is not None:
+            options["run_options"] = run_options
         with closing(self.client.stream_thread_run(
             thread_id,
             assistant_id=assistant_id,
             input=input,
+            **options,
         )) as events:
             for payload in events:
                 yield _normalize_remote_event(payload)
@@ -253,6 +264,8 @@ class RemoteGraphClient:
         thread_id: str,
         assistant_id: str,
         input: Any,
+        command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> AsyncIterator[AgentEvent]:
         """Stream a remote graph without blocking the application event loop."""
 
@@ -261,19 +274,21 @@ class RemoteGraphClient:
             async with aclosing(native_stream(
                 "POST",
                 f"/threads/{thread_id}/runs/stream",
-                body={"assistant_id": assistant_id, "input": input},
+                body=run_body(assistant_id, input, command=command, run_options=run_options),
             )) as events:
                 async for payload in events:
                     yield _normalize_remote_event(payload)
             return
 
-        for event in await _collect_sync_stream(
-            self,
+        async with aclosing(async_events(self.stream(
             thread_id=thread_id,
             assistant_id=assistant_id,
             input=input,
-        ):
-            yield event
+            command=command,
+            run_options=run_options,
+        ))) as events:
+            async for event in events:
+                yield event
 
     def run(
         self,
@@ -281,8 +296,13 @@ class RemoteGraphClient:
         thread_id: str,
         assistant_id: str,
         input: Any,
+        command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> RunResult:
-        events = list(self.stream(thread_id=thread_id, assistant_id=assistant_id, input=input))
+        events = list(self.stream(
+            thread_id=thread_id, assistant_id=assistant_id, input=input,
+            command=command, run_options=run_options,
+        ))
         output = _output_from_events(events)
         failed = any(event.type == "error" for event in events)
         if not failed and (not events or events[-1].type != "complete"):
@@ -303,6 +323,8 @@ class RemoteGraphClient:
         thread_id: str,
         assistant_id: str,
         input: Any,
+        command: Mapping[str, Any] | None = None,
+        run_options: Mapping[str, Any] | None = None,
     ) -> RunResult:
         """Run a remote graph through its async event stream."""
 
@@ -312,6 +334,8 @@ class RemoteGraphClient:
                 thread_id=thread_id,
                 assistant_id=assistant_id,
                 input=input,
+                command=command,
+                run_options=run_options,
             )
         ]
         output = _output_from_events(events)
@@ -497,6 +521,32 @@ class RemoteGraphClient:
 
         return await _async_client_call(self.client, "ajoin_run", "join_run", thread_id, run_id)
 
+    def reconnect(
+        self, *, thread_id: str, run_id: str, last_event_id: str | None = None,
+        stream_mode: str | list[str] | None = None, cancel_on_disconnect: bool = False,
+    ) -> Iterator[AgentEvent]:
+        """Rejoin an existing resumable run without starting another run."""
+
+        with closing(self.client.join_run_stream(
+            thread_id, run_id, last_event_id=last_event_id, stream_mode=stream_mode,
+            cancel_on_disconnect=cancel_on_disconnect,
+        )) as events:
+            for event in events:
+                yield _normalize_remote_event(event)
+
+    async def areconnect(
+        self, *, thread_id: str, run_id: str, last_event_id: str | None = None,
+        stream_mode: str | list[str] | None = None, cancel_on_disconnect: bool = False,
+    ) -> AsyncIterator[AgentEvent]:
+        """Async rejoin for an existing resumable run."""
+
+        async with aclosing(self.client.ajoin_run_stream(
+            thread_id, run_id, last_event_id=last_event_id, stream_mode=stream_mode,
+            cancel_on_disconnect=cancel_on_disconnect,
+        )) as events:
+            async for event in events:
+                yield _normalize_remote_event(event)
+
     def cancel_run(self, *, thread_id: str, run_id: str) -> Any:
         """Cancel one remote run."""
 
@@ -558,22 +608,6 @@ def _output_from_events(events: list[AgentEvent]) -> Any:
         if event.type != "error" and event.data != {"value": None}:
             return event.data
     return None
-
-
-async def _collect_sync_stream(
-    client: RemoteGraphClient,
-    *,
-    thread_id: str,
-    assistant_id: str,
-    input: Any,
-) -> list[AgentEvent]:
-    """Use the existing sync client as an explicit compatibility fallback."""
-
-    import asyncio
-
-    return await asyncio.to_thread(
-        lambda: list(client.stream(thread_id=thread_id, assistant_id=assistant_id, input=input))
-    )
 
 
 async def _async_client_call(
