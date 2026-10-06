@@ -23,10 +23,11 @@ jobs:
           python -m pip install -e ".[dev,langgraph]" -e plugins/agentbridge-langchain
       - name: Run LangChain and remote transport conformance
         run: python -m pytest -q plugins/agentbridge-langchain/tests
-      - name: Run offline streaming and approval examples
+      - name: Run offline streaming, approval, and evaluation examples
         run: |
           python examples/remote_graph_stream.py --async --max-events 2
           python examples/remote_graph_approval.py
+          python examples/langfuse_typed_evaluation.py
 
   test:
     runs-on: ubuntu-latest

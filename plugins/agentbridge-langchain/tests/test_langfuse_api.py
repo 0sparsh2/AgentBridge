@@ -1,11 +1,91 @@
 import asyncio
 import json
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
 from agentbridge_langchain.langfuse_api import LangfuseAPIClient
 from agentbridge_langchain import afetch_prompt as exported_afetch_prompt
 from agentbridge_langchain.langfuse_prompts import fetch_prompt
+
+
+def test_sync_async_score_exports_preserve_typed_values_subjects_and_filters():
+    queries = []
+    records = [
+        {"id": "score-1", "dataType": "BOOLEAN", "value": False,
+         "subject": {"kind": "trace", "id": "trace-1"}},
+        {"id": "score-2", "dataType": "CATEGORICAL", "value": "approved"},
+        {"id": "score-3", "dataType": "TEXT", "value": ""},
+    ]
+
+    def transport(method, url, headers, body):
+        assert method == "GET"
+        parsed = urlparse(url)
+        assert parsed.path == "/api/public/v3/scores"
+        query = parse_qs(parsed.query)
+        queries.append(query)
+        second = query.get("cursor") == ["next"]
+        page = {"data": records[1:] if second else records[:1],
+                "meta": {"cursor": None if second else "next"}}
+        return 200, {"content-type": "application/json"}, json.dumps(page).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    filters = {"experimentId": "run-a,run-b", "fields": "details,subject", "limit": 100}
+    assert list(client.iter_scores_v3(query=filters)) == records
+
+    async def collect():
+        return [item async for item in client.aiter_scores_v3(query=filters)]
+
+    assert asyncio.run(collect()) == records
+    assert "cursor" not in filters
+    assert len(queries) == 4
+    for query in queries:
+        assert query["experimentId"] == ["run-a,run-b"]
+        assert query["fields"] == ["details,subject"]
+        assert query["limit"] == ["100"]
+
+
+@pytest.mark.parametrize("initial_cursor", [None, "a"])
+def test_sync_async_score_exports_reject_cursor_cycles(initial_cursor):
+    calls = []
+
+    def transport(method, url, headers, body):
+        cursor = parse_qs(urlparse(url).query).get("cursor", [None])[0]
+        calls.append(cursor)
+        next_cursor = {None: "a", "a": "b", "b": "a"}[cursor]
+        page = {"data": [{"id": str(cursor)}], "meta": {"cursor": next_cursor}}
+        return 200, {"content-type": "application/json"}, json.dumps(page).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    query = {"cursor": initial_cursor} if initial_cursor else None
+    with pytest.raises(RuntimeError, match="export is incomplete"):
+        list(client.iter_scores_v3(query=query))
+    expected = [None, "a", "b"] if initial_cursor is None else ["a", "b"]
+    assert calls == expected
+    calls.clear()
+
+    async def collect():
+        return [item async for item in client.aiter_scores_v3(query=query)]
+
+    with pytest.raises(RuntimeError, match="export is incomplete"):
+        asyncio.run(collect())
+    assert calls == expected
+
+
+@pytest.mark.parametrize("page", [None, {"data": [None]}, {"data": [], "meta": {"cursor": []}}])
+def test_score_exports_reject_malformed_pages_instead_of_succeeding_with_no_records(page):
+    def transport(method, url, headers, body):
+        return 200, {"content-type": "application/json"}, json.dumps(page).encode()
+
+    client = LangfuseAPIClient(public_key="pk", secret_key="sk", transport=transport)
+    with pytest.raises(RuntimeError, match="export is incomplete"):
+        list(client.iter_scores_v3())
+
+    async def collect():
+        return [item async for item in client.aiter_scores_v3()]
+
+    with pytest.raises(RuntimeError, match="export is incomplete"):
+        asyncio.run(collect())
 
 
 def test_langfuse_api_client_supports_json_and_sse_without_secrets_in_output():

@@ -107,6 +107,12 @@ AgentBridge adapter plugin for `langchain`.
 - Async `afetch_prompt()` provides the same version/label retrieval and compilation bridge without
   blocking an async application.
 - Langfuse evaluation bridge for publishing `EvaluationExample` datasets and normalized report scores.
+- Report publication preserves explicit evaluator values, comments, and metadata, including
+  false booleans, zero, and empty text. `score_types` supports categorical strings; dataset
+  publication preserves example metadata. Scalar validation runs before score writes begin.
+- Sync `iter_scores_v3()` and async `aiter_scores_v3()` preserve typed values, subjects, and
+  caller filters, and reject cursor cycles or malformed pages rather than reporting a complete
+  export. See `examples/langfuse_typed_evaluation.py` for an offline publish/export round trip.
 - The evaluation bridge also exposes async `apublish_dataset()` and `apublish_report_scores()`
   helpers for fully asynchronous evaluation pipelines.
 - These async evaluation helpers are exported from the plugin package as

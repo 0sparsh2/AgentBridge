@@ -58,3 +58,67 @@ That integration must preserve the following fields when publishing a run:
 
 This makes a local CI report and a LangSmith experiment comparable without
 making hosted LangSmith a required runtime dependency.
+
+## Langfuse Typed Publication And Export
+
+The LangChain plugin publishes reports to Langfuse and exports them through
+the [Scores v3 API](https://langfuse.com/docs/api-and-data-platform/features/public-api).
+Install the plugin before using these helpers:
+
+```bash
+python -m pip install -e plugins/agentbridge-langchain
+python examples/langfuse_typed_evaluation.py
+```
+
+The example uses an injected transport, not a hosted API. It demonstrates
+numeric, boolean, categorical, and text scores, trace subjects, metadata,
+paginated export, and matching synchronous/asynchronous results without keys.
+
+For a hosted project, configure `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY`,
+and pass your regional or self-hosted URL as `base_url` when constructing the
+client. Then publish an existing report:
+
+```python
+from agentbridge_langchain import LangfuseAPIClient, publish_report_scores
+
+client = LangfuseAPIClient(base_url="https://cloud.langfuse.com")
+published = publish_report_scores(
+    report,
+    trace_ids={0: "existing-trace-id"},
+    score_types={"verdict": "CATEGORICAL"},
+    client=client,
+)
+scores = list(client.iter_scores_v3(query={"fields": "details,subject"}))
+```
+
+`EvaluationScore.value` takes precedence over `score` when present. Booleans,
+strings, and numbers infer `BOOLEAN`, `TEXT`, and `NUMERIC`, respectively;
+use `score_types` for categorical strings. Comments and score metadata are
+preserved, as is example metadata when publishing datasets. Scores without a
+value and cases without a mapped trace ID are skipped.
+
+Publishable values are checked for scalar types before any score writes start.
+This is not a transaction: network or server validation failures can leave
+earlier scores published. The report helper does not assign idempotency IDs;
+use the lower-level `create_score()` when controlling retry identity or other
+native score targets and options.
+
+Async pipelines use `apublish_report_scores()` and `aiter_scores_v3()`:
+
+```python
+from agentbridge_langchain import apublish_report_scores
+
+async def publish_and_export(report, client):
+    await apublish_report_scores(
+        report, trace_ids={0: "existing-trace-id"}, client=client,
+        score_types={"verdict": "CATEGORICAL"},
+    )
+    return [score async for score in client.aiter_scores_v3(
+        query={"fields": "details,subject", "experimentId": "experiment-id"},
+    )]
+```
+
+Both iterators preserve caller filters, follow opaque server cursors, and raise
+an explicit incomplete-export error for cursor cycles or malformed pages.
+Records already yielded before an error are partial results, not a complete
+export. Request suitable filters to avoid exporting the whole project.

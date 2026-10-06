@@ -109,6 +109,16 @@
       "test": "plugins/agentbridge-langchain/tests/test_remote_graph.py::test_native_static_breakpoint_is_interrupted_with_no_approval_payload"
     },
     {
+      "name": "langfuse_typed_evaluation_round_trip",
+      "surfaces": ["typed report publication", "score metadata", "trace subjects", "sync/async parity", "injected transport example"],
+      "test": "plugins/agentbridge-langchain/tests/test_langfuse_evaluation.py::test_typed_evaluation_example_round_trips_sync_async_scores_and_subjects"
+    },
+    {
+      "name": "langfuse_score_export",
+      "surfaces": ["Scores v3 pagination", "typed values and subjects", "caller filters", "sync/async parity"],
+      "test": "plugins/agentbridge-langchain/tests/test_langfuse_api.py::test_sync_async_score_exports_preserve_typed_values_subjects_and_filters"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"

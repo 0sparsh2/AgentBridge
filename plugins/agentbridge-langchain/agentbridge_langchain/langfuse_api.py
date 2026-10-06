@@ -136,16 +136,16 @@ class LangfuseAPIClient:
         """Iterate through all Scores API v3 pages using its cursor contract."""
 
         page_query = dict(query or {})
+        seen_cursors = {page_query["cursor"]} if page_query.get("cursor") else set()
         while True:
             page = self.list_scores_v3(query=page_query)
-            if not isinstance(page, Mapping):
+            items, cursor = _score_page(page)
+            yield from items
+            if not cursor:
                 return
-            for item in page.get("data", []) or []:
-                if isinstance(item, dict):
-                    yield item
-            cursor = (page.get("meta") or {}).get("cursor")
-            if not cursor or cursor == page_query.get("cursor"):
-                return
+            if cursor in seen_cursors:
+                raise RuntimeError("Langfuse score pagination repeated a cursor; export is incomplete.")
+            seen_cursors.add(cursor)
             page_query["cursor"] = cursor
 
     async def arequest_json(
@@ -239,6 +239,25 @@ class LangfuseAPIClient:
         """Async query facade for typed Langfuse Scores API v3."""
 
         return await self.arequest_json("GET", "/api/public/v3/scores", query=query)
+
+    async def aiter_scores_v3(
+        self, *, query: Mapping[str, Any] | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        """Export typed Scores v3 records, preserving filters and detecting cursor cycles."""
+
+        page_query = dict(query or {})
+        seen_cursors = {page_query["cursor"]} if page_query.get("cursor") else set()
+        while True:
+            page = await self.alist_scores_v3(query=page_query)
+            items, cursor = _score_page(page)
+            for item in items:
+                yield item
+            if not cursor:
+                return
+            if cursor in seen_cursors:
+                raise RuntimeError("Langfuse score pagination repeated a cursor; export is incomplete.")
+            seen_cursors.add(cursor)
+            page_query["cursor"] = cursor
 
     async def aget_score(self, score_id: str, *, fields: str | None = None) -> Any:
         """Async current-v4 score lookup."""
@@ -997,6 +1016,23 @@ class LangfuseAPIClient:
             request_headers.setdefault("Content-Type", "application/json")
         transport = self._stream_transport if stream else self._transport
         return transport(method.upper(), url, request_headers, encoded_body)
+
+
+def _score_page(page: Any) -> tuple[list[dict[str, Any]], str | None]:
+    """Reject malformed score pages rather than reporting a truncated export as complete."""
+
+    if not isinstance(page, Mapping) or not isinstance(page.get("data"), list):
+        raise RuntimeError("Invalid Langfuse score page; export is incomplete.")
+    items = page["data"]
+    if not all(isinstance(item, dict) for item in items):
+        raise RuntimeError("Invalid Langfuse score record; export is incomplete.")
+    meta = page.get("meta", {})
+    if not isinstance(meta, Mapping):
+        raise RuntimeError("Invalid Langfuse score metadata; export is incomplete.")
+    cursor = meta.get("cursor")
+    if cursor is not None and not isinstance(cursor, str):
+        raise RuntimeError("Invalid Langfuse score cursor; export is incomplete.")
+    return items, cursor
 
 
 def _default_transport(method: str, url: str, headers: dict[str, str], body: bytes | None):
