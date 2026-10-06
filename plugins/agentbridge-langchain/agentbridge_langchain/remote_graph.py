@@ -39,6 +39,64 @@ class RemoteGraphClient:
             raise ValueError("Remote graph thread response did not include thread_id or id.")
         return str(thread_id)
 
+    def thread(self, thread_id: str) -> Any:
+        """Read the native remote thread record."""
+
+        return self.client.get_thread(thread_id)
+
+    async def athread(self, thread_id: str) -> Any:
+        """Async read for the native remote thread record."""
+
+        return await _async_client_call(self.client, "aget_thread", "get_thread", thread_id)
+
+    def history(self, thread_id: str, *, limit: int | None = None) -> Any:
+        """Read persisted messages/checkpoints for a remote thread."""
+
+        if limit is None:
+            return self.client.get_thread_history(thread_id)
+        return self.client.get_thread_history(thread_id, limit=limit)
+
+    async def ahistory(self, thread_id: str, *, limit: int | None = None) -> Any:
+        """Async read for persisted remote thread history."""
+
+        if limit is None:
+            return await _async_client_call(
+                self.client, "aget_thread_history", "get_thread_history", thread_id
+            )
+        return await _async_client_call(
+            self.client,
+            "aget_thread_history",
+            "get_thread_history",
+            thread_id,
+            limit=limit,
+        )
+
+    def copy_thread(self, thread_id: str) -> Any:
+        """Copy a remote thread using the server's native persistence semantics."""
+
+        return self.client.copy_thread(thread_id)
+
+    async def acopy_thread(self, thread_id: str) -> Any:
+        """Async copy for a remote thread."""
+
+        return await _async_client_call(self.client, "acopy_thread", "copy_thread", thread_id)
+
+    def prune_threads(self, *, thread_ids: list[str], strategy: str) -> Any:
+        """Prune remote checkpoints/threads with the server-native strategy."""
+
+        return self.client.prune_threads(thread_ids=thread_ids, strategy=strategy)
+
+    async def aprune_threads(self, *, thread_ids: list[str], strategy: str) -> Any:
+        """Async prune for remote checkpoints/threads."""
+
+        return await _async_client_call(
+            self.client,
+            "aprune_threads",
+            "prune_threads",
+            thread_ids=thread_ids,
+            strategy=strategy,
+        )
+
     def stream(
         self,
         *,
@@ -130,6 +188,39 @@ class RemoteGraphClient:
 
         return self.client.get_thread_state(thread_id, checkpoint_id=checkpoint_id)
 
+    def state_at_checkpoint(
+        self,
+        thread_id: str,
+        checkpoint_id: str,
+        *,
+        subgraphs: bool | None = None,
+    ) -> Any:
+        """Read state at a specific checkpoint, retaining native subgraph options."""
+
+        return self.client.get_thread_state_at_checkpoint(
+            thread_id,
+            checkpoint_id,
+            subgraphs=subgraphs,
+        )
+
+    async def astate_at_checkpoint(
+        self,
+        thread_id: str,
+        checkpoint_id: str,
+        *,
+        subgraphs: bool | None = None,
+    ) -> Any:
+        """Async read of state at a specific checkpoint."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_thread_state_at_checkpoint",
+            "get_thread_state_at_checkpoint",
+            thread_id,
+            checkpoint_id,
+            subgraphs=subgraphs,
+        )
+
     async def astate(self, thread_id: str, *, checkpoint_id: str | None = None) -> Any:
         """Async read for remote graph state."""
 
@@ -190,6 +281,68 @@ class RemoteGraphClient:
             assistant_id=assistant_id,
             input={"command": {"resume": resume_value}},
         )
+
+    def run_record(self, *, thread_id: str, run_id: str) -> Any:
+        """Read one persisted remote run record."""
+
+        return self.client.get_run(thread_id, run_id)
+
+    async def arun_record(self, *, thread_id: str, run_id: str) -> Any:
+        """Async read for one persisted remote run record."""
+
+        return await _async_client_call(
+            self.client,
+            "aget_run",
+            "get_run",
+            thread_id,
+            run_id,
+        )
+
+    def run_events(self, *, thread_id: str, run_id: str) -> Any:
+        """Read persisted events for one remote run."""
+
+        return self.client.list_run_events(thread_id, run_id)
+
+    async def arun_events(self, *, thread_id: str, run_id: str) -> Any:
+        """Async read for persisted events for one remote run."""
+
+        return await _async_client_call(
+            self.client,
+            "alist_run_events",
+            "list_run_events",
+            thread_id,
+            run_id,
+        )
+
+    def join_run(self, *, thread_id: str, run_id: str) -> Any:
+        """Wait for and return a remote run's final native response."""
+
+        return self.client.join_run(thread_id, run_id)
+
+    async def ajoin_run(self, *, thread_id: str, run_id: str) -> Any:
+        """Async wait for a remote run's final native response."""
+
+        return await _async_client_call(self.client, "ajoin_run", "join_run", thread_id, run_id)
+
+    def cancel_run(self, *, thread_id: str, run_id: str) -> Any:
+        """Cancel one remote run."""
+
+        return self.client.cancel_run(thread_id, run_id)
+
+    async def acancel_run(self, *, thread_id: str, run_id: str) -> Any:
+        """Async cancellation for one remote run."""
+
+        return await _async_client_call(self.client, "acancel_run", "cancel_run", thread_id, run_id)
+
+    def delete_run(self, *, thread_id: str, run_id: str) -> Any:
+        """Delete one persisted remote run."""
+
+        return self.client.delete_run(thread_id, run_id)
+
+    async def adelete_run(self, *, thread_id: str, run_id: str) -> Any:
+        """Async deletion for one persisted remote run."""
+
+        return await _async_client_call(self.client, "adelete_run", "delete_run", thread_id, run_id)
 
 
 def _normalize_remote_event(payload: Mapping[str, Any]) -> AgentEvent:
