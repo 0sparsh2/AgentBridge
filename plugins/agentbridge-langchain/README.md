@@ -119,6 +119,10 @@ AgentBridge adapter plugin for `langchain`.
 - Report publishers accept `score_config_ids` to connect evaluator dimensions to native score
   configs. `examples/langfuse_review_queue.py` exercises a stateful offline review workflow;
   annotation queues are evaluation governance, not interrupted-agent approval/resume.
+- LangSmith Agent Auth, Fleet connection-token, and annotation queue/run identifiers are encoded
+  as single URL path segments and reject empty/traversal IDs before requests. See
+  `examples/langsmith_governance_security.py`; provider OAuth scopes and hosted authorization
+  remain LangSmith controls.
 - Report publication preserves explicit evaluator values, comments, and metadata, including
   false booleans, zero, and empty text. `score_types` supports categorical strings; dataset
   publication preserves example metadata. Scalar validation runs before score writes begin.

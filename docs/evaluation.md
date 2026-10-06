@@ -250,3 +250,33 @@ example uses no hosted service and does not establish production authorization
 or annotation UI behavior. The weekly schema check covers pagination for score
 configs, queues, and queue items, plus the eight adopted governance write
 contracts; it does not cover every Langfuse endpoint.
+
+## LangSmith Governance Identifier Safety
+
+LangSmith Agent Auth connections, Fleet connection-token actions, and annotation
+queue run actions are hosted governance operations. Their identifiers are not
+AgentBridge secrets, but they may be user-controlled or copied from another
+system. AgentBridge encodes each identifier as one URL path segment before
+making these requests, so characters such as `/`, `?`, and `#` cannot change
+the endpoint being addressed.
+
+```python
+from agentbridge_langchain import LangSmithAPIClient
+
+client = LangSmithAPIClient(api_key="...", base_url="https://your-langsmith-api")
+client.create_agent_connection("agent/a?b#c", body={"provider": "github"})
+# POST /v2/auth/agents/agent%2Fa%3Fb%23c/connections
+```
+
+The same rule applies to agent/connection/token IDs and annotation queue/run
+IDs in their lifecycle helpers, including async equivalents. Empty and `.` or
+`..` identifiers are rejected locally before an HTTP request. This does not
+validate authorization, identity ownership, provider OAuth scopes, or hosted
+policy: LangSmith remains authoritative for those controls. Do not put access
+tokens in `AgentSpec`, diagnostics, examples, or logs.
+
+Run the credential-free parity example:
+
+```bash
+python examples/langsmith_governance_security.py
+```

@@ -30,6 +30,7 @@ jobs:
           python examples/langfuse_typed_evaluation.py
           python examples/langfuse_paginated_export.py
           python examples/langfuse_review_queue.py
+          python examples/langsmith_governance_security.py
 
   test:
     runs-on: ubuntu-latest

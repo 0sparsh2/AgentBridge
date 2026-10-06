@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import asyncio
 
+import pytest
+
 from agentbridge_langchain.langsmith_api import LangSmithAPIClient, LangSmithControlPlaneClient
 
 
@@ -919,6 +921,74 @@ def test_langsmith_agent_connection_helpers_preserve_agent_scoped_paths():
     assert json.loads(calls[0][2]) == {"provider": "github", "scopes": ["repo"]}
     assert calls[1][1].endswith("/v2/auth/agents/agent-1/connections")
     assert calls[2][1].endswith("/v2/auth/agents/agent-1/connections/connection-1")
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_langsmith_governance_identifiers_are_escaped_as_single_path_segments(asynchronous):
+    calls = []
+
+    def transport(method, url, headers, body):
+        del headers
+        calls.append((method, url, json.loads(body) if body else None))
+        status = 204 if method == "DELETE" else 200
+        return status, {"content-type": "application/json"}, b"" if status == 204 else b'{"ok": true}'
+
+    client = LangSmithAPIClient(api_key="secret", base_url="https://example.test", transport=transport)
+    agent_id, connection_id = "agent/a?b#c", "connection/a?b#c"
+    queue_id, run_id, token_id = "queue/a?b#c", "run/a?b#c", "token/a?b#c"
+    if asynchronous:
+        async def invoke():
+            await client.acreate_agent_connection(agent_id, body={"provider": "github"})
+            await client.aremove_agent_connection(agent_id, connection_id)
+            await client.aupdate_connection_token(token_id, body={"is_default": False})
+            await client.aadd_runs_to_annotation_queue(queue_id, run_ids=[run_id])
+            await client.aremove_run_from_annotation_queue(queue_id, run_id)
+
+        asyncio.run(invoke())
+    else:
+        client.create_agent_connection(agent_id, body={"provider": "github"})
+        client.remove_agent_connection(agent_id, connection_id)
+        client.update_connection_token(token_id, body={"is_default": False})
+        client.add_runs_to_annotation_queue(queue_id, run_ids=[run_id])
+        client.remove_run_from_annotation_queue(queue_id, run_id)
+
+    paths = [url.removeprefix("https://example.test") for _, url, _ in calls]
+    assert paths == [
+        "/v2/auth/agents/agent%2Fa%3Fb%23c/connections",
+        "/v2/auth/agents/agent%2Fa%3Fb%23c/connections/connection%2Fa%3Fb%23c",
+        "/v1/fleet/auth-tokens/token%2Fa%3Fb%23c",
+        "/api/v1/annotation-queues/queue%2Fa%3Fb%23c/runs",
+        "/api/v1/annotation-queues/queue%2Fa%3Fb%23c/runs/run%2Fa%3Fb%23c",
+    ]
+    assert calls[2][2] == {"is_default": False}
+    assert calls[3][2] == [run_id]
+
+
+@pytest.mark.parametrize("identifier", ["", ".", "..", None])
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_langsmith_governance_rejects_invalid_path_identifiers_before_requests(identifier, asynchronous):
+    def transport(*args):
+        pytest.fail("Invalid identifiers must not make HTTP requests")
+
+    client = LangSmithAPIClient(api_key="secret", transport=transport)
+    with pytest.raises(ValueError, match="identifier"):
+        if asynchronous:
+            asyncio.run(client.aremove_agent_connection("agent", identifier))
+        else:
+            client.remove_agent_connection("agent", identifier)
+
+
+def test_langsmith_governance_security_example_preserves_sync_async_paths():
+    from examples.langsmith_governance_security import run_demo
+
+    result = run_demo()
+    assert result["parity"] is True
+    assert result["sync"] == [
+        "/v2/auth/agents/agent%2Fa%3Fb%23c/connections",
+        "/api/v1/annotation-queues/queue%2Fa%3Fb%23c/runs",
+        "/api/v1/annotation-queues/queue%2Fa%3Fb%23c/runs/run%2Fa%3Fb%23c",
+        "/v1/fleet/auth-tokens/token%2Fa%3Fb%23c",
+    ]
 
 
 def test_langsmith_platform_tool_registry_helpers_preserve_id_and_handle_paths():

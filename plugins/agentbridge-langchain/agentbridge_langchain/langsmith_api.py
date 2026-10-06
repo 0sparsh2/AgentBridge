@@ -870,21 +870,21 @@ class LangSmithAPIClient:
 
         return await self.arequest_json(
             "POST",
-            f"/v2/auth/agents/{agent_id}/connections",
+            f"/v2/auth/agents/{_path_id(agent_id)}/connections",
             body=dict(body),
         )
 
     async def alist_agent_connections(self, agent_id: str) -> Any:
         """Async list for Agent Auth connections."""
 
-        return await self.arequest_json("GET", f"/v2/auth/agents/{agent_id}/connections")
+        return await self.arequest_json("GET", f"/v2/auth/agents/{_path_id(agent_id)}/connections")
 
     async def aremove_agent_connection(self, agent_id: str, connection_id: str) -> Any:
         """Async removal for one Agent Auth connection."""
 
         return await self.arequest_json(
             "DELETE",
-            f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
+            f"/v2/auth/agents/{_path_id(agent_id)}/connections/{_path_id(connection_id)}",
         )
 
     async def alist_connection_tokens(
@@ -900,13 +900,13 @@ class LangSmithAPIClient:
         """Async update for connection-token metadata such as label/default."""
 
         return await self.arequest_json(
-            "PATCH", f"/v1/fleet/auth-tokens/{token_id}", body=dict(body)
+            "PATCH", f"/v1/fleet/auth-tokens/{_path_id(token_id)}", body=dict(body)
         )
 
     async def arevoke_connection_token(self, token_id: str) -> Any:
         """Async revoke for one Fleet Agent Auth connection token."""
 
-        return await self.arequest_json("DELETE", f"/v1/fleet/auth-tokens/{token_id}")
+        return await self.arequest_json("DELETE", f"/v1/fleet/auth-tokens/{_path_id(token_id)}")
 
     async def acreate_annotation_queue(
         self,
@@ -939,7 +939,7 @@ class LangSmithAPIClient:
     async def aget_annotation_queue(self, queue_id: str) -> Any:
         """Async fetch one annotation queue."""
 
-        return await self.arequest_json("GET", f"/api/v1/annotation-queues/{queue_id}")
+        return await self.arequest_json("GET", f"/api/v1/annotation-queues/{_path_id(queue_id)}")
 
     async def aupdate_annotation_queue(
         self, queue_id: str, *, body: Mapping[str, Any]
@@ -947,13 +947,13 @@ class LangSmithAPIClient:
         """Async update annotation queue metadata and rubric."""
 
         return await self.arequest_json(
-            "PATCH", f"/api/v1/annotation-queues/{queue_id}", body=dict(body)
+            "PATCH", f"/api/v1/annotation-queues/{_path_id(queue_id)}", body=dict(body)
         )
 
     async def adelete_annotation_queue(self, queue_id: str) -> Any:
         """Async delete one annotation queue."""
 
-        return await self.arequest_json("DELETE", f"/api/v1/annotation-queues/{queue_id}")
+        return await self.arequest_json("DELETE", f"/api/v1/annotation-queues/{_path_id(queue_id)}")
 
     async def aadd_runs_to_annotation_queue(
         self,
@@ -967,9 +967,9 @@ class LangSmithAPIClient:
         if (run_ids is None) == (runs is None):
             raise ValueError("Provide exactly one of run_ids or runs.")
         path = (
-            f"/api/v1/annotation-queues/{queue_id}/runs"
+            f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs"
             if run_ids is not None
-            else f"/api/v1/annotation-queues/{queue_id}/runs/by-key"
+            else f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs/by-key"
         )
         payload: Any = list(run_ids) if run_ids is not None else [dict(run) for run in runs or []]
         return await self.arequest_json("POST", path, body=payload)
@@ -980,21 +980,21 @@ class LangSmithAPIClient:
         """Async list runs assigned to an annotation queue."""
 
         return await self.arequest_json(
-            "GET", f"/api/v1/annotation-queues/{queue_id}/runs", query=query
+            "GET", f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs", query=query
         )
 
     async def aget_annotation_queue_run(self, queue_id: str, index: int) -> Any:
         """Async fetch a queue run by its review index."""
 
         return await self.arequest_json(
-            "GET", f"/api/v1/annotation-queues/{queue_id}/run/{index}"
+            "GET", f"/api/v1/annotation-queues/{_path_id(queue_id)}/run/{index}"
         )
 
     async def aremove_run_from_annotation_queue(self, queue_id: str, run_id: str) -> Any:
         """Async remove one run from an annotation queue."""
 
         return await self.arequest_json(
-            "DELETE", f"/api/v1/annotation-queues/{queue_id}/runs/{run_id}"
+            "DELETE", f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs/{_path_id(run_id)}"
         )
 
     async def acreate_tool(self, *, body: Mapping[str, Any]) -> Any:
@@ -2250,21 +2250,21 @@ class LangSmithAPIClient:
 
         return self.request_json(
             "POST",
-            f"/v2/auth/agents/{agent_id}/connections",
+            f"/v2/auth/agents/{_path_id(agent_id)}/connections",
             body=dict(body),
         )
 
     def list_agent_connections(self, agent_id: str) -> Any:
         """List Agent Auth connections configured for a LangSmith agent."""
 
-        return self.request_json("GET", f"/v2/auth/agents/{agent_id}/connections")
+        return self.request_json("GET", f"/v2/auth/agents/{_path_id(agent_id)}/connections")
 
     def remove_agent_connection(self, agent_id: str, connection_id: str) -> Any:
         """Remove one Agent Auth connection from a LangSmith agent."""
 
         return self.request_json(
             "DELETE",
-            f"/v2/auth/agents/{agent_id}/connections/{connection_id}",
+            f"/v2/auth/agents/{_path_id(agent_id)}/connections/{_path_id(connection_id)}",
         )
 
     def list_connection_tokens(self, *, query: Mapping[str, Any] | None = None) -> Any:
@@ -2276,13 +2276,13 @@ class LangSmithAPIClient:
         """Update connection-token metadata such as label/default."""
 
         return self.request_json(
-            "PATCH", f"/v1/fleet/auth-tokens/{token_id}", body=dict(body)
+            "PATCH", f"/v1/fleet/auth-tokens/{_path_id(token_id)}", body=dict(body)
         )
 
     def revoke_connection_token(self, token_id: str) -> Any:
         """Revoke one Fleet Agent Auth connection token."""
 
-        return self.request_json("DELETE", f"/v1/fleet/auth-tokens/{token_id}")
+        return self.request_json("DELETE", f"/v1/fleet/auth-tokens/{_path_id(token_id)}")
 
     def create_annotation_queue(
         self,
@@ -2313,19 +2313,19 @@ class LangSmithAPIClient:
     def get_annotation_queue(self, queue_id: str) -> Any:
         """Fetch one annotation queue."""
 
-        return self.request_json("GET", f"/api/v1/annotation-queues/{queue_id}")
+        return self.request_json("GET", f"/api/v1/annotation-queues/{_path_id(queue_id)}")
 
     def update_annotation_queue(self, queue_id: str, *, body: Mapping[str, Any]) -> Any:
         """Update annotation queue metadata and rubric."""
 
         return self.request_json(
-            "PATCH", f"/api/v1/annotation-queues/{queue_id}", body=dict(body)
+            "PATCH", f"/api/v1/annotation-queues/{_path_id(queue_id)}", body=dict(body)
         )
 
     def delete_annotation_queue(self, queue_id: str) -> Any:
         """Delete one annotation queue."""
 
-        return self.request_json("DELETE", f"/api/v1/annotation-queues/{queue_id}")
+        return self.request_json("DELETE", f"/api/v1/annotation-queues/{_path_id(queue_id)}")
 
     def add_runs_to_annotation_queue(
         self,
@@ -2339,9 +2339,9 @@ class LangSmithAPIClient:
         if (run_ids is None) == (runs is None):
             raise ValueError("Provide exactly one of run_ids or runs.")
         path = (
-            f"/api/v1/annotation-queues/{queue_id}/runs"
+            f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs"
             if run_ids is not None
-            else f"/api/v1/annotation-queues/{queue_id}/runs/by-key"
+            else f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs/by-key"
         )
         payload: Any = list(run_ids) if run_ids is not None else [dict(run) for run in runs or []]
         return self.request_json("POST", path, body=payload)
@@ -2352,19 +2352,19 @@ class LangSmithAPIClient:
         """List runs assigned to an annotation queue."""
 
         return self.request_json(
-            "GET", f"/api/v1/annotation-queues/{queue_id}/runs", query=query
+            "GET", f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs", query=query
         )
 
     def get_annotation_queue_run(self, queue_id: str, index: int) -> Any:
         """Fetch a queue run by its review index."""
 
-        return self.request_json("GET", f"/api/v1/annotation-queues/{queue_id}/run/{index}")
+        return self.request_json("GET", f"/api/v1/annotation-queues/{_path_id(queue_id)}/run/{index}")
 
     def remove_run_from_annotation_queue(self, queue_id: str, run_id: str) -> Any:
         """Remove one run from an annotation queue."""
 
         return self.request_json(
-            "DELETE", f"/api/v1/annotation-queues/{queue_id}/runs/{run_id}"
+            "DELETE", f"/api/v1/annotation-queues/{_path_id(queue_id)}/runs/{_path_id(run_id)}"
         )
 
     def create_tool(self, *, body: Mapping[str, Any]) -> Any:
@@ -3076,6 +3076,14 @@ class LangSmithControlPlaneClient(LangSmithAPIClient):
             headers=request_headers,
             stream=stream,
         )
+
+
+def _path_id(value: str) -> str:
+    """Encode one hosted identifier as a path segment, never a nested path."""
+
+    if not isinstance(value, str) or not value or value in (".", ".."):
+        raise ValueError("LangSmith resource identifier must be a non-empty path segment.")
+    return quote(value, safe="")
 
 
 def _default_transport(

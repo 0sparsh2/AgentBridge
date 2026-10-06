@@ -134,6 +134,11 @@
       "test": "plugins/agentbridge-langchain/tests/test_langfuse_governance.py"
     },
     {
+      "name": "langsmith_governance_identifier_safety",
+      "surfaces": ["Agent Auth connection paths", "Fleet token lifecycle", "annotation queue runs", "identifier escaping", "invalid identifier rejection", "sync/async parity", "offline example"],
+      "test": "plugins/agentbridge-langchain/tests/test_langsmith_api.py::test_langsmith_governance_security_example_preserves_sync_async_paths"
+    },
+    {
       "name": "native_options_escape_hatch",
       "surfaces": ["guarded create_agent option pass-through"],
       "test": "plugins/agentbridge-langchain/tests/test_native_conformance.py::test_langchain_native_conformance_report_passes_offline"
