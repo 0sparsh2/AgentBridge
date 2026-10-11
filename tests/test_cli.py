@@ -262,6 +262,14 @@ def test_cli_coverage_report_markdown(capsys) -> None:
     assert "`workflow.graph`" in output
 
 
+def test_cli_framework_report_json(capsys) -> None:
+    assert main(["framework-report", "--json"]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["framework_statuses"]["verified"] >= 1
+    assert any(item["id"] == "langchain" for item in payload["frameworks"])
+
+
 def test_cli_conformance_json(capsys) -> None:
     assert main(["conformance", "--backend", "mock", "--json"]) == 0
 

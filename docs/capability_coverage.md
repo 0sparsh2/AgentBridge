@@ -72,6 +72,24 @@ agentbridge capability-matrix --include-unknown --markdown
 
 Then decide whether the feature belongs in the common taxonomy, a backend extension namespace, or native-only documentation.
 
+## Framework Manifests
+
+The versioned files in the
+[`frameworks/` directory](https://github.com/0sparsh2/agent-framework-connector/tree/main/frameworks)
+make this strategy scalable
+across many runtimes. Each framework declares its adopted package range, upstream
+sources, verification lanes, capability outcomes, native escape hatches, and the
+next highest-value implementation slice. Generate the published contract with:
+
+```bash
+python scripts/build_framework_support.py
+agentbridge framework-report --markdown
+```
+
+CI runs the generator in `--check` mode. A framework addition is therefore one
+validated manifest plus adapter metadata and tests, rather than a collection of
+hand-maintained tables. The generated result is [Framework Support](framework_support.md).
+
 ## Coverage Report Command
 
 Use the detailed coverage report when reviewing a framework adapter, plugin PR, or migration target:

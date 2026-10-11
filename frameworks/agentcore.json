@@ -1,0 +1,26 @@
+{
+  "id": "agentcore",
+  "display_name": "Amazon Bedrock AgentCore",
+  "package": "agentbridge-agentcore",
+  "adopted_range": ">=0.1,<1",
+  "plugin": "plugins/agentbridge-agentcore",
+  "status": "partial",
+  "documentation_url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html",
+  "upstream_sources": [
+    {"label": "AgentCore documentation", "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.model": "extension",
+    "tools.mcp": "extension",
+    "state.session": "extension",
+    "state.memory": "extension",
+    "streaming.events": "extension",
+    "observability.tracing": "extension",
+    "observability.diagnostics": "extension",
+    "deployment.serverless": "extension",
+    "agui.events": "extension"
+  },
+  "native_escape_hatches": ["runtime client", "memory", "gateway", "identity", "native AWS operations"],
+  "next_slice": "Add IAM-aware runtime, Memory, Gateway, and deployment smoke tests."
+}

@@ -1,0 +1,31 @@
+{
+  "id": "langchain",
+  "display_name": "LangChain",
+  "package": "langchain",
+  "adopted_range": ">=1.4,<2",
+  "plugin": "plugins/agentbridge-langchain",
+  "status": "partial",
+  "documentation_url": "https://docs.langchain.com/oss/python/langchain/overview",
+  "upstream_sources": [
+    {"label": "LangChain documentation", "url": "https://docs.langchain.com/oss/python/langchain/overview"},
+    {"label": "LangChain docs index", "url": "https://docs.langchain.com/llms.txt"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "full",
+    "agent.model": "extension",
+    "tools.sync": "full",
+    "tools.async": "extension",
+    "tools.mcp": "extension",
+    "structured_output": "extension",
+    "workflow.graph": "native_only",
+    "state.session": "extension",
+    "state.memory": "extension",
+    "streaming.events": "extension",
+    "human_approval": "extension",
+    "observability.tracing": "extension",
+    "evals": "extension"
+  },
+  "native_escape_hatches": ["native_options", "native model", "middleware", "callbacks"],
+  "next_slice": "Graduate high-value hosted deployment, provider, and observability paths with credentialed tests."
+}

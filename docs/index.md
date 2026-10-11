@@ -15,6 +15,7 @@ Use this page as the navigation map for the repository.
 - [Research](research.md): Comparison of AG-UI, LiteLLM, CrewAI, LangGraph, and Pydantic AI.
 - [Adapter Target Research](adapter_target_research.md): Next adapter targets including OpenAI Agents SDK, Strands, direct LangChain, and Google ADK.
 - [Capability Coverage](capability_coverage.md): Long-term strategy for covering framework nuance without flattening everything into a weak abstraction.
+- [Framework Support](framework_support.md): Generated manifest-backed contract for every adopted framework, its verification lanes, and its next implementation slice.
 - [Scenario Reports](scenario_reports.md): Target format for deep framework-nuance examples, migration comparisons, outputs, and model-provider routing.
 - [Model Routing](model_routing.md): How AgentBridge records hosted, local, OpenAI-compatible, and offline model routes without becoming a model gateway.
 - [Version Policy](version_policy.md): Adopted package ranges, verified local versions, and adapter version rules.

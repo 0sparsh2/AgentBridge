@@ -1,0 +1,26 @@
+{
+  "id": "deepagents",
+  "display_name": "LangChain Deep Agents",
+  "package": "deepagents",
+  "adopted_range": ">=0.7,<1",
+  "plugin": "plugins/agentbridge-deepagents",
+  "status": "partial",
+  "documentation_url": "https://docs.langchain.com/oss/python/deepagents/overview",
+  "upstream_sources": [
+    {"label": "Deep Agents documentation", "url": "https://docs.langchain.com/oss/python/deepagents/overview"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "full",
+    "agent.model": "extension",
+    "tools.sync": "extension",
+    "structured_output": "extension",
+    "workflow.handoffs": "extension",
+    "state.checkpointing": "extension",
+    "state.memory": "extension",
+    "human_approval": "extension",
+    "deployment.serverless": "native_only"
+  },
+  "native_escape_hatches": ["sandbox", "filesystem backend", "subagents", "skills"],
+  "next_slice": "Add credentialed sandbox and hosted deployment execution lanes."
+}

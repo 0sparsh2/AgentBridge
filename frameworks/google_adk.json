@@ -1,0 +1,27 @@
+{
+  "id": "google_adk",
+  "display_name": "Google ADK",
+  "package": "google-adk",
+  "adopted_range": ">=2.9,<3",
+  "plugin": "plugins/agentbridge-google-adk",
+  "status": "partial",
+  "documentation_url": "https://google.github.io/adk-docs/",
+  "upstream_sources": [
+    {"label": "Google ADK documentation", "url": "https://google.github.io/adk-docs/"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "full",
+    "agent.model": "extension",
+    "tools.sync": "full",
+    "structured_output": "extension",
+    "workflow.handoffs": "extension",
+    "state.session": "extension",
+    "state.memory": "extension",
+    "streaming.events": "extension",
+    "evals": "extension",
+    "deployment.serverless": "extension"
+  },
+  "native_escape_hatches": ["Agent", "Runner", "session service", "artifact service", "deployment metadata"],
+  "next_slice": "Run credentialed eval and deployment publishing conformance in an isolated telemetry environment."
+}

@@ -50,6 +50,7 @@ nav:
       - Research: research.md
       - Adapter Target Research: adapter_target_research.md
       - Capability Coverage: capability_coverage.md
+      - Framework Support: framework_support.md
       - Scenario Reports: scenario_reports.md
       - Evaluation: evaluation.md
       - Observability: observability.md

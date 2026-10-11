@@ -223,6 +223,7 @@ agentbridge conformance --backend mock --json
 agentbridge conformance --all
 agentbridge extensions --json
 agentbridge versions --json
+agentbridge framework-report --markdown
 agentbridge plugins --json
 agentbridge scaffold-plugin plugins/agentbridge-google-adk --backend google_adk
 agentbridge extensions strands --json
@@ -317,6 +318,7 @@ agentbridge conformance --backend custom
 - [docs/design.md](docs/design.md): Design decisions, tradeoffs, and extension principles.
 - [docs/adapters.md](docs/adapters.md): Adapter support matrix and framework-specific notes.
 - [docs/capability_coverage.md](docs/capability_coverage.md): Long-term feature coverage strategy.
+- [docs/framework_support.md](docs/framework_support.md): Generated framework manifests, verification lanes, and next implementation slices.
 - [docs/scenario_reports.md](docs/scenario_reports.md): Deep framework-nuance reports, migration comparisons, normalized outputs, and model routing targets.
 - [docs/model_routing.md](docs/model_routing.md): Hosted, local, OpenAI-compatible, and offline model route policy.
 - [docs/conformance.md](docs/conformance.md): Adapter contract checks and offline plugin model rules.

@@ -1,0 +1,30 @@
+{
+  "id": "langgraph",
+  "display_name": "LangGraph",
+  "package": "langgraph",
+  "adopted_range": ">=1.2.11,<2",
+  "plugin": "agentbridge.adapters.langgraph",
+  "status": "verified",
+  "documentation_url": "https://docs.langchain.com/oss/python/langgraph/overview",
+  "upstream_sources": [
+    {"label": "LangGraph documentation", "url": "https://docs.langchain.com/oss/python/langgraph/overview"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "partial",
+    "agent.model": "extension",
+    "tools.sync": "full",
+    "tools.async": "full",
+    "structured_output": "full",
+    "workflow.graph": "full",
+    "workflow.routing": "extension",
+    "state.session": "extension",
+    "state.checkpointing": "extension",
+    "streaming.events": "full",
+    "human_approval": "extension",
+    "observability.tracing": "extension",
+    "observability.diagnostics": "full"
+  },
+  "native_escape_hatches": ["native_graph", "native_options", "runtime_config"],
+  "next_slice": "Credentialed remote graph, deployment, and hosted runtime conformance."
+}

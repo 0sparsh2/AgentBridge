@@ -12,6 +12,7 @@ from agentbridge.capabilities import capability_matrix, coverage_report
 from agentbridge.conformance import run_conformance
 from agentbridge.compare import compare_backends
 from agentbridge.extensions import extension_profile, extension_profiles
+from agentbridge.frameworks import framework_support_report
 from agentbridge.manifest import load_agent_spec, load_manifest
 from agentbridge.plugins import plugin_status
 from agentbridge.registry import adapter_sources, inspect_backend, inspect_backends, list_adapters
@@ -114,6 +115,14 @@ def main(argv: list[str] | None = None) -> int:
     coverage_format = coverage_parser.add_mutually_exclusive_group()
     coverage_format.add_argument("--json", action="store_true", help="Emit JSON.")
     coverage_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
+
+    framework_parser = subparsers.add_parser(
+        "framework-report",
+        help="Show declared framework support, verification lanes, and next implementation slices.",
+    )
+    framework_format = framework_parser.add_mutually_exclusive_group()
+    framework_format.add_argument("--json", action="store_true", help="Emit JSON.")
+    framework_format.add_argument("--markdown", action="store_true", help="Emit Markdown.")
 
     conformance_parser = subparsers.add_parser(
         "conformance",
@@ -269,6 +278,16 @@ def main(argv: list[str] | None = None) -> int:
                 print(report.as_markdown())
             else:
                 _print_coverage_report(report.model_dump())
+            return 0
+
+        if args.command == "framework-report":
+            report = framework_support_report()
+            if args.json:
+                print(report.model_dump_json(indent=2))
+            elif args.markdown:
+                print(report.as_markdown())
+            else:
+                _print_framework_report(report.model_dump())
             return 0
 
         if args.command == "conformance":
@@ -433,6 +452,23 @@ def _print_coverage_report(payload: dict[str, Any]) -> None:
             print(f"  {feature}: {status}{suffix}")
         if report.get("native_only"):
             print(f"  native_only: {', '.join(report['native_only'])}")
+
+
+def _print_framework_report(payload: dict[str, Any]) -> None:
+    print("framework support")
+    status_summary = ", ".join(
+        f"{status}={count}" for status, count in sorted(payload["framework_statuses"].items())
+    )
+    print(f"  summary: {status_summary}")
+    for framework in payload["frameworks"]:
+        package = framework.get("package") or "no package"
+        adopted_range = framework.get("adopted_range") or "-"
+        lanes = ", ".join(framework["verification_lanes"]) or "none"
+        print(
+            f"  {framework['id']}: {framework['status']} "
+            f"({package} {adopted_range}; lanes: {lanes})"
+        )
+        print(f"    next: {framework['next_slice']}")
 
 
 def _print_conformance(payload: list[dict[str, Any]]) -> None:

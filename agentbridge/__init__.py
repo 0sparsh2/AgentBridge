@@ -22,6 +22,13 @@ from agentbridge.evaluation import (
     evaluate_agent,
 )
 from agentbridge.extensions import ExtensionProfile, extension_profile, extension_profiles
+from agentbridge.frameworks import (
+    FrameworkManifest,
+    FrameworkSupportReport,
+    UpstreamSource,
+    framework_support_report,
+    load_framework_manifests,
+)
 from agentbridge.manifest import AgentManifest, load_agent_spec, load_manifest
 from agentbridge.migration import (
     MigrationFinding,
@@ -89,6 +96,8 @@ __all__ = [
     "EvaluationReport",
     "EvaluationScore",
     "ExtensionProfile",
+    "FrameworkManifest",
+    "FrameworkSupportReport",
     "ManifestValidation",
     "MigrationFinding",
     "MigrationReport",
@@ -96,6 +105,7 @@ __all__ = [
     "RunResult",
     "ToolRegistry",
     "ToolSpec",
+    "UpstreamSource",
     "adapter_sources",
     "abatch_agent",
     "arun_agent",
@@ -111,6 +121,7 @@ __all__ = [
     "evaluate_agent",
     "extension_profile",
     "extension_profiles",
+    "framework_support_report",
     "get_adapter",
     "inspect_backend",
     "inspect_backends",
@@ -118,6 +129,7 @@ __all__ = [
     "import_langgraph_graph",
     "load_agent_spec",
     "load_manifest",
+    "load_framework_manifests",
     "load_tool_registry",
     "load_adapter_plugins",
     "get_tool",

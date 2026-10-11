@@ -1,0 +1,25 @@
+{
+  "id": "crewai",
+  "display_name": "CrewAI",
+  "package": "crewai",
+  "adopted_range": ">=0.11.2,<0.12",
+  "plugin": "plugins/agentbridge-crewai",
+  "status": "blocked",
+  "documentation_url": "https://docs.crewai.com/",
+  "upstream_sources": [
+    {"label": "CrewAI documentation", "url": "https://docs.crewai.com/"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "extension",
+    "agent.model": "extension",
+    "tools.sync": "extension",
+    "workflow.roles_tasks": "extension",
+    "workflow.delegation": "extension",
+    "state.memory": "extension",
+    "human_approval": "extension",
+    "observability.raw": "extension"
+  },
+  "native_escape_hatches": ["crew", "task", "process", "native agent options"],
+  "next_slice": "Verify the existing plugin in an isolated Python and dependency environment."
+}

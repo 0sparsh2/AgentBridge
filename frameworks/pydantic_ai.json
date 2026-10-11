@@ -1,0 +1,28 @@
+{
+  "id": "pydantic_ai",
+  "display_name": "Pydantic AI",
+  "package": "pydantic-ai-slim",
+  "adopted_range": ">=2.42,<3",
+  "plugin": "agentbridge.adapters.pydantic_ai",
+  "status": "verified",
+  "documentation_url": "https://ai.pydantic.dev/",
+  "upstream_sources": [
+    {"label": "Pydantic AI documentation", "url": "https://ai.pydantic.dev/"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "full",
+    "agent.model": "full",
+    "tools.sync": "full",
+    "tools.async": "extension",
+    "structured_output": "full",
+    "structured_output.validation_retries": "extension",
+    "state.session": "partial",
+    "streaming.events": "full",
+    "runtime.retries": "extension",
+    "observability.raw": "full",
+    "observability.diagnostics": "full"
+  },
+  "native_escape_hatches": ["agent_options", "model_settings", "deps"],
+  "next_slice": "Expand durable execution, provider smoke tests, and native evaluation integration."
+}

@@ -13,6 +13,7 @@ The weekly `Upstream Compatibility` workflow performs these checks:
 - Installs each external adapter in an isolated job and runs its plugin contract tests.
 - Follows LangChain's official recursive documentation indexes and detects page additions or removals.
 - Compares the ten adopted Langfuse list/pagination contracts with the published OpenAPI schema.
+- Validates that the generated framework-support page remains synchronized with the versioned framework manifests.
 
 If an upstream release leaves the adopted range, the scheduled check fails and uploads a version
 report. That failure is a compatibility-review signal, not proof that the new release is broken.
@@ -21,6 +22,7 @@ Run the same version check locally:
 
 ```bash
 python scripts/check_upstream_versions.py --fail-on-drift
+python scripts/build_framework_support.py --check
 ```
 
 ## Langfuse API Contract Drift

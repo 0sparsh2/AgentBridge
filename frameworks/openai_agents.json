@@ -1,0 +1,27 @@
+{
+  "id": "openai_agents",
+  "display_name": "OpenAI Agents SDK",
+  "package": "openai-agents",
+  "adopted_range": ">=0.20,<0.21",
+  "plugin": "plugins/agentbridge-openai-agents",
+  "status": "partial",
+  "documentation_url": "https://openai.github.io/openai-agents-python/",
+  "upstream_sources": [
+    {"label": "OpenAI Agents SDK documentation", "url": "https://openai.github.io/openai-agents-python/"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "full",
+    "agent.model": "extension",
+    "tools.sync": "full",
+    "tools.mcp": "extension",
+    "structured_output": "extension",
+    "workflow.handoffs": "extension",
+    "streaming.events": "partial",
+    "guardrails": "extension",
+    "human_approval": "extension",
+    "observability.tracing": "extension"
+  },
+  "native_escape_hatches": ["Agent", "Runner", "handoffs", "guardrails", "MCP servers"],
+  "next_slice": "Resolve the OpenAI dependency-major conflict and verify native resume execution."
+}

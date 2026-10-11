@@ -1,0 +1,28 @@
+{
+  "id": "strands",
+  "display_name": "Strands Agents",
+  "package": "strands-agents",
+  "adopted_range": ">=1.55,<2",
+  "plugin": "plugins/agentbridge-strands",
+  "status": "partial",
+  "documentation_url": "https://strandsagents.com/latest/",
+  "upstream_sources": [
+    {"label": "Strands documentation", "url": "https://strandsagents.com/latest/"}
+  ],
+  "verification_lanes": ["offline", "optional_dependency", "credentialed"],
+  "capabilities": {
+    "agent.instructions": "full",
+    "agent.model": "extension",
+    "tools.sync": "full",
+    "tools.mcp": "extension",
+    "structured_output": "extension",
+    "state.session": "extension",
+    "state.memory": "extension",
+    "streaming.events": "extension",
+    "guardrails": "extension",
+    "observability.tracing": "extension",
+    "deployment.serverless": "extension"
+  },
+  "native_escape_hatches": ["Agent options", "MCP client", "hooks", "interventions", "AgentCore metadata"],
+  "next_slice": "Add credentialed AWS and AgentCore deployment conformance."
+}
