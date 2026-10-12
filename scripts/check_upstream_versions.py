@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -13,11 +13,10 @@ from urllib.request import urlopen
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
+from agentbridge.frameworks import FrameworkManifest, load_framework_manifests
 from agentbridge.versioning import ADOPTED_DEPENDENCIES
 
-UPSTREAM_PACKAGE_NAMES = {
-    "crewai": "crewai",
-}
+CORE_DEPENDENCY_NAMES = frozenset({"pydantic", "litellm"})
 
 
 def _latest_version(package: str) -> str:
@@ -26,17 +25,48 @@ def _latest_version(package: str) -> str:
     return str(payload["info"]["version"])
 
 
-def check_versions() -> list[dict[str, str | bool]]:
+def _version_targets(manifests: Iterable[FrameworkManifest]) -> list[dict[str, str]]:
+    """Return core and manifest-derived PyPI version targets exactly once."""
+
+    targets = [
+        {
+            "backend": name,
+            "package": str(dependency["package"]),
+            "adopted_range": str(dependency["range"]),
+        }
+        for name, dependency in ADOPTED_DEPENDENCIES.items()
+        if name in CORE_DEPENDENCY_NAMES
+    ]
+    targets.extend(
+        {
+            "backend": manifest.id,
+            "package": manifest.package or "",
+            "adopted_range": manifest.adopted_range or "",
+        }
+        for manifest in manifests
+        if manifest.monitor_pypi
+    )
+    return sorted(targets, key=lambda target: target["backend"])
+
+
+def check_versions(
+    *,
+    manifests: Iterable[FrameworkManifest] | None = None,
+    latest_version: Callable[[str], str] = _latest_version,
+) -> list[dict[str, str | bool]]:
+    """Check core and manifest-backed packages against their adopted ranges."""
+
+    selected_manifests = list(manifests) if manifests is not None else load_framework_manifests()
     results: list[dict[str, str | bool]] = []
-    for name, dependency in ADOPTED_DEPENDENCIES.items():
-        package = UPSTREAM_PACKAGE_NAMES.get(name, str(dependency["package"]))
-        adopted_range = str(dependency["range"])
+    for target in _version_targets(selected_manifests):
+        package = target["package"]
+        adopted_range = target["adopted_range"]
         try:
-            latest = _latest_version(package)
+            latest = latest_version(package)
             in_range = Version(latest) in SpecifierSet(adopted_range)
             results.append(
                 {
-                    "backend": name,
+                    "backend": target["backend"],
                     "package": package,
                     "adopted_range": adopted_range,
                     "latest": latest,
@@ -46,7 +76,7 @@ def check_versions() -> list[dict[str, str | bool]]:
         except (KeyError, TypeError, ValueError, URLError, TimeoutError) as exc:
             results.append(
                 {
-                    "backend": name,
+                    "backend": target["backend"],
                     "package": package,
                     "adopted_range": adopted_range,
                     "latest": "unavailable",

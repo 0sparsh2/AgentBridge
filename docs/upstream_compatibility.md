@@ -8,7 +8,7 @@ exact verified version, the feature inventory, and the adapter tests must move t
 
 The weekly `Upstream Compatibility` workflow performs these checks:
 
-- Queries PyPI for the latest release of every adopted framework package.
+- Queries PyPI for core dependencies plus every manifest-backed framework package that opts into PyPI monitoring.
 - Runs core AgentBridge tests and conformance checks on supported Python versions.
 - Installs each external adapter in an isolated job and runs its plugin contract tests.
 - Follows LangChain's official recursive documentation indexes and detects page additions or removals.

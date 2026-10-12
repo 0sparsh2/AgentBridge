@@ -3,6 +3,7 @@
   "display_name": "Amazon Bedrock AgentCore",
   "package": "agentbridge-agentcore",
   "adopted_range": ">=0.1,<1",
+  "monitor_pypi": false,
   "plugin": "plugins/agentbridge-agentcore",
   "status": "partial",
   "documentation_url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html",

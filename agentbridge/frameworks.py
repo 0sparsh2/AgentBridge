@@ -42,6 +42,7 @@ class FrameworkManifest(BaseModel):
     display_name: str
     package: str | None = None
     adopted_range: str | None = None
+    monitor_pypi: bool = True
     plugin: str | None = None
     status: str
     documentation_url: str
@@ -57,6 +58,8 @@ class FrameworkManifest(BaseModel):
             raise ValueError(f"status must be one of {sorted(FRAMEWORK_STATUSES)}")
         if (self.package is None) != (self.adopted_range is None):
             raise ValueError("package and adopted_range must either both be set or both be omitted")
+        if self.monitor_pypi and self.package is None:
+            raise ValueError("monitor_pypi requires package and adopted_range")
         unknown_lanes = sorted(set(self.verification_lanes) - VERIFICATION_LANES)
         if unknown_lanes:
             raise ValueError(f"unknown verification lane(s): {', '.join(unknown_lanes)}")

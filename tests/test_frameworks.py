@@ -32,6 +32,7 @@ def test_framework_manifest_rejects_unknown_capability(tmp_path) -> None:
             {
                 "id": "invalid",
                 "display_name": "Invalid",
+                "monitor_pypi": False,
                 "status": "planned",
                 "documentation_url": "https://example.test/docs",
                 "capabilities": {"unknown.capability": "full"},
